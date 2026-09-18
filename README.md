@@ -1,0 +1,1 @@
+Django como framework y postgresSQL (Supabase o algún servicio similar) como Back.
