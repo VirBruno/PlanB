@@ -1,34 +1,50 @@
-{% extends 'base.html' %}
+{% extends 'components/authenticated_base.html' %}
 {% block title %}Mi espacio · Plan B{% endblock %}
-{% block body %}
-<header class="dashboard-header">
-  <div class="dashboard-header-inner">
-    {% include 'components/brand.html' %}
-    <nav aria-label="Navegación principal"><a class="nav-active" href="{% url 'users:dashboard' %}" aria-current="page">Mi espacio</a></nav>
-    <form method="post" action="{% url 'users:logout' %}">
-      {% csrf_token %}
-      <button class="button button--quiet" type="submit">Cerrar sesión <span aria-hidden="true">↗</span></button>
-    </form>
+{% block workspace %}
+<section class="dashboard-welcome" aria-labelledby="welcome-title">
+  <div>
+    <p class="eyebrow eyebrow--blue">ESTE ES TU ESPACIO</p>
+    <h1 id="welcome-title">Hola, <span>{{ planb_user.username }}</span><span class="hello-dot" aria-hidden="true">.</span></h1>
+    <p>Qué bueno tenerte en Plan B.</p>
   </div>
-</header>
-<main class="dashboard-main" id="contenido">
-  {% include 'components/messages.html' %}
-  <section class="dashboard-welcome" aria-labelledby="welcome-title">
-    <div>
-      <p class="eyebrow eyebrow--blue">ESTE ES TU ESPACIO</p>
-      <h1 id="welcome-title">Hola, <span>{{ planb_user.username }}</span><span class="hello-dot" aria-hidden="true">.</span></h1>
-      <p>Qué bueno tenerte en Plan B.</p>
+  <div class="welcome-stamp" aria-hidden="true">B<span>✦</span></div>
+</section>
+<section class="groups-section" aria-labelledby="groups-title">
+  <div class="section-heading">
+    <h2 id="groups-title">Mis grupos</h2><span class="section-line" aria-hidden="true"></span>
+    <a class="button button--primary" href="{% url 'groups:create' %}">Crear grupo <span aria-hidden="true">+</span></a>
+  </div>
+  {% if groups_unavailable %}
+    <div class="notice notice--error" role="alert">
+      <p>No pudimos cargar tus grupos. Esperá unos minutos y volvé a intentar.</p>
+      <p><a href="{% url 'users:dashboard' %}">Volver a intentar</a></p>
     </div>
-    <div class="welcome-stamp" aria-hidden="true">B<span>✦</span></div>
-  </section>
-  <section class="groups-section" aria-labelledby="groups-title">
-    <div class="section-heading"><h2 id="groups-title">Mis grupos</h2><span class="section-line" aria-hidden="true"></span></div>
+  {% elif groups_page.items %}
+    <ul class="group-grid">
+      {% for group in groups_page.items %}
+      <li class="group-card">
+        <h3><a href="{% url 'groups:detail' group.id %}">{{ group.name }}</a></h3>
+        {% if group.description %}<p>{{ group.description|truncatechars:160 }}</p>{% else %}<p>Un espacio para compartir nuevos planes.</p>{% endif %}
+        <span class="group-date">Creado el {{ group.created_at|date:"d/m/Y" }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+  {% elif groups_page.page > 1 %}
+    <div class="empty-state"><h3>No hay más grupos en esta página.</h3><p><a href="{% url 'users:dashboard' %}">Volver a la primera página</a></p></div>
+  {% else %}
     <div class="empty-state">
       <div class="empty-illustration" aria-hidden="true"><span></span><span></span><span></span><i>✦</i></div>
       <h3>Todavía no participás de ningún grupo.</h3>
-      <p>Acá vas a encontrar tus grupos cuando formes parte de uno.</p>
+      <p>Dale un nombre a tu próximo plan compartido.</p>
+      <a class="button button--primary empty-action" href="{% url 'groups:create' %}">Crear mi primer grupo</a>
     </div>
-  </section>
-</main>
-<footer class="dashboard-footer"><span>Siempre hay un Plan B.</span><span>Hecho para encontrarnos</span></footer>
+  {% endif %}
+  {% if groups_page.previous_page or groups_page.next_page %}
+  <nav class="group-pagination" aria-label="Páginas de grupos">
+    {% if groups_page.previous_page %}<a class="button button--quiet" href="?page={{ groups_page.previous_page }}">← Anterior</a>{% endif %}
+    <span>Página {{ groups_page.page }}</span>
+    {% if groups_page.next_page %}<a class="button button--quiet" href="?page={{ groups_page.next_page }}">Siguiente →</a>{% endif %}
+  </nav>
+  {% endif %}
+</section>
 {% endblock %}

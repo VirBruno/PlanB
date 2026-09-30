@@ -1,4 +1,5 @@
 {% extends 'users/auth_base.html' %}
+{% block layout_class %}auth-layout--compact{% endblock %}
 {% block title %}Crear una cuenta · Plan B{% endblock %}
 {% block top_link %}¿Ya tenés una cuenta? <a href="{% url 'users:login' %}">Iniciá sesión <span aria-hidden="true">↗</span></a>{% endblock %}
 {% block auth_content %}

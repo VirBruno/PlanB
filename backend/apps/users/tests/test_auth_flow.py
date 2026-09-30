@@ -14,6 +14,9 @@ from apps.users.services.types import AuthSession
 
 class AuthenticationFlowTests(TestCase):
     def setUp(self):
+        groups = patch("apps.users.views.group_service.list_groups", return_value={"items": [], "page": 1})
+        groups.start()
+        self.addCleanup(groups.stop)
         self.client = Client(enforce_csrf_checks=True)
         self.tokens = AuthSession(
             access_token="integration-access", refresh_token="integration-refresh",

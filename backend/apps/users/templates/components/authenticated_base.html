@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block body %}
+<header class="dashboard-header">
+  <div class="dashboard-header-inner">
+    {% include 'components/brand.html' %}
+    <nav aria-label="Navegación principal"><a class="nav-active" href="{% url 'users:dashboard' %}" {% if request.resolver_match.url_name == "dashboard" %}aria-current="page"{% endif %}>Mi espacio</a></nav>
+    <form method="post" action="{% url 'users:logout' %}">
+      {% csrf_token %}
+      <button class="button button--quiet" type="submit">Cerrar sesión <span aria-hidden="true">↗</span></button>
+    </form>
+  </div>
+</header>
+<main class="dashboard-main" id="contenido">
+  {% include 'components/messages.html' %}
+  {% block workspace %}{% endblock %}
+</main>
+<footer class="dashboard-footer"><span>Siempre hay un Plan B.</span><span>Hecho para encontrarnos</span></footer>
+{% endblock %}

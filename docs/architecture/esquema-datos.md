@@ -171,3 +171,30 @@ Las migraciones Django usan tipos portables y nombres simples. No contienen
 migraciones técnicas; la infraestructura SQL de Supabase está fuera de ese
 grafo y no se ejecuta en SQLite. Esta separación prueba los flujos offline sin
 presentarlos como prueba de los permisos o bloqueos del proveedor.
+
+## Grupos y membresías
+
+La tercera migración, `202609300001_groups.sql`, crea:
+
+| Tabla | Campos |
+| --- | --- |
+| `public.groups` | UUID PK, name (1–100), description opcional (hasta 1.000), created_by FK a profiles, created_at, updated_at. |
+| `public.group_members` | PK (group_id, user_id), FKs a groups/profiles, role (owner/member), joined_at. |
+
+El creador usa ON DELETE RESTRICT; las membresías usan CASCADE al eliminar
+grupo o perfil. Un índice parcial limita a un owner; la RPC garantiza su alta.
+Un índice por user_id/group_id soporta pertenencias y otro por created_at/id
+la paginación estable. updated_at tiene trigger propio.
+
+RLS permite leer membresías propias y grupos con una membresía propia.
+No hay dependencia circular entre políticas. authenticated tiene SELECT y
+EXECUTE en create_group; no INSERT/UPDATE/DELETE. anon, service_role y runtime
+carecen de permisos sobre los nuevos objetos.
+
+create_group recibe sólo nombre y descripción. Es SECURITY DEFINER,
+search_path vacío y referencias cualificadas; toma identidad de auth.uid().
+Inserta ambas filas en la transacción de la RPC y devuelve el UUID. No utiliza
+el rol runtime ni la secret key. La función no se reintenta automáticamente.
+
+No hay migraciones Django de dominio ni SQL de grupos ejecutado en SQLite.
+Ver [validación y pasos manuales](../testing/grupos.md).

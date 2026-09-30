@@ -37,7 +37,7 @@ def establish_session(request, auth_session):
     rotate_token(request)
 
 
-def _clear(request):
+def invalidate_session(request):
     request.session.flush()  # El borrado ORM de Session elimina su fila técnica.
     rotate_token(request)
 
@@ -65,8 +65,17 @@ def _active_token(request):
             return stored.access_token
     except AuthError:
         # Una renovación fallida siempre invalida la sesión local.
-        _clear(request)
+        invalidate_session(request)
         return None
+
+
+@sensitive_variables()
+def get_access_token(request):
+    """Token vigente exclusivamente para servicios del servidor."""
+    token = _active_token(request)
+    if token is None:
+        raise SessionExpired()
+    return token
 
 
 @sensitive_variables()
@@ -79,7 +88,7 @@ def current_user(request):
         profile = profile_service.get_profile(access_token, user_id)
         return {"id": profile["id"], "username": profile["username"]}
     except (InvalidCredentials, SessionExpired):
-        _clear(request)
+        invalidate_session(request)
         return None
 
 
@@ -107,4 +116,4 @@ def logout(request):
                     stored.delete()
     finally:
         # Incluso si Supabase falla, no queda una sesión utilizable en Django.
-        _clear(request)
+        invalidate_session(request)

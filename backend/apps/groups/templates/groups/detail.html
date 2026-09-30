@@ -1,0 +1,22 @@
+{% extends 'components/authenticated_base.html' %}
+{% block title %}{% if group %}{{ group.name }}{% else %}Tu grupo{% endif %} · Plan B{% endblock %}
+{% block workspace %}
+<a class="back-link" href="{% url 'users:dashboard' %}">← Mis grupos</a>
+{% if unavailable %}
+<section class="group-panel" aria-labelledby="group-title">
+  <h1 id="group-title">No pudimos cargar el grupo.</h1>
+  <p class="panel-description">Esperá unos minutos y volvé a intentar.</p>
+  <a class="button button--primary" href="{{ request.path }}">Volver a intentar</a>
+</section>
+{% else %}
+<section class="group-panel" aria-labelledby="group-title">
+  <p class="eyebrow eyebrow--blue">TU GRUPO EN PLAN B</p>
+  <h1 id="group-title">{{ group.name }}</h1>
+  {% if group.description %}<p class="group-description">{{ group.description }}</p>{% else %}<p class="panel-description">Este grupo todavía no tiene descripción.</p>{% endif %}
+  <dl class="group-meta">
+    <div><dt>Tu rol</dt><dd>{{ group.role_label }}</dd></div>
+    <div><dt>Creado el</dt><dd>{{ group.created_at|date:"d/m/Y" }}</dd></div>
+  </dl>
+</section>
+{% endif %}
+{% endblock %}

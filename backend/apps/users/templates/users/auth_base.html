@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block body %}
-<div class="auth-layout">
+<div class="auth-layout {% block layout_class %}{% endblock %}">
   <aside class="auth-story" aria-label="Bienvenidos a Plan B">
     {% include 'components/brand.html' %}
     <div class="story-content">

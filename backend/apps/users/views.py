@@ -2,18 +2,18 @@
 
 import re
 import time
-from functools import wraps
 from urllib.parse import unquote
 
 from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
 from django.views.decorators.http import require_http_methods, require_POST
 
-from .decorators import supabase_login_required
+from .decorators import private_page, supabase_login_required
+from apps.groups.services import group_service
+from apps.groups.services.exceptions import GroupUnavailable, InvalidGroup
 from .forms import LoginForm, RegisterForm
 from .services import auth_service, session_service
 from .services.exceptions import (
@@ -31,16 +31,6 @@ CONFIRMATION_TTL = 600
 HASH_FORMAT = re.compile(r"[A-Za-z0-9_-]{16,256}\Z")
 LOGIN_ERROR = "Usuario/email o contraseña incorrectos."
 UNAVAILABLE_ERROR = "No pudimos conectar en este momento. Esperá unos minutos y volvé a intentar."
-
-
-def private_page(view):
-    @wraps(view)
-    @never_cache
-    def wrapped(request, *args, **kwargs):
-        response = view(request, *args, **kwargs)
-        response["Referrer-Policy"] = "no-referrer"
-        return response
-    return wrapped
 
 
 def safe_next(value):
@@ -165,7 +155,19 @@ def email_confirmation(request):
 @require_http_methods(["GET"])
 @supabase_login_required
 def dashboard(request):
-    return render(request, "users/dashboard.html", {"planb_user": request.planb_user})
+    try:
+        page = int(request.GET.get("page", "1"))
+    except (ValueError, TypeError):
+        page = 1
+    context = {"planb_user": request.planb_user}
+    try:
+        context["groups_page"] = group_service.list_groups(
+            session_service.get_access_token(request), page=page,
+        )
+    except (GroupUnavailable, InvalidGroup):
+        context["groups_unavailable"] = True
+        return render(request, "users/dashboard.html", context, status=503)
+    return render(request, "users/dashboard.html", context)
 
 
 @private_page

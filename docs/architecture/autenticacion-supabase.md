@@ -9,7 +9,9 @@ contiene solamente el UUID de Auth, username y timestamps. Django no crea
 
 Las views delegan en servicios. Formularios y CSRF se validan en el servidor;
 JavaScript sólo mejora la interfaz. El dashboard requiere identidad validada
-por Supabase y muestra únicamente un saludo y el estado vacío de grupos.
+por Supabase. Ahora consulta grupos mediante el mismo JWT; el servicio de
+sesión ofrece get_access_token() para operaciones del backend, sin incluir
+tokens en planb_user ni en templates.
 
 ## Clientes y separación de privilegios
 
