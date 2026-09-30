@@ -198,3 +198,21 @@ el rol runtime ni la secret key. La función no se reintenta automáticamente.
 
 No hay migraciones Django de dominio ni SQL de grupos ejecutado en SQLite.
 Ver [validación y pasos manuales](../testing/grupos.md).
+
+
+## Edición y eliminación por el owner
+
+La migración `202609300002_group_management.sql` agrega dos RPC:
+`update_group(uuid,text,text)` y `delete_group(uuid)`. No cambia tablas,
+RLS ni grants de escritura directa. Sólo authenticated recibe EXECUTE.
+
+Ambas toman identidad de auth.uid() y verifican la membresía owner actual,
+bloqueando grupo y membresía con FOR UPDATE durante la transacción.
+created_by es información histórica, no un permiso. La edición limita
+campos a name/description; updated_at sigue siendo responsabilidad del trigger.
+La eliminación usa el CASCADE existente para todas las membresías del grupo.
+
+Se mantiene SECURITY DEFINER con search_path vacío, nombres cualificados,
+sin SQL dinámico y sin claves administrativas en las requests. Las RPC
+devuelven PT404 para grupo inexistente o no autorizado, sin revelar su existencia.
+Ver [validación real](../testing/grupos.md#edición-y-eliminación-del-grupo).

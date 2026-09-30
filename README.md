@@ -2,7 +2,8 @@
 
 Plan B es un proyecto universitario desarrollado con metodología Agile para
 facilitar la organización de planes compartidos. Esta entrega implementa registro, inicio de sesión por email o username
-y creación de grupos con owner, detalle y listado de pertenencias.
+y gestión de grupos con owner, detalle y listado de pertenencias.
+El owner puede editar el grupo o eliminarlo previa confirmación.
 Propuestas, invitaciones, preferencias y compatibilidad quedan para próximas US.
 
 ## Stack y responsabilidades
@@ -205,3 +206,8 @@ Después de la preparación inicial, aplicar una sola vez
 No requiere nuevas migraciones Django ni cambios en `.env`.
 Ver [despliegue y pruebas de grupos](docs/testing/grupos.md) para los pasos
 exactos, validación de persistencia real, RLS y atomicidad.
+
+Para habilitar edición y eliminación por el owner, aplicar después
+`supabase/migrations/202609300002_group_management.sql`. Se mantienen
+RLS y escritura exclusivamente por RPC. Ver el procedimiento completo en
+[edición y eliminación](docs/testing/grupos.md#edición-y-eliminación-del-grupo).

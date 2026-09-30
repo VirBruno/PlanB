@@ -138,3 +138,88 @@ class GroupSDKTests(SimpleTestCase):
         group_service.list_groups("user-jwt")
         self.assertEqual(len(self.transports), 2)
         self.assertIsNot(self.transports[0], self.transports[1])
+
+    def test_update_rpc_sends_only_allowed_fields_and_user_jwt(self):
+        self.responses = [(200, GROUP_ID)]
+        self.assertEqual(group_service.update_group("user-jwt", GROUP_ID, name="Nuevo", description="Detalle"), GROUP_ID)
+        request = self.requests[0]
+        self.assertEqual(request.method, "POST")
+        self.assertEqual(request.url.path, "/rest/v1/rpc/update_group")
+        self.assertEqual(json.loads(request.content), {
+            "p_group_id": GROUP_ID, "p_name": "Nuevo", "p_description": "Detalle",
+        })
+
+    def test_delete_rpc_sends_only_group_id_and_user_jwt(self):
+        self.responses = [(200, GROUP_ID)]
+        self.assertEqual(group_service.delete_group("user-jwt", GROUP_ID), GROUP_ID)
+        request = self.requests[0]
+        self.assertEqual(request.method, "POST")
+        self.assertEqual(request.url.path, "/rest/v1/rpc/delete_group")
+        self.assertEqual(json.loads(request.content), {"p_group_id": GROUP_ID})
+
+    def test_mutations_without_token_never_open_transport(self):
+        for operation in (
+            lambda: group_service.update_group("", GROUP_ID, name="Nuevo"),
+            lambda: group_service.delete_group(None, GROUP_ID),
+        ):
+            with self.assertRaises(SessionExpired):
+                operation()
+        self.assertFalse(self.transports)
+
+    def test_mutations_reject_invalid_uuid_locally(self):
+        for operation in (
+            lambda: group_service.update_group("user-jwt", "wrong", name="Nuevo"),
+            lambda: group_service.delete_group("user-jwt", "wrong"),
+        ):
+            with self.assertRaises(GroupNotFound):
+                operation()
+        self.assertFalse(self.requests)
+
+    def test_unauthorized_or_missing_rpc_group_is_not_found(self):
+        for operation in (
+            lambda: group_service.update_group("user-jwt", GROUP_ID, name="Nuevo"),
+            lambda: group_service.delete_group("user-jwt", GROUP_ID),
+        ):
+            self.responses = [(404, {"code": "PT404", "message": "sensitive", "details": None, "hint": None})]
+            with self.assertRaises(GroupNotFound) as caught:
+                operation()
+            self.assertNotIn("sensitive", str(caught.exception))
+
+    def test_mutations_reject_unexpected_result(self):
+        for operation in (
+            lambda: group_service.update_group("user-jwt", GROUP_ID, name="Nuevo"),
+            lambda: group_service.delete_group("user-jwt", GROUP_ID),
+        ):
+            for value in (None, USER_ID, {"id": GROUP_ID}):
+                self.responses = [(200, value)]
+                with self.assertRaises(GroupUnavailable):
+                    operation()
+
+    def test_update_validates_sql_error_and_empty_description(self):
+        self.responses = [(400, {"code": "22023", "message": "private", "details": None, "hint": None})]
+        with self.assertRaises(InvalidGroup):
+            group_service.update_group("user-jwt", GROUP_ID, name="", description="")
+        self.assertIsNone(json.loads(self.requests[0].content)["p_description"])
+
+    def test_mutation_timeouts_do_not_retry(self):
+        for operation in (
+            lambda: group_service.update_group("user-jwt", GROUP_ID, name="Nuevo"),
+            lambda: group_service.delete_group("user-jwt", GROUP_ID),
+        ):
+            with patch.object(httpx.Client, "send", side_effect=httpx.ReadTimeout("secret")) as send:
+                with self.assertRaises(GroupUnavailable):
+                    operation()
+                self.assertEqual(send.call_count, 1)
+
+    def test_detail_exposes_verified_role_for_owner_controls(self):
+        self.responses = [(200, [group_row()]), (200, [{"role": "owner"}])]
+        self.assertEqual(group_service.get_group("user-jwt", GROUP_ID)["role"], "owner")
+
+    def test_forged_identity_arguments_are_not_accepted(self):
+        for field in ("user_id", "owner_id", "role", "created_by", "id"):
+            with self.subTest(field=field):
+                with self.assertRaises(TypeError):
+                    group_service.update_group("user-jwt", GROUP_ID, name="Test", **{field: USER_ID})
+                with self.assertRaises(TypeError):
+                    group_service.delete_group("user-jwt", GROUP_ID, **{field: USER_ID})
+        self.assertFalse(self.requests)

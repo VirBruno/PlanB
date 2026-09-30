@@ -6,7 +6,7 @@
 <section class="group-panel" aria-labelledby="group-title">
   <h1 id="group-title">No pudimos cargar el grupo.</h1>
   <p class="panel-description">Esperá unos minutos y volvé a intentar.</p>
-  <a class="button button--primary" href="{{ request.path }}">Volver a intentar</a>
+  <a class="button button--primary" href="{{ retry_url|default:request.path }}">Volver a intentar</a>
 </section>
 {% else %}
 <section class="group-panel" aria-labelledby="group-title">
@@ -17,6 +17,12 @@
     <div><dt>Tu rol</dt><dd>{{ group.role_label }}</dd></div>
     <div><dt>Creado el</dt><dd>{{ group.created_at|date:"d/m/Y" }}</dd></div>
   </dl>
+  {% if group.role == 'owner' %}
+  <div class="group-actions group-owner-actions">
+    <a class="button button--primary" href="{% url 'groups:edit' group.id %}">Editar grupo <span aria-hidden="true">→</span></a>
+    <a class="button button--danger-quiet" href="{% url 'groups:delete_confirmation' group.id %}">Eliminar grupo</a>
+  </div>
+  {% endif %}
 </section>
 {% endif %}
 {% endblock %}

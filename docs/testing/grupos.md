@@ -5,8 +5,8 @@
 Un usuario autenticado crea un grupo con nombre y descripción opcional. La RPC
 `public.create_group(text,text)` inserta el grupo y su owner en una transacción.
 El dashboard muestra pertenencias mediante RLS, con páginas de 12 grupos.
-El detalle incluye nombre, descripción, fecha y rol propio. No hay invitaciones,
-edición, eliminación, propuestas, votaciones ni otras funciones de grupo.
+El detalle incluye nombre, descripción, fecha y rol propio. El owner puede editar nombre/descripción y eliminar el grupo previa
+confirmación. No hay invitaciones, propuestas, votaciones ni otras funciones.
 
 ## Validación offline
 
@@ -124,7 +124,8 @@ python manage.py runserver
   crear exista exactamente uno. Sólo un administrador externo podría
   modificar ese estado: los roles de aplicación no tienen escritura directa.
 - Eliminar un creador de Auth está bloqueado mientras posea grupos
-  (`ON DELETE RESTRICT`). Transferencia y eliminación quedan para otra US.
+  (`ON DELETE RESTRICT`). La eliminación del grupo ya está disponible para su owner; transferencia
+  y eliminación de cuentas quedan para otra US.
 - Las políticas de membresía permiten leer únicamente la membresía propia.
   Un futuro listado de integrantes deberá ampliar ese permiso deliberadamente.
 - El acceso al token reutiliza el servicio de sesiones y su bloqueo/refresh.
@@ -135,3 +136,97 @@ python manage.py runserver
   cualificadas, sin SQL dinámico, identidad desde auth.uid() y EXECUTE limitado.
   Revisar cualquier alerta del asesor de seguridad sobre esa función según
   este contrato, sin desactivar controles globales.
+
+## Edición y eliminación del grupo
+
+La migración adicional es `supabase/migrations/202609300002_group_management.sql`.
+Aplicar **una sola vez** en el SQL Editor del proyecto compartido, como
+administrador (`postgres`), después de `202609300001_groups.sql`. No repetir
+migraciones anteriores ni cambiar `.env`. Si ya existen funciones con esas
+firmas, revisar el estado antes de ejecutar; no borrar objetos para forzarla.
+
+Alternativa desde la raíz con una conexión administrativa segura preparada:
+
+```powershell
+psql -v ON_ERROR_STOP=1 -f supabase/migrations/202609300002_group_management.sql
+```
+
+Esta migración agrega únicamente `update_group(uuid,text,text)` y
+`delete_group(uuid)`, sus permisos y la recarga del esquema PostgREST. No
+agrega columnas, modelos Django ni dependencias. Se mantienen RLS, el rol
+runtime y los permisos de lectura. No concede UPDATE/DELETE directo.
+Las llamadas usan publishable key + JWT; nunca la secret key.
+
+Ambas RPC obtienen auth.uid(), comprueban role='owner' en group_members y
+bloquean grupo y membresía durante la escritura. No confían en created_by
+como autorización ni aceptan user_id/owner_id/roles del cliente. Son
+SECURITY DEFINER con search_path vacío y objetos cualificados. Sólo
+authenticated tiene EXECUTE. El owner SQL debe seguir siendo el administrador
+confiable que aplica la migración.
+
+update_group valida igual que create_group, modifica exclusivamente name y
+description, y deja updated_at al trigger existente. delete_group elimina
+sólo el UUID autorizado; las membresías se eliminan por la FK CASCADE.
+
+### Prueba manual
+
+1. Entrar como owner, abrir un grupo y pulsar **Editar grupo**.
+2. Comprobar campos precargados. Guardar nombre y descripción; debe regresar
+   al detalle con los cambios. Recargar dashboard para ver el nuevo nombre.
+3. Probar nombre vacío, más de 100 caracteres y descripción de más de 1.000.
+   Deben rechazarse; los valores escritos se conservan. Una descripción vacía
+   es válida.
+4. En detalle pulsar **Eliminar grupo**: abre
+   `/grupos/<uuid>/eliminar/confirmar/`. Deben verse el nombre, la advertencia
+   de eliminación permanente y **Cancelar y volver**. Este GET no elimina.
+5. Cancelar y verificar que sigue existiendo. Volver a la confirmación y
+   pulsar **Sí, eliminar grupo**. El formulario hace POST con CSRF a
+   `/grupos/<uuid>/eliminar/` y redirige a dashboard. El grupo desaparece
+   y su antiguo detalle devuelve 404.
+6. Comprobar en SQL Editor, sustituyendo el UUID:
+
+   ```sql
+   select * from public.groups where id = '<UUID_ELIMINADO>'::uuid;
+   select * from public.group_members where group_id = '<UUID_ELIMINADO>'::uuid;
+   ```
+
+   Ambas consultas deben devolver cero filas.
+7. Como miembro no owner, no aparecen las acciones; intentar las rutas de
+   edición/confirmación o POST de eliminación devuelve 403. Como extraño,
+   devuelve 404. Sin sesión, se redirige a login. Abrir la ruta de eliminación
+   por GET devuelve 405; POST sin CSRF devuelve 403.
+8. Si falla la conexión al guardar/eliminar, se indica que el resultado no
+   pudo confirmarse. Revisar detalle/dashboard antes de repetir: no hay
+   reintentos automáticos ni garantía de idempotencia.
+
+### Tests
+
+La suite offline agrega `test_management.py` y contratos en
+`test_sdk_contracts.py`: owner, miembro, extraño, anónimo, CSRF, métodos,
+validaciones, identidad falsificada, pérdida de permisos entre lectura y
+escritura, errores de red y recorrido edición → eliminación → dashboard.
+Los tests anteriores se conservan sin debilitar sus aserciones.
+
+En una instancia Supabase **de prueba autorizada**, con las cuatro
+migraciones aplicadas, ejecutar como administrador:
+
+```powershell
+psql -v ON_ERROR_STOP=1 -f supabase/tests/group_management.sql
+```
+
+Puede ejecutarse también su contenido completo en SQL Editor. Valida las
+RPC con los roles reales, rechazo de miembro/extraño/anónimo, campos protegidos,
+límites, permisos mínimos y CASCADE. Incluye un cambio de owner sólo como
+fixture administrativa para comprobar que la autorización se basa en el rol
+actual. La aplicación no implementa transferencia. Todas las fixtures se
+revierten con ROLLBACK. Los mocks offline no sustituyen esta prueba.
+
+### Ajustes visuales
+
+Se conservan dimensiones compactas, estructura y paleta. Hay fondos
+radiales sutiles, sombras y elevación breve de botones/cards, feedback al
+presionar, foco visible y tarjetas enlazadas completas. La acción destructiva
+reutiliza el color de peligro existente. No hay animaciones continuas,
+dependencias ni cursores personalizados. prefers-reduced-motion desactiva
+transiciones y desplazamientos interactivos; las pantallas siguen utilizables
+sin JavaScript.

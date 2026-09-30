@@ -33,6 +33,8 @@ def _translate(error):
     if isinstance(error, APIError):
         if error.code in ("PGRST301", "PGRST303"):
             raise SessionExpired() from None
+        if error.code == "PT404":
+            raise GroupNotFound() from None
         if error.code in ("22023", "23514"):
             raise InvalidGroup() from None
     raise GroupUnavailable() from None
@@ -105,9 +107,40 @@ def get_group(access_token, group_id):
             role = memberships[0]["role"]
             if role not in ("owner", "member"):
                 raise ValueError
+            group["role"] = role
             group["role_label"] = "Owner" if role == "owner" else "Miembro"
         return group
     except GroupNotFound:
         raise
     except Exception as error:
         _translate(error)
+
+
+@sensitive_variables()
+def _write_existing_group(access_token, group_id, operation, fields):
+    if not access_token:
+        raise SessionExpired()
+    try:
+        canonical_id = str(UUID(str(group_id)))
+    except (ValueError, TypeError, AttributeError):
+        raise GroupNotFound() from None
+    try:
+        with clients.public_client(access_token=access_token) as client:
+            result = client.rpc(operation, {"p_group_id": canonical_id, **fields}).execute().data
+        if str(UUID(result)) != canonical_id:
+            raise ValueError
+        return canonical_id
+    except Exception as error:
+        _translate(error)
+
+
+@sensitive_variables()
+def update_group(access_token, group_id, *, name, description=""):
+    return _write_existing_group(access_token, group_id, "update_group", {
+        "p_name": name, "p_description": description or None,
+    })
+
+
+@sensitive_variables()
+def delete_group(access_token, group_id):
+    return _write_existing_group(access_token, group_id, "delete_group", {})
