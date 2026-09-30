@@ -1,180 +1,194 @@
 # Plan B
 
-Plan B es un proyecto universitario desarrollado con metodología Agile.
-Esta base técnica prepara el backend para implementar las User Stories del
-Sprint 0. Las funcionalidades del producto se incorporarán en tareas posteriores.
+Plan B es un proyecto universitario desarrollado con metodología Agile para
+facilitar la organización de planes compartidos. Esta entrega implementa US1
+(registro), US2 (inicio de sesión por email o username) y un dashboard vacío.
+Grupos, propuestas, preferencias y compatibilidad pertenecen a próximas US.
 
-## Stack actual
+## Stack y responsabilidades
 
-- Python 3.13 (entorno inicial: 3.13.3).
-- Django 6.1.1.
-- PostgreSQL, local o alojado en un proveedor como Supabase.
-- psycopg 3.3.6, con distribución binaria para facilitar la instalación.
-- python-dotenv 1.2.3 para cargar variables de entorno locales.
+- Python 3.13, Django 6.1.1 y templates/forms/views del servidor.
+- Supabase Auth como única autoridad de identidad y contraseñas.
+- Supabase Data API y PostgreSQL para `public.profiles`, con RLS.
+- PostgreSQL por conexión directa para sesiones técnicas Django en
+  `django_internal`; puede estar en Supabase o en otra instancia.
+- psycopg 3.3.6, python-dotenv 1.2.3, supabase-py 2.31.0 y httpx 0.28.1.
+- CSS y JavaScript propios, sin framework frontend ni Django REST Framework.
 
-Las versiones de las dependencias directas están fijadas en `requirements.txt`
-y corresponden al entorno inicial del proyecto.
+Las dependencias directas están fijadas en `requirements.txt`. No existe un
+usuario Django paralelo: `auth`, `admin` y `contenttypes` dejan de estar
+instalados y `/admin/` deja de exponerse. Se mantienen sesiones, mensajes,
+archivos estáticos, CSRF y middleware de seguridad. Ninguna tabla preexistente
+se elimina automáticamente al cambiar de arquitectura.
 
 ## Estructura
 
 ```text
 PlanB/
-|-- backend/
-|   |-- manage.py
-|   |-- config/
-|   |   |-- __init__.py
-|   |   |-- settings.py
-|   |   |-- urls.py
-|   |   |-- asgi.py
-|   |   `-- wsgi.py
-|   `-- apps/
-|       `-- __init__.py
-|-- docs/
-|   `-- architecture/
-|       `-- README.md
-|-- .github/
-|   `-- pull_request_template.md
-|-- .gitignore
-|-- .env.example
-|-- requirements.txt
-`-- README.md
+├── backend/
+│   ├── manage.py
+│   ├── config/                 # Settings de ejecución/tests, URLs, ASGI/WSGI
+│   └── apps/users/
+│       ├── services/           # Auth, perfiles, clientes y sesiones
+│       ├── migrations/         # Modelo técnico de sesión; no usuario Django
+│       ├── templates/          # Formularios y dashboard
+│       ├── static/users/       # CSS y JavaScript accesible
+│       └── tests/              # Suite offline con mocks
+├── supabase/
+│   ├── migrations/             # Infraestructura y profiles, revisión manual
+│   ├── templates/              # Correo de confirmación
+│   └── tests/                  # Integración SQL, sólo entorno autorizado
+├── docs/architecture/          # Flujos, decisiones y esquema de datos
+├── docs/testing/               # Tests offline y validación real pendiente
+├── .github/pull_request_template.md
+├── .env.example
+├── .gitignore
+└── requirements.txt
 ```
-
-- `backend/`: código del backend y comandos de gestión mediante `manage.py`.
-- `backend/config/`: configuración de Django, rutas y entradas del servidor.
-- `backend/apps/`: futuras aplicaciones de dominio.
-- `docs/architecture/`: decisiones y alcance de la arquitectura inicial.
-- `.github/`: plantilla para documentar y revisar Pull Requests.
-- `.env.example`: referencia de configuración sin credenciales reales.
-- `.venv/` y `.env`: recursos locales ignorados por Git, creados por cada integrante.
-
-Se mantienen los componentes estándar de Django, incluidos administración,
-autenticación, sesiones y la ruta `/admin/`. Este bootstrap no agrega usuarios,
-registro, login, grupos de dominio, propuestas, preferencias, modelos de negocio,
-endpoints propios ni algoritmo de compatibilidad.
 
 ## Requisitos previos
 
-- Git.
-- Python 3.13 con `pip` y `venv` disponibles mediante el comando `py` en Windows.
-- Una instancia PostgreSQL accesible, con base y usuario creados y permisos para
-  crear tablas. Puede ser local o de un proveedor externo.
+Para instalar y correr tests: Git y Python 3.13 con `pip` y `venv`.
+Para registro/login reales: una instancia Supabase preparada, PostgreSQL para
+sesiones y acceso a sus configuraciones por el equipo. Los comandos siguientes
+se ejecutan en PowerShell en Windows.
 
-Los comandos siguientes están preparados para **PowerShell en Windows**.
-
-## Clonar y preparar el entorno
+## Clonar e instalar
 
 ```powershell
 git clone https://github.com/VirBruno/PlanB.git
 cd PlanB
-```
-
-Para revisar este bootstrap mientras se encuentra en su rama de trabajo:
-
-```powershell
-git switch chore/bootstrap-project
-```
-
-Crear y activar el entorno desde la raíz del repositorio:
-
-```powershell
+git switch feature/user-authentication
 py -3.13 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
 ```
 
-Si PowerShell bloquea la activación por su política de scripts, habilitarla
-únicamente para la sesión actual y volver a activar:
+La rama indicada corresponde a esta entrega; después de integrar el PR, usar
+la rama base del equipo. Si PowerShell bloquea la activación:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
 .\.venv\Scripts\Activate.ps1
 ```
 
-En una nueva terminal, volver a activar `.venv` antes de ejecutar los comandos.
+## Tests sin servicios externos
 
-## Configurar variables de entorno
+Con `.venv` activo, no hacen falta `.env`, credenciales, PostgreSQL ni Supabase:
 
-Crear la configuración local desde la raíz:
+```powershell
+cd backend
+python manage.py test
+python manage.py check --settings=config.settings_test
+python manage.py makemigrations --check --dry-run --settings=config.settings_test
+python -m pip check
+```
+
+`test` selecciona automáticamente settings aislados, migra SQLite en memoria y
+usa mocks para la red. Un check exitoso no prueba conectividad, RLS ni correo.
+Ver la [guía de pruebas](docs/testing/autenticacion.md).
+
+## Configurar el entorno de ejecución
+
+Desde la raíz, cada integrante crea su archivo local; no se versiona:
 
 ```powershell
 Copy-Item .env.example .env
 notepad .env
 ```
 
-El archivo `.env` no se versiona. Reemplazar los valores de ejemplo con los del
-entorno local. Para generar una clave de Django propia con `.venv` activo:
+Generar una clave propia de Django y guardarla únicamente en ese archivo:
 
 ```powershell
 python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 ```
 
-Copiar el resultado en `DJANGO_SECRET_KEY` en `.env`.
-
 | Variable | Uso |
 | --- | --- |
-| `DJANGO_SECRET_KEY` | Clave propia del entorno, obligatoria. |
-| `DJANGO_DEBUG` | `True` para desarrollo local; por defecto `False`. |
+| `DJANGO_SECRET_KEY` | Clave privada de Django de este entorno. |
+| `DJANGO_DEBUG` | `True` sólo en desarrollo; `False` para despliegue HTTPS. |
 | `DJANGO_ALLOWED_HOSTS` | Hosts separados por comas, sin protocolo ni puerto. |
-| `DB_NAME` | Nombre de la base PostgreSQL, obligatorio. |
-| `DB_USER` | Usuario de PostgreSQL, obligatorio. |
-| `DB_PASSWORD` | Contraseña de PostgreSQL, obligatoria. |
-| `DB_HOST` | Host de PostgreSQL, obligatorio. |
-| `DB_PORT` | Puerto de PostgreSQL; por defecto `5432`. |
-| `DB_SSLMODE` | Modo SSL de psycopg; por defecto `prefer`. |
+| `DJANGO_PUBLIC_URL` | Origen público sin barra final; local: `http://127.0.0.1:8000`. |
+| `SUPABASE_URL` | URL HTTPS del proyecto; HTTP sólo para una instancia local. |
+| `SUPABASE_PUBLISHABLE_KEY` | API key para operaciones con privilegios del usuario. |
+| `SUPABASE_SECRET_KEY` | Clave administrativa exclusivamente del servidor. |
+| `DB_NAME`, `DB_HOST`, `DB_PORT` | Conexión PostgreSQL para sesiones técnicas. |
+| `DB_USER`, `DB_PASSWORD` | Rol de ejecución y contraseña, provistos por el administrador. |
+| `DB_SSLMODE` | TLS de PostgreSQL; usar `verify-full` en despliegue. |
 
-Para una instancia alojada, usar los datos de conexión PostgreSQL y el modo SSL
-indicados por el proveedor. No se requieren claves de API ni un SDK de Supabase.
-La aplicación carga `.env` desde la raíz del repositorio, incluso al ejecutar
-comandos desde `backend/`. Las variables del proceso tienen prioridad sobre `.env`.
+Las variables del proceso tienen prioridad sobre `.env`. Nunca copiar la
+secret key, tokens ni credenciales a templates, JavaScript, capturas o PRs.
 
-## Validar y ejecutar Django
+## Preparación manual de Supabase y PostgreSQL
 
-Con el entorno activo y las variables configuradas:
+La creación local de archivos **no aplica migraciones ni cambia el proyecto
+remoto**. El equipo debe revisar y autorizar estos pasos en su entorno:
+
+1. Revisar si ya existen usuarios, `profiles`, roles o tablas del bootstrap.
+2. Aplicar en orden las dos migraciones de `supabase/migrations/`, según el
+   [procedimiento de esquema y permisos](docs/architecture/esquema-datos.md).
+3. Habilitar credenciales independientes para `planb_django_migrator` y
+   `planb_django_runtime`. Ejecutar `migrate` con el primero; usar el segundo
+   para servir requests. El SQL crea ambos sin LOGIN ni contraseñas.
+4. Mantener `django_internal` y `planb_private` fuera de los esquemas expuestos
+   por Data API. Verificar RLS y grants en `public.profiles`.
+5. Configurar Auth con **12 caracteres, una letra ASCII y un dígito**, Site URL,
+   URLs permitidas, SMTP y la plantilla de confirmación. Las opciones exactas
+   están en la [guía de autenticación](docs/architecture/autenticacion-supabase.md#configuración-manual-de-supabase-auth).
+
+Con variables del **rol migrador** cargadas de manera segura en una terminal
+dedicada, desde `backend/`:
+
+```powershell
+python manage.py check
+python manage.py migrate --plan
+python manage.py migrate
+```
+
+Cerrar esa terminal para no heredar sus credenciales. Abrir otra con `.venv`
+activo y `.env` configurado para el **rol de ejecución**:
 
 ```powershell
 cd backend
 python manage.py check
-```
-
-El resultado esperado es `System check identified no issues (0 silenced).`
-Este comando valida la configuración y no verifica la conexión con PostgreSQL.
-
-Con una base PostgreSQL accesible, aplicar las migraciones estándar de Django
-antes de iniciar el servidor por primera vez:
-
-```powershell
-python manage.py migrate
 python manage.py runserver
 ```
 
-Abrir <http://127.0.0.1:8000/>. Con `DJANGO_DEBUG=True`, se muestra la página
-inicial de Django. `/admin/` conserva la administración estándar; este bootstrap
-no crea cuentas. Para detener el servidor, presionar `Ctrl+C`.
+Abrir <http://127.0.0.1:8000/registro/> o <http://127.0.0.1:8000/login/>.
+El dashboard está en `/dashboard/` y requiere una sesión válida. Para detener
+el servidor: `Ctrl+C`. `runserver` es únicamente para desarrollo.
 
-`runserver` se utiliza para desarrollo local. El despliegue se definirá en una
-tarea posterior. Si aparecen errores de conexión, revisar que PostgreSQL está
-activo y que los valores `DB_*` correspondan a una base existente.
+## Flujo de uso
+
+Registro solicita username, email y contraseña con confirmación. El username
+tiene 3 a 30 caracteres ASCII: letras, dígitos, punto, guion y guion bajo;
+comienza con letra o dígito y es único sin distinguir mayúsculas.
+
+Si Auth exige confirmar el email, se muestra un aviso. El correo abre una
+página que pide confirmar mediante un botón; después se inicia sesión desde
+login. Si el proyecto permite sesión inmediata, el registro abre el dashboard.
+Login acepta email o username. El dashboard muestra el saludo y “Todavía no
+participás de ningún grupo.” El cierre se realiza con su botón POST.
 
 ## Ramas y Pull Requests
 
-Cada tarea o User Story debe desarrollarse en una rama propia, con un alcance
-acotado y un nombre descriptivo, por ejemplo `chore/bootstrap-project` o
-`feature/<identificador>-<descripcion>`.
-
-Para comenzar una tarea desde la rama base acordada por el equipo:
+Cada tarea/US usa una rama acotada (`feature/<us>-<descripcion>` o
+`chore/<descripcion>`). Reemplazar los marcadores antes de ejecutar:
 
 ```powershell
 git switch <rama-base>
 git pull --ff-only
-git switch -c feature/<identificador>-<descripcion>
+git switch -c feature/<us>-<descripcion>
 ```
 
-Reemplazar los marcadores entre `<...>` antes de ejecutar esos comandos.
-Al completar una tarea, validar los cambios, actualizar la documentación y
-abrir un Pull Request hacia la rama base acordada. Completar la plantilla con
-objetivo, cambios, motivación, cómo probar, checklist y fuera de alcance.
-Solicitar revisión de otro integrante antes de integrar los cambios.
+Antes del PR, ejecutar validaciones, actualizar documentación y completar la
+plantilla con objetivo, cambios, motivación, cómo probar y fuera de alcance.
+Solicitar revisión de otro integrante. No incluir `.env`, `.venv`, tokens ni
+datos reales. Aplicar SQL remoto es un paso de despliegue separado.
 
-No versionar `.env`, credenciales, `.venv` ni bases locales. Las funcionalidades
-de las User Stories posteriores deben permanecer en sus propias ramas y PRs.
+## Documentación
+
+- [Arquitectura y alcance](docs/architecture/README.md).
+- [Autenticación y configuración del proveedor](docs/architecture/autenticacion-supabase.md).
+- [Esquema, roles, migraciones y protección de tokens](docs/architecture/esquema-datos.md).
+- [Pruebas offline e integración](docs/testing/autenticacion.md).

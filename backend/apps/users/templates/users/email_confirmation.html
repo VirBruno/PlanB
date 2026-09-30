@@ -1,0 +1,22 @@
+{% extends 'users/auth_base.html' %}
+{% block title %}Confirmar email · Plan B{% endblock %}
+{% block top_link %}<a href="{% url 'users:login' %}">Volver a iniciar sesión <span aria-hidden="true">↗</span></a>{% endblock %}
+{% block auth_content %}
+<div class="welcome-symbol" aria-hidden="true">✉</div>
+<p class="eyebrow eyebrow--blue">UN PASO MÁS</p>
+{% if can_confirm %}
+<h2>Confirmá<br>tu email.</h2>
+<p class="panel-description">Ya tenemos tu enlace. Confirmá que este email es tuyo para completar el registro.</p>
+<form method="post" action="{% url 'users:email_confirmation' %}" class="auth-form" data-submit-form>
+  {% csrf_token %}
+  <button class="button button--primary button--full" type="submit" data-loading-label="Confirmando…"><span data-button-label>Confirmar mi email</span><span aria-hidden="true">→</span></button>
+  <p class="submit-status sr-only" role="status" aria-live="polite"></p>
+</form>
+<p class="form-footnote">Después podrás iniciar sesión con tu contraseña.</p>
+{% else %}
+<h2>Revisá<br>tu correo.</h2>
+<p class="panel-description">Si el registro requiere confirmar tu email, recibirás un enlace para continuar.</p>
+<div class="confirmation-tip"><span aria-hidden="true">↗</span><p>Buscá el correo de confirmación y abrí el enlace. Si no lo encontrás, revisá la carpeta de spam.</p></div>
+<a class="button button--primary button--full" href="{% url 'users:login' %}">Ir a iniciar sesión <span aria-hidden="true">→</span></a>
+{% endif %}
+{% endblock %}

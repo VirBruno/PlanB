@@ -1,0 +1,17 @@
+{% load static %}
+<!doctype html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="same-origin">
+  <meta name="theme-color" content="#122441">
+  <title>{% block title %}Plan B{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'users/css/planb.css' %}">
+  <script src="{% static 'users/js/forms.js' %}" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+  {% block body %}{% endblock %}
+</body>
+</html>

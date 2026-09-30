@@ -1,0 +1,18 @@
+{% extends 'users/auth_base.html' %}
+{% block title %}Iniciar sesión · Plan B{% endblock %}
+{% block top_link %}¿Es tu primera vez? <a href="{% url 'users:register' %}">Creá tu cuenta <span aria-hidden="true">↗</span></a>{% endblock %}
+{% block auth_content %}
+<div class="welcome-symbol" aria-hidden="true">↗</div>
+<p class="eyebrow eyebrow--blue">QUÉ BUENO VERTE</p>
+<h2>Tu próximo plan<br>te espera.</h2>
+<p class="panel-description">Iniciá sesión para volver a tu espacio.</p>
+<form method="post" action="{% url 'users:login' %}" class="auth-form" data-submit-form>
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ next }}">
+  {% include 'components/form_errors.html' %}
+  {% for field in form %}{% include 'components/field.html' %}{% endfor %}
+  <button class="button button--primary button--full" type="submit" data-loading-label="Ingresando…"><span data-button-label>Iniciar sesión</span><span aria-hidden="true">→</span></button>
+  <p class="submit-status sr-only" role="status" aria-live="polite"></p>
+</form>
+<p class="form-footnote">Podés ingresar con tu nombre de usuario o con tu email.</p>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block body %}
+<div class="auth-layout">
+  <aside class="auth-story" aria-label="Bienvenidos a Plan B">
+    {% include 'components/brand.html' %}
+    <div class="story-content">
+      <p class="eyebrow"><span class="status-dot"></span>HAY MUCHO POR COMPARTIR</p>
+      <h1>Los mejores planes<br>empiezan con <em>vos.</em></h1>
+      <p class="story-description">Un espacio para conectar con otras personas y hacer lugar a nuevos planes.</p>
+      <div class="connection-art" aria-hidden="true">
+        <span class="orbit orbit--one"></span><span class="orbit orbit--two"></span>
+        <span class="orbit-dot orbit-dot--one"></span><span class="orbit-dot orbit-dot--two"></span>
+        <div class="art-center">B<span>✦</span></div>
+        <span class="art-label art-label--one"><span>↗</span> Conectá</span>
+        <span class="art-label art-label--two"><span>✦</span> Compartí</span>
+        <span class="art-label art-label--three"><span>☺</span> Disfrutá</span>
+      </div>
+    </div>
+    <p class="story-footer"><span class="footer-line"></span>Siempre hay un Plan B.</p>
+  </aside>
+  <main class="auth-main" id="contenido">
+    <div class="mobile-brand">{% include 'components/brand.html' %}</div>
+    <div class="auth-topline">{% block top_link %}{% endblock %}</div>
+    <div class="auth-panel {% block panel_class %}{% endblock %}">
+      {% include 'components/messages.html' %}
+      {% block auth_content %}{% endblock %}
+    </div>
+    <footer class="auth-footer">Plan B <span aria-hidden="true">·</span> Hecho para encontrarnos</footer>
+  </main>
+</div>
+{% endblock %}

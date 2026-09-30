@@ -1,0 +1,7 @@
+{% if messages %}
+<div class="messages" aria-live="polite" aria-atomic="true">
+  {% for message in messages %}
+  <div class="notice notice--{{ message.tags }}"{% if message.tags == 'error' %} role="alert"{% endif %}>{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %}
