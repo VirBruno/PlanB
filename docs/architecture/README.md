@@ -1,24 +1,45 @@
-# Arquitectura inicial
+# Arquitectura de Plan B
 
-Plan B comienza con un backend Django y una base PostgreSQL. Este bootstrap
-prepara la estructura y la configuración para las User Stories del Sprint 0.
+US1 y US2 incorporan registro e inicio de sesión mediante Supabase Auth y un
+dashboard vacío. Django renderiza la interfaz y coordina servicios; PostgreSQL
+almacena perfiles e infraestructura de sesión con responsabilidades separadas.
 
-- `backend/config/` contiene la configuración global, URLs y entradas ASGI/WSGI.
-- `backend/apps/` es el paquete reservado para futuras aplicaciones de dominio;
-  todavía no contiene aplicaciones ni modelos de negocio.
-- PostgreSQL se configura con variables `DB_*`. El mismo backend sirve para
-  una instalación local o un proveedor externo, incluido Supabase, sin SDK ni
-  lógica específica del proveedor. `DB_SSLMODE` permite configurar SSL.
-- `python-dotenv` carga el `.env` de la raíz. Las variables del proceso tienen
-  prioridad. Los secretos y credenciales requeridos no tienen valores por defecto.
-- Se conservan las aplicaciones, middleware, validadores y ruta `/admin/`
-  estándar generados por Django. No se agregan funcionalidades personalizadas
-  de usuarios, registro, login o autenticación.
+```mermaid
+flowchart LR
+    N[Navegador] --> D[Django Forms y Views]
+    D --> S[Servicios de autenticación y perfiles]
+    S --> A[Supabase Auth]
+    S --> P[Data API + RLS: profiles]
+    D --> T[Servicio de sesiones]
+    T --> I[PostgreSQL: django_internal]
+```
 
-No se incluyen grupos de dominio, propuestas, preferencias, modelos de negocio,
-endpoints propios ni algoritmos de compatibilidad. Tampoco se ejecutan
-migraciones como parte del bootstrap: la preparación de una base real se hace
-localmente siguiendo el README.
+| Componente | Responsabilidad |
+| --- | --- |
+| `config/` | Configuración compartida, ejecución PostgreSQL y tests SQLite. |
+| `apps/users/forms.py` | Validar entradas y política canónica de contraseña. |
+| `apps/users/views.py` | Flujo HTTP y mensajes seguros; no llamadas HTTP al proveedor. |
+| `apps/users/services/` | Clientes efímeros, Auth, perfiles, tokens y errores controlados. |
+| `apps/users/models.py` | Únicamente `SupabaseSession`, un modelo técnico. |
+| `supabase/migrations/` | DDL, grants, RLS y trigger de perfil junto al alta Auth. |
 
-`manage.py check` valida la configuración de Django, pero no demuestra que se
-pueda conectar a PostgreSQL. Las migraciones requieren una base accesible.
+Supabase es la única autoridad de identidad. El perfil no duplica email ni
+contraseña. Django conserva sesiones, mensajes, archivos estáticos y CSRF,
+pero no instala `auth`, `admin` ni `contenttypes`. La conexión `DB_*` se limita
+a infraestructura; los perfiles se consultan mediante Data API. Los componentes
+del bootstrap ya migrados no se borran de una base existente.
+
+Esta entrega no incluye edición de perfil, recuperación/cambio de contraseña,
+OAuth, grupos, propuestas, preferencias ni algoritmo de compatibilidad.
+
+## Decisiones y guías
+
+- [Autenticación con Supabase](autenticacion-supabase.md): privilegios, clientes,
+  confirmación, login, logout y configuración manual de passwords.
+- [Esquema de datos](esquema-datos.md): constraints, grants, RLS, sesiones,
+  aislamiento del esquema y orden de migraciones.
+- [Validación](../testing/autenticacion.md): suite offline y límites de mocks/SQLite.
+
+La suite offline no aplica SQL ni modifica infraestructura remota. Las pruebas
+reales de correo, Auth, RLS y concurrencia PostgreSQL se ejecutan únicamente en
+un entorno de prueba preparado y autorizado por el equipo.

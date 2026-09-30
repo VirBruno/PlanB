@@ -1,0 +1,9 @@
+{% extends "users/auth_base.html" %}
+{% block title %}Servicio temporalmente no disponible · Plan B{% endblock %}
+{% block auth_content %}
+<div class="welcome-symbol" aria-hidden="true">↗</div>
+<p class="eyebrow eyebrow--blue">VOLVEMOS ENSEGUIDA</p>
+<h2>Necesitamos<br>un momento.</h2>
+<p class="panel-description">No pudimos consultar tu sesión. Volvé a intentar en unos minutos.</p>
+<a class="button button--primary button--full" href="{% url 'users:dashboard' %}">Volver a intentar <span aria-hidden="true">→</span></a>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends 'users/auth_base.html' %}
+{% block title %}Crear una cuenta · Plan B{% endblock %}
+{% block top_link %}¿Ya tenés una cuenta? <a href="{% url 'users:login' %}">Iniciá sesión <span aria-hidden="true">↗</span></a>{% endblock %}
+{% block auth_content %}
+<p class="eyebrow eyebrow--blue">TU PRIMER PASO</p>
+<h2>Hacé lugar a<br>nuevos planes.</h2>
+<p class="panel-description">Creá tu cuenta y sumate a Plan B.</p>
+<form method="post" action="{% url 'users:register' %}" class="auth-form" data-submit-form>
+  {% csrf_token %}
+  {% include 'components/form_errors.html' %}
+  {% for field in form %}{% include 'components/field.html' %}{% endfor %}
+  <p class="password-advice">Para cuidarte: evitá datos personales y contraseñas comunes. Un gestor de contraseñas puede ayudarte.</p>
+  <button class="button button--primary button--full" type="submit" data-loading-label="Creando tu cuenta…"><span data-button-label>Crear mi cuenta</span><span aria-hidden="true">→</span></button>
+  <p class="submit-status sr-only" role="status" aria-live="polite"></p>
+</form>
+{% endblock %}

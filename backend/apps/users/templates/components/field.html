@@ -1,0 +1,15 @@
+<div class="field{% if field.errors %} field--invalid{% endif %}">
+  <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+  <div class="field-control{% if field.field.widget.input_type == 'password' %} field-control--password{% endif %}">
+    {{ field }}
+    {% if field.field.widget.input_type == 'password' %}
+    <button class="password-toggle" type="button" data-password-toggle="{{ field.id_for_label }}" aria-controls="{{ field.id_for_label }}" aria-pressed="false" aria-label="Mostrar {{ field.label|lower }}" hidden>Mostrar</button>
+    {% endif %}
+  </div>
+  {% if field.help_text %}<p class="field-help" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</p>{% endif %}
+  {% if field.errors %}
+  <ul class="field-errors" id="{{ field.auto_id }}_error">
+    {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+</div>
