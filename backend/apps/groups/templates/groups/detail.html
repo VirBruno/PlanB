@@ -9,7 +9,7 @@
   <a class="button button--primary" href="{{ retry_url|default:request.path }}">Volver a intentar</a>
 </section>
 {% else %}
-<section class="group-panel" aria-labelledby="group-title">
+<section class="group-panel" data-group-surface style="--group-surface: group-{{ group.id }};" aria-labelledby="group-title">
   <p class="eyebrow eyebrow--blue">TU GRUPO EN PLAN B</p>
   <h1 id="group-title">{{ group.name }}</h1>
   {% if group.description %}<p class="group-description">{{ group.description }}</p>{% else %}<p class="panel-description">Este grupo todavía no tiene descripción.</p>{% endif %}

@@ -22,9 +22,10 @@
   {% elif groups_page.items %}
     <ul class="group-grid">
       {% for group in groups_page.items %}
-      <li class="group-card">
+      <li class="group-card" style="--group-surface: group-{{ group.id }};">
         <h3><a href="{% url 'groups:detail' group.id %}">{{ group.name }}</a></h3>
         {% if group.description %}<p>{{ group.description|truncatechars:160 }}</p>{% else %}<p>Un espacio para compartir nuevos planes.</p>{% endif %}
+        <span class="group-card-arrow" aria-hidden="true">↗</span>
         <span class="group-date">Creado el {{ group.created_at|date:"d/m/Y" }}</span>
       </li>
       {% endfor %}

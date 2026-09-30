@@ -2,7 +2,7 @@
 {% block title %}Editar grupo · Plan B{% endblock %}
 {% block workspace %}
 <a class="back-link" href="{% url 'groups:detail' group.id %}">← Volver al grupo</a>
-<section class="group-panel" aria-labelledby="group-title">
+<section class="group-panel" data-group-surface style="--group-surface: group-{{ group.id }};" aria-labelledby="group-title">
   <p class="eyebrow eyebrow--blue">DALE TU TOQUE</p>
   <h1 id="group-title">Editá tu grupo.</h1>
   <p class="panel-description">Actualizá el nombre o contá un poco más sobre sus planes.</p>
