@@ -23,6 +23,43 @@
     <a class="button button--danger-quiet" href="{% url 'groups:delete_confirmation' group.id %}">Eliminar grupo</a>
   </div>
   {% endif %}
+<section class="plans-section" aria-labelledby="group-plans-title">
+  <div class="section-heading">
+    <h2 id="group-plans-title">Planes del grupo</h2>
+    <span class="section-line" aria-hidden="true"></span>
+    {% if group.role == 'owner' and plans_page.items %}
+    <a class="button button--primary plan-add-button" href="{% url 'groups:plan_create' group.id %}" aria-label="Crear plan" title="Crear plan">+</a>
+    {% endif %}
+  </div>
+  {% if plans_unavailable %}
+  <div class="notice notice--error" role="alert">
+    <p>No pudimos cargar los planes de este grupo.</p>
+    <p><a href="{% url 'groups:detail' group.id %}">Volver a intentar</a></p>
+  </div>
+  {% elif plans_by_date %}
+  <div class="plans-by-date">
+    {% for date_group in plans_by_date %}
+    <section class="plans-date-group" aria-labelledby="plans-date-{{ forloop.counter }}">
+      <h3 id="plans-date-{{ forloop.counter }}">{{ date_group.date|date:"l d F Y" }}</h3>
+      <ul class="group-grid">
+        {% for plan in date_group.items %}
+        <li class="group-card" data-plan-status="{{ plan.status|yesno:'active,inactive' }}">
+          <h3><a href="{% url 'plans:detail' plan.id %}">{{ plan.name }}</a></h3>
+          <p>{{ plan.description|truncatechars:160 }}</p>
+          <span class="plan-status">{% if plan.status %}Activo{% else %}Inactivo{% endif %}</span>
+          <span class="group-date">Creado el {{ plan.created_at|date:"H:i" }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endfor %}
+  </div>
+  {% elif group.role == 'owner' %}
+  <div class="empty-state"><h3>Este grupo todavía no tiene planes.</h3><p>Creá el primero para organizar una salida.</p><a class="button button--primary empty-action" href="{% url 'groups:plan_create' group.id %}">Crear plan</a></div>
+  {% else %}
+  <div class="empty-state"><h3>Este grupo todavía no tiene planes.</h3></div>
+  {% endif %}
+</section>
 </section>
 {% endif %}
 {% endblock %}

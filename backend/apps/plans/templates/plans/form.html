@@ -1,0 +1,20 @@
+{% extends 'components/authenticated_base.html' %}
+{% block title %}{% if is_edit %}Editar plan{% else %}Crear plan{% endif %} · Plan B{% endblock %}
+{% block workspace %}
+<a class="back-link" href="{% if is_edit %}{% url 'plans:detail' plan.id %}{% else %}{% url 'groups:detail' group.id %}{% endif %}">← Volver al grupo</a>
+<section class="group-panel" aria-labelledby="plan-form-title">
+  <p class="eyebrow eyebrow--blue">ORGANIZÁ TU PRÓXIMA SALIDA</p>
+  <h1 id="plan-form-title">{% if is_edit %}Editá tu plan.{% else %}Creá un plan.{% endif %}</h1>
+  <p class="panel-description">Grupo: {{ group.name }}</p>
+  <form method="post" class="auth-form" data-submit-form>
+    {% csrf_token %}
+    {% include 'components/form_errors.html' %}
+    {% for field in form %}{% include 'components/field.html' %}{% endfor %}
+    <div class="group-actions">
+      <button class="button button--primary" type="submit" data-loading-label="Guardando…"><span data-button-label>{% if is_edit %}Guardar cambios{% else %}Crear plan{% endif %}</span><span aria-hidden="true">→</span></button>
+      <a class="button button--quiet" href="{% if is_edit %}{% url 'plans:detail' plan.id %}{% else %}{% url 'groups:detail' group.id %}{% endif %}">Cancelar</a>
+    </div>
+    <p class="submit-status sr-only" role="status" aria-live="polite"></p>
+  </form>
+</section>
+{% endblock %}

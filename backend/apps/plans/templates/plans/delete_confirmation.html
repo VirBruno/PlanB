@@ -1,0 +1,16 @@
+{% extends 'components/authenticated_base.html' %}
+{% block title %}Eliminar plan · Plan B{% endblock %}
+{% block workspace %}
+<a class="back-link" href="{% url 'plans:detail' plan.id %}">← Volver al plan</a>
+<section class="group-panel" aria-labelledby="delete-title">
+  <p class="eyebrow eyebrow--blue">CONFIRMAR CAMBIO</p>
+  <h1 id="delete-title">¿Eliminar “{{ plan.name }}”?</h1>
+  <p class="panel-description">Esta acción no se puede deshacer.</p>
+  {% if error %}<div class="notice notice--error" role="alert">{{ error }}</div>{% endif %}
+  <form method="post" action="{% url 'plans:delete' plan.id %}" class="group-actions">
+    {% csrf_token %}
+    <button class="button button--danger" type="submit">Eliminar plan</button>
+    <a class="button button--quiet" href="{% url 'plans:detail' plan.id %}">Cancelar</a>
+  </form>
+</section>
+{% endblock %}
