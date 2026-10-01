@@ -1,15 +1,16 @@
 # Plan B
 
 Plan B es un proyecto universitario desarrollado con metodología Agile para
-facilitar la organización de planes compartidos. Esta entrega implementa US1
-(registro), US2 (inicio de sesión por email o username) y un dashboard vacío.
-Grupos, propuestas, preferencias y compatibilidad pertenecen a próximas US.
+facilitar la organización de planes compartidos. Esta entrega implementa registro, inicio de sesión por email o username
+y gestión de grupos con owner, detalle y listado de pertenencias.
+El owner puede editar el grupo o eliminarlo previa confirmación.
+Propuestas, invitaciones, preferencias y compatibilidad quedan para próximas US.
 
 ## Stack y responsabilidades
 
 - Python 3.13, Django 6.1.1 y templates/forms/views del servidor.
 - Supabase Auth como única autoridad de identidad y contraseñas.
-- Supabase Data API y PostgreSQL para `public.profiles`, con RLS.
+- Supabase Data API y PostgreSQL para perfiles, grupos y membresías, con RLS.
 - PostgreSQL por conexión directa para sesiones técnicas Django en
   `django_internal`; puede estar en Supabase o en otra instancia.
 - psycopg 3.3.6, python-dotenv 1.2.3, supabase-py 2.31.0 y httpx 0.28.1.
@@ -58,7 +59,7 @@ se ejecutan en PowerShell en Windows.
 ```powershell
 git clone https://github.com/VirBruno/PlanB.git
 cd PlanB
-git switch feature/user-authentication
+git switch feature/group-creation
 py -3.13 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
@@ -167,8 +168,9 @@ comienza con letra o dígito y es único sin distinguir mayúsculas.
 Si Auth exige confirmar el email, se muestra un aviso. El correo abre una
 página que pide confirmar mediante un botón; después se inicia sesión desde
 login. Si el proyecto permite sesión inmediata, el registro abre el dashboard.
-Login acepta email o username. El dashboard muestra el saludo y “Todavía no
-participás de ningún grupo.” El cierre se realiza con su botón POST.
+Login acepta email o username. El dashboard muestra los grupos a los que pertenecés y permite crear uno
+con nombre y descripción opcional. El creador queda asociado como owner.
+El cierre de sesión se realiza con su botón POST.
 
 ## Ramas y Pull Requests
 
@@ -192,3 +194,20 @@ datos reales. Aplicar SQL remoto es un paso de despliegue separado.
 - [Autenticación y configuración del proveedor](docs/architecture/autenticacion-supabase.md).
 - [Esquema, roles, migraciones y protección de tokens](docs/architecture/esquema-datos.md).
 - [Pruebas offline e integración](docs/testing/autenticacion.md).
+
+## Grupos
+
+La app `backend/apps/groups/` coordina el dominio mediante Data API.
+Las tablas `public.groups` y `public.group_members` se almacenan en el
+PostgreSQL de Supabase. No existen modelos Django ni una copia local.
+
+Después de la preparación inicial, aplicar una sola vez
+`supabase/migrations/202609300001_groups.sql` como administrador.
+No requiere nuevas migraciones Django ni cambios en `.env`.
+Ver [despliegue y pruebas de grupos](docs/testing/grupos.md) para los pasos
+exactos, validación de persistencia real, RLS y atomicidad.
+
+Para habilitar edición y eliminación por el owner, aplicar después
+`supabase/migrations/202609300002_group_management.sql`. Se mantienen
+RLS y escritura exclusivamente por RPC. Ver el procedimiento completo en
+[edición y eliminación](docs/testing/grupos.md#edición-y-eliminación-del-grupo).

@@ -220,6 +220,15 @@ class EmailConfirmationTests(TestCase):
 
 
 class ProtectedRoutesTests(TestCase):
+    def setUp(self):
+        for target, value in [
+            ("apps.users.views.group_service.list_groups", {"items": [], "page": 1}),
+            ("apps.users.services.session_service.get_access_token", "test-jwt"),
+        ]:
+            mock = patch(target, return_value=value)
+            mock.start()
+            self.addCleanup(mock.stop)
+
     @patch("apps.users.services.session_service.current_user", return_value=None)
     def test_dashboard_requires_session_and_preserves_path(self, current):
         response = self.client.get(reverse("users:dashboard"))

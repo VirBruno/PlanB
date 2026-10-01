@@ -1,0 +1,67 @@
+/*
+ * Transiciones entre documentos del mismo origen: navegación HTML nativa.
+ * El UUID ya público vincula card y panel; nunca se interceptan enlaces/forms.
+ * Navegadores sin soporte ignoran estas reglas y conservan la navegación.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+
+  .group-card, [data-group-surface] {
+    view-transition-name: var(--group-surface, none);
+    view-transition-class: group-surface;
+  }
+
+  ::view-transition { pointer-events: none; }
+  ::view-transition-group(*) {
+    animation-duration: 340ms;
+    animation-timing-function: cubic-bezier(.22, .75, .25, 1);
+  }
+
+  /* El fondo se desenfoca levemente mientras la superficie mantiene nitidez. */
+  ::view-transition-old(root) {
+    animation: planb-scene-out 220ms ease both;
+  }
+  ::view-transition-new(root) {
+    animation: planb-scene-in 300ms ease both;
+  }
+  ::view-transition-group(.group-surface) {
+    z-index: 1;
+    filter: drop-shadow(0 12px 22px #12244116);
+  }
+  ::view-transition-image-pair(.group-surface) {
+    isolation: isolate;
+    overflow: clip;
+    border-radius: 18px;
+  }
+  ::view-transition-old(.group-surface),
+  ::view-transition-new(.group-surface) {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+    object-position: left top;
+    mix-blend-mode: normal;
+    animation-duration: 240ms;
+  }
+
+  /* Cards sin pareja desaparecen pronto, sin una sombra rectangular residual. */
+  ::view-transition-old(.group-surface):only-child { animation-duration: 120ms; }
+
+  @media (max-width: 760px) {
+    ::view-transition-group(*) { animation-duration: 260ms; }
+    ::view-transition-new(root) { animation-duration: 240ms; }
+  }
+}
+@keyframes planb-scene-out {
+  to { opacity: 0; filter: blur(3px) saturate(.9); }
+}
+@keyframes planb-scene-in {
+  from { opacity: .45; filter: blur(3px) saturate(.9); }
+  to { opacity: 1; filter: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+  .group-card, [data-group-surface] { view-transition-name: none; }
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

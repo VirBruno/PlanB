@@ -1,0 +1,20 @@
+{% extends 'components/authenticated_base.html' %}
+{% block title %}Crear grupo · Plan B{% endblock %}
+{% block workspace %}
+<a class="back-link" href="{% url 'users:dashboard' %}">← Mis grupos</a>
+<section class="group-panel" aria-labelledby="group-title">
+  <p class="eyebrow eyebrow--blue">UN NUEVO PUNTO DE ENCUENTRO</p>
+  <h1 id="group-title">Creá tu grupo.</h1>
+  <p class="panel-description">Dale un nombre a ese próximo plan compartido.</p>
+  <form method="post" class="auth-form" data-submit-form>
+    {% csrf_token %}
+    {% include 'components/form_errors.html' %}
+    {% for field in form %}{% include 'components/field.html' %}{% endfor %}
+    <div class="group-actions">
+      <button class="button button--primary" type="submit" data-loading-label="Creando grupo…"><span data-button-label>Crear grupo</span><span aria-hidden="true">→</span></button>
+      <a class="button button--quiet" href="{% url 'users:dashboard' %}">Cancelar</a>
+    </div>
+    <p class="submit-status sr-only" role="status" aria-live="polite"></p>
+  </form>
+</section>
+{% endblock %}

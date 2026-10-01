@@ -2,6 +2,7 @@ from django.urls import include, path
 from django.views.generic import RedirectView
 
 urlpatterns = [
+    path("grupos/", include("apps.groups.urls")),
     path("", RedirectView.as_view(pattern_name="users:dashboard", permanent=False)),
     path("", include("apps.users.urls")),
 ]

@@ -1,7 +1,7 @@
 # Arquitectura de Plan B
 
 US1 y US2 incorporan registro e inicio de sesión mediante Supabase Auth y un
-dashboard vacío. Django renderiza la interfaz y coordina servicios; PostgreSQL
+dashboard con grupos. Django renderiza la interfaz y coordina servicios; PostgreSQL
 almacena perfiles e infraestructura de sesión con responsabilidades separadas.
 
 ```mermaid
@@ -30,7 +30,7 @@ a infraestructura; los perfiles se consultan mediante Data API. Los componentes
 del bootstrap ya migrados no se borran de una base existente.
 
 Esta entrega no incluye edición de perfil, recuperación/cambio de contraseña,
-OAuth, grupos, propuestas, preferencias ni algoritmo de compatibilidad.
+OAuth, invitaciones, propuestas, preferencias ni algoritmo de compatibilidad.
 
 ## Decisiones y guías
 
@@ -43,3 +43,10 @@ OAuth, grupos, propuestas, preferencias ni algoritmo de compatibilidad.
 La suite offline no aplica SQL ni modifica infraestructura remota. Las pruebas
 reales de correo, Auth, RLS y concurrencia PostgreSQL se ejecutan únicamente en
 un entorno de prueba preparado y autorizado por el equipo.
+
+## Grupos
+
+`apps/groups` agrega creación, detalle y lectura de pertenencias al dashboard.
+Reutiliza clientes efímeros y JWT del usuario. La RPC `public.create_group`
+persiste grupo y owner en una transacción de Supabase; el ORM sigue limitado
+a infraestructura. Ver [pruebas y despliegue](../testing/grupos.md).

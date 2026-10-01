@@ -1,0 +1,23 @@
+{% extends 'components/authenticated_base.html' %}
+{% block title %}Eliminar grupo · Plan B{% endblock %}
+{% block workspace %}
+<a class="back-link" href="{% url 'groups:detail' group.id %}">← Volver al grupo</a>
+<section class="group-panel group-panel--danger" data-group-surface style="--group-surface: group-{{ group.id }};" aria-labelledby="group-title">
+  <p class="eyebrow eyebrow--blue">ANTES DE CONTINUAR</p>
+  <h1 id="group-title">¿Eliminar este grupo?</h1>
+  <p class="panel-description">Vas a eliminar <strong>{{ group.name }}</strong> y todas sus membresías. Esta acción es permanente y no se puede deshacer.</p>
+  {% if error %}
+  <div class="notice notice--error management-notice" role="alert" tabindex="-1" data-error-summary>
+    <p>{{ error }}</p><p><a href="{% url 'users:dashboard' %}">Revisar Mis grupos</a></p>
+  </div>
+  {% endif %}
+  <form method="post" action="{% url 'groups:delete' group.id %}" data-submit-form>
+    {% csrf_token %}
+    <div class="group-actions">
+      <a class="button button--quiet" href="{% url 'groups:detail' group.id %}">Cancelar y volver</a>
+      <button class="button button--danger" type="submit" data-loading-label="Eliminando grupo…"><span data-button-label>Sí, eliminar grupo</span></button>
+    </div>
+    <p class="submit-status sr-only" role="status" aria-live="polite"></p>
+  </form>
+</section>
+{% endblock %}

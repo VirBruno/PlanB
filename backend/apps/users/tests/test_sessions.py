@@ -144,3 +144,26 @@ class SessionLifecycleTests(TestCase):
         Session.objects.filter(pk=stored.session_id).update(expire_date=timezone.now()-timedelta(seconds=1))
         SessionStore.clear_expired()
         self.assertFalse(SupabaseSession.objects.exists())
+
+    def test_domain_token_accessor_rejects_anonymous(self):
+        with self.assertRaises(SessionExpired):
+            session_service.get_access_token(self.request)
+
+    def test_domain_token_accessor_returns_token_without_exposing_it_in_session(self):
+        self.establish()
+        self.assertEqual(session_service.get_access_token(self.request), "access-original")
+        self.assertNotIn("access-original", str(dict(self.request.session)))
+
+    @patch("apps.users.services.session_service.auth_service.refresh")
+    def test_domain_accessor_uses_rotated_tokens(self, refresh):
+        stored = self.establish()
+        stored.expires_at = timezone.now() - timedelta(seconds=1)
+        stored.save()
+        refresh.return_value = AuthSession(
+            access_token="rotated", refresh_token="rotated-refresh",
+            expires_at=int((timezone.now() + timedelta(hours=1)).timestamp()),
+            user_id=self.tokens.user_id,
+        )
+        self.assertEqual(session_service.get_access_token(self.request), "rotated")
+        self.assertEqual(session_service.get_access_token(self.request), "rotated")
+        refresh.assert_called_once()
