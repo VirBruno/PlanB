@@ -21,6 +21,10 @@ class GroupManagementTests(TestCase):
         self.current = self.mock("apps.users.services.session_service.current_user", return_value={"id": USER_ID, "username": "Ana"})
         self.mock("apps.users.services.session_service.get_access_token", return_value="private-jwt")
         self.get = self.mock("apps.groups.views.group_service.get_group", return_value=self.group)
+        self.mock(
+            "apps.groups.views.plan_service.list_plans",
+            return_value={"items": [], "page": 1, "has_next": False},
+        )
         self.update = self.mock("apps.groups.views.group_service.update_group", return_value=GROUP_ID)
         self.delete = self.mock("apps.groups.views.group_service.delete_group", return_value=GROUP_ID)
 
@@ -221,6 +225,8 @@ class ManagementNavigationTests(TestCase):
                 return httpx.Response(200, json=GROUP_ID)
             if request.url.path.endswith("/group_members"):
                 return httpx.Response(200, json=[remote["membership"]] if remote else [])
+            if request.url.path.endswith("/plans"):
+                return httpx.Response(200, json=[])
             self.assertTrue(request.url.path.endswith("/groups"))
             return httpx.Response(200, json=[remote["group"]] if remote else [])
 

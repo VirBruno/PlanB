@@ -1,0 +1,37 @@
+{% extends 'components/authenticated_base.html' %}
+{% block title %}{% if group %}Planes de {{ group.name }}{% else %}Planes de mis grupos{% endif %} · Plan B{% endblock %}
+{% block workspace %}
+{% if group %}<a class="back-link" href="{% url 'groups:detail' group.id %}">← Volver al grupo</a>{% endif %}
+<section class="groups-section" aria-labelledby="plans-title">
+  <div class="section-heading">
+    <h2 id="plans-title">{% if group %}Planes de {{ group.name }}{% else %}Planes de tus grupos{% endif %}</h2><span class="section-line" aria-hidden="true"></span>
+    {% if group.role == 'owner' %}<a class="button button--primary" href="{% url 'groups:plan_create' group.id %}">Crear plan <span aria-hidden="true">+</span></a>{% endif %}
+  </div>
+  {% if plans_page.items %}
+  <ul class="group-grid">
+    {% for plan in plans_page.items %}
+    <li class="group-card" data-plan-status="{{ plan.status|yesno:'active,inactive' }}">
+      <h3><a href="{% url 'plans:detail' plan.id %}">{{ plan.name }}</a></h3>
+      <p>{{ plan.description|truncatechars:160 }}</p>
+      <span class="plan-status">{% if plan.status %}Activo{% else %}Inactivo{% endif %}</span>
+      <span class="group-date">Creado el {{ plan.created_at|date:"d/m/Y" }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% elif plans_page.page > 1 %}
+  <div class="empty-state"><h3>No hay más planes en esta página.</h3><p>{% if group %}<a href="{% url 'groups:plans' group.id %}">Volver a la primera página</a>{% else %}<a href="{% url 'plans:index' %}">Volver a la primera página</a>{% endif %}</p></div>
+  {% else %}
+  <div class="empty-state">
+    <h3>{% if group %}Este grupo todavía no tiene planes.{% else %}Todavía no hay planes en tus grupos.{% endif %}</h3>
+    {% if group.role == 'owner' %}<p>Creá uno para organizar la próxima salida.</p><a class="button button--primary empty-action" href="{% url 'groups:plan_create' group.id %}">Crear el primer plan</a>{% endif %}
+  </div>
+  {% endif %}
+  {% if plans_page.previous_page or plans_page.next_page %}
+  <nav class="group-pagination" aria-label="Páginas de planes">
+    {% if plans_page.previous_page %}<a class="button button--quiet" href="?page={{ plans_page.previous_page }}">← Anterior</a>{% endif %}
+    <span>Página {{ plans_page.page }}</span>
+    {% if plans_page.next_page %}<a class="button button--quiet" href="?page={{ plans_page.next_page }}">Siguiente →</a>{% endif %}
+  </nav>
+  {% endif %}
+</section>
+{% endblock %}

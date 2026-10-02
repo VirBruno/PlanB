@@ -238,6 +238,7 @@ class ProtectedRoutesTests(TestCase):
     def test_dashboard_greets_user_and_shows_empty_groups(self, current):
         response = self.client.get(reverse("users:dashboard"))
         self.assertContains(response, "Facundo")
+        self.assertContains(response, 'class="brand" href="/dashboard/"')
         self.assertContains(response, "Todavía no participás de ningún grupo.")
         self.assertContains(response, 'method="post" action="/logout/"')
         self.assertIn("no-store", response["Cache-Control"])

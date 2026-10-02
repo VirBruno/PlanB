@@ -1,4 +1,5 @@
 from unittest.mock import patch
+from datetime import datetime, timezone
 
 from django.conf import settings
 from django.test import Client, TestCase
@@ -66,9 +67,11 @@ class GroupViewsTests(TestCase):
         response = self.client.get(self.detail_url)
         self.assertContains(response, "Volver a intentar", status_code=503)
 
+    @patch("apps.groups.views.plan_service.list_plans", return_value={"items": [], "page": 1, "has_next": False})
     @patch("apps.groups.views.group_service.get_group")
-    def test_detail_escapes_content_and_never_exposes_tokens(self, get):
+    def test_detail_escapes_content_and_never_exposes_tokens(self, get, list_plans):
         get.return_value = {
+            "id": GROUP_ID, "role": "member",
             "name": "<script>alert(1)</script>", "description": "<img src=x onerror=alert(1)>",
             "role_label": "Miembro", "created_at": None,
         }
@@ -78,6 +81,67 @@ class GroupViewsTests(TestCase):
         self.assertContains(response, "Miembro")
         for secret in ("private-jwt", settings.SUPABASE_SECRET_KEY, settings.SUPABASE_PUBLISHABLE_KEY):
             self.assertNotContains(response, secret)
+
+    @patch("apps.groups.views.plan_service.list_plans")
+    @patch("apps.groups.views.group_service.get_group")
+    def test_detail_groups_plan_cards_by_creation_date_and_shows_owner_plus(self, get, list_plans):
+        get.return_value = {
+            "id": GROUP_ID, "name": "Escapadas", "description": "",
+            "role": "owner", "role_label": "Owner", "created_at": None,
+        }
+        list_plans.side_effect = [{
+            "items": [
+                {"id": "9f3bb3a8-50ea-4f9d-a7c5-80e5ed548e8e", "name": "Plan nuevo",
+                 "description": "Una salida", "status": True,
+                 "created_at": datetime(2026, 10, 2, 15, tzinfo=timezone.utc)},
+            ],
+            "page": 1, "next_page": 2,
+        }, {
+            "items": [
+                {"id": "4b5d2158-2bf5-4be7-8407-79022cb079fd", "name": "Plan anterior",
+                 "description": "Otra salida", "status": False,
+                 "created_at": datetime(2026, 10, 1, 15, tzinfo=timezone.utc)},
+            ],
+            "page": 2, "next_page": None,
+        }]
+        response = self.client.get(self.detail_url)
+        content = response.content.decode()
+        self.assertLess(content.index("Plan nuevo"), content.index("Plan anterior"))
+        self.assertLess(content.index('class="plans-section"'), content.index("</section>", content.index('class="group-panel"')))
+        self.assertContains(response, 'aria-label="Crear plan"')
+        self.assertContains(response, f'href="/grupos/{GROUP_ID}/planes/nuevo/"')
+        self.assertEqual(len(response.context["plans_by_date"]), 2)
+        self.assertEqual(list_plans.call_count, 2)
+        self.assertEqual(list_plans.call_args_list[0].kwargs, {"page": 1, "group_id": GROUP_ID})
+        self.assertEqual(list_plans.call_args_list[1].kwargs, {"page": 2, "group_id": GROUP_ID})
+
+    @patch("apps.groups.views.plan_service.list_plans", return_value={"items": [], "page": 1, "has_next": False})
+    @patch("apps.groups.views.group_service.get_group")
+    def test_empty_group_shows_text_create_action_only_to_owner(self, get, list_plans):
+        get.return_value = {
+            "id": GROUP_ID, "name": "Escapadas", "description": "",
+            "role": "owner", "role_label": "Owner", "created_at": None,
+        }
+        response = self.client.get(self.detail_url)
+        self.assertContains(response, "Este grupo todavía no tiene planes.")
+        self.assertContains(response, "Crear plan")
+        self.assertNotContains(response, 'aria-label="Crear plan"')
+        self.assertEqual(
+            response.content.count(f'href="/grupos/{GROUP_ID}/planes/nuevo/"'.encode()),
+            1,
+        )
+
+    @patch("apps.groups.views.plan_service.list_plans", return_value={"items": [], "page": 1, "has_next": False})
+    @patch("apps.groups.views.group_service.get_group")
+    def test_member_empty_state_has_no_create_action_or_global_nav_link(self, get, list_plans):
+        get.return_value = {
+            "id": GROUP_ID, "name": "Escapadas", "description": "",
+            "role": "member", "role_label": "Miembro", "created_at": None,
+        }
+        response = self.client.get(self.detail_url)
+        self.assertContains(response, "Este grupo todavía no tiene planes.")
+        self.assertNotContains(response, "Crear plan")
+        self.assertNotContains(response, 'href="/planes/"')
 
     @patch("apps.groups.views.group_service.create_group")
     def test_csrf_rejection_does_not_create(self, create):
@@ -171,6 +235,8 @@ class GroupNavigationFlowTests(TestCase):
                 return httpx.Response(200, json=GROUP_ID)
             if request.url.path.endswith("/group_members"):
                 return httpx.Response(200, json=[{"role": "owner"}])
+            if request.url.path.endswith("/plans"):
+                return httpx.Response(200, json=[])
             self.assertTrue(request.url.path.endswith("/groups"))
             return httpx.Response(200, json=[remote["group"]] if remote else [])
 

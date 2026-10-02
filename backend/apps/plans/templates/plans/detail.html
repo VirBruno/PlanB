@@ -1,0 +1,21 @@
+{% extends 'components/authenticated_base.html' %}
+{% block title %}{{ plan.name }} · Plan B{% endblock %}
+{% block workspace %}
+<a class="back-link" href="{% url 'groups:detail' group.id %}">← Volver al grupo</a>
+<section class="group-panel" aria-labelledby="plan-title">
+  <p class="eyebrow eyebrow--blue">TU PLAN EN PLAN B</p>
+  <h1 id="plan-title">{{ plan.name }}</h1>
+  <p class="group-description">{{ plan.description|linebreaksbr }}</p>
+  <dl class="group-meta">
+    <div><dt>Estado</dt><dd>{% if plan.status %}Activo{% else %}Inactivo{% endif %}</dd></div>
+    <div><dt>Creado el</dt><dd>{{ plan.created_at|date:"d/m/Y" }}</dd></div>
+    <div><dt>Grupo</dt><dd><a href="{% url 'groups:detail' group.id %}">{{ group.name }}</a></dd></div>
+  </dl>
+  {% if can_manage %}
+  <div class="group-actions group-owner-actions">
+    <a class="button button--primary" href="{% url 'plans:edit' plan.id %}">Editar plan <span aria-hidden="true">→</span></a>
+    <a class="button button--danger-quiet" href="{% url 'plans:delete_confirmation' plan.id %}">Eliminar plan</a>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

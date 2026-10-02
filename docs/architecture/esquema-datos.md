@@ -216,3 +216,18 @@ Se mantiene SECURITY DEFINER con search_path vacío, nombres cualificados,
 sin SQL dinámico y sin claves administrativas en las requests. Las RPC
 devuelven PT404 para grupo inexistente o no autorizado, sin revelar su existencia.
 Ver [validación real](../testing/grupos.md#edición-y-eliminación-del-grupo).
+
+## Planes
+
+`public.plans` contiene `id`, `created_at`, `name`, `description`, `status`,
+`group_id` y `created_by` nullable, según el esquema inicial acordado. La
+migración `202610010002_group_owned_plans.sql` convierte `group_id` en NOT NULL;
+reasignar antes cualquier registro histórico sin grupo. Las claves foráneas
+apuntan a `groups` y `profiles`; no hay modelos Django de dominio.
+
+Las migraciones `202610010001_plans_security.sql` y
+`202610010002_group_owned_plans.sql` habilitan RLS y grants sólo para
+`authenticated`. SELECT permite a integrantes actuales del grupo; INSERT,
+UPDATE y DELETE requieren rol `owner`. `created_by` es sólo auditoría y no
+otorga permisos. Grants por columna impiden cambiar identidad, UUID y fecha de
+creación. Django transmite únicamente el JWT del usuario mediante Data API.

@@ -6,6 +6,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions", "django.contrib.messages", "django.contrib.staticfiles",
     "apps.users.apps.UsersConfig",
     "apps.groups.apps.GroupsConfig",
+    "apps.plans.apps.PlansConfig",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

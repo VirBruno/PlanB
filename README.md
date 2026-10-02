@@ -1,9 +1,9 @@
 # Plan B
 
 Plan B es un proyecto universitario desarrollado con metodología Agile para
-facilitar la organización de planes compartidos. Esta entrega implementa registro, inicio de sesión por email o username
-y gestión de grupos con owner, detalle y listado de pertenencias.
-El owner puede editar el grupo o eliminarlo previa confirmación.
+facilitar la organización de planes compartidos. Esta entrega implementa
+registro e inicio de sesión por email o username, gestión de grupos y planes
+asociados a grupos. El owner del grupo puede administrar sus planes.
 Propuestas, invitaciones, preferencias y compatibilidad quedan para próximas US.
 
 ## Stack y responsabilidades
@@ -29,12 +29,10 @@ PlanB/
 ├── backend/
 │   ├── manage.py
 │   ├── config/                 # Settings de ejecución/tests, URLs, ASGI/WSGI
-│   └── apps/users/
-│       ├── services/           # Auth, perfiles, clientes y sesiones
-│       ├── migrations/         # Modelo técnico de sesión; no usuario Django
-│       ├── templates/          # Formularios y dashboard
-│       ├── static/users/       # CSS y JavaScript accesible
-│       └── tests/              # Suite offline con mocks
+│   └── apps/
+│       ├── groups/             # Grupos y membresías
+│       ├── plans/              # Planes de grupo con RLS
+│       └── users/              # Auth, perfiles, sesiones y dashboard
 ├── supabase/
 │   ├── migrations/             # Infraestructura y profiles, revisión manual
 │   ├── templates/              # Correo de confirmación
@@ -168,8 +166,10 @@ comienza con letra o dígito y es único sin distinguir mayúsculas.
 Si Auth exige confirmar el email, se muestra un aviso. El correo abre una
 página que pide confirmar mediante un botón; después se inicia sesión desde
 login. Si el proyecto permite sesión inmediata, el registro abre el dashboard.
-Login acepta email o username. El dashboard muestra los grupos a los que pertenecés y permite crear uno
-con nombre y descripción opcional. El creador queda asociado como owner.
+Login acepta email o username. El dashboard muestra los grupos a los que
+pertenecés y permite crear uno con nombre y descripción opcional. El creador
+queda asociado como owner. Desde el detalle de cada grupo se consultan sus
+planes; el owner del grupo puede crearlos, editarlos o eliminarlos.
 El cierre de sesión se realiza con su botón POST.
 
 ## Ramas y Pull Requests
@@ -211,3 +211,13 @@ Para habilitar edición y eliminación por el owner, aplicar después
 `supabase/migrations/202609300002_group_management.sql`. Se mantienen
 RLS y escritura exclusivamente por RPC. Ver el procedimiento completo en
 [edición y eliminación](docs/testing/grupos.md#edición-y-eliminación-del-grupo).
+
+## Planes
+
+La app `backend/apps/plans/` usa Data API y el JWT de la sesión. La tabla
+`public.plans` debe existir con el esquema acordado. Aplicar en orden
+`202610010001_plans_security.sql` y `202610010002_group_owned_plans.sql` como
+administrador; la segunda exige `group_id` y deja la gestión sólo al owner del
+grupo (el rol admin del modelo actual). El listado está dentro de cada grupo.
+Django no aplica estas migraciones automáticamente. Consultar
+[preparación y validación de planes](docs/testing/planes.md).

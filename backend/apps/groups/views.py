@@ -3,11 +3,14 @@ from django.core.exceptions import PermissionDenied
 from django.http import Http404
 from django.urls import reverse
 from django.shortcuts import redirect, render
+from itertools import groupby
 from django.views.decorators.debug import sensitive_variables
 from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.users.decorators import private_page, supabase_login_required
 from apps.users.services import session_service
+from apps.plans.services import plan_service
+from apps.plans.services.exceptions import PlanUnavailable
 from .forms import GroupForm
 from .services import group_service
 from .services.exceptions import GroupNotFound, GroupUnavailable, InvalidGroup
@@ -46,15 +49,34 @@ def create(request):
 @sensitive_variables()
 def detail(request, group_id):
     try:
-        group = group_service.get_group(session_service.get_access_token(request), group_id)
+        access_token = session_service.get_access_token(request)
+        group = group_service.get_group(access_token, group_id)
     except GroupNotFound:
         raise Http404("No encontramos ese grupo.") from None
     except (GroupUnavailable, InvalidGroup):
         return render(request, "groups/detail.html", {
             "unavailable": True, "planb_user": request.planb_user,
         }, status=503)
+    try:
+        plans_page = plan_service.list_plans(access_token, page=1, group_id=str(group_id))
+        all_plans = list(plans_page["items"])
+        while plans_page.get("next_page"):
+            plans_page = plan_service.list_plans(
+                access_token, page=plans_page["next_page"], group_id=str(group_id),
+            )
+            all_plans.extend(plans_page["items"])
+    except PlanUnavailable:
+        return render(request, "groups/detail.html", {
+            "group": group, "plans_unavailable": True,
+            "planb_user": request.planb_user,
+        }, status=503)
+    plans_by_date = [
+        {"date": date, "items": list(items)}
+        for date, items in groupby(all_plans, key=lambda plan: plan["created_at"].date())
+    ]
     return render(request, "groups/detail.html", {
-        "group": group, "planb_user": request.planb_user,
+        "group": group, "plans_page": {"items": all_plans},
+        "plans_by_date": plans_by_date, "planb_user": request.planb_user,
     })
 
 def _owned_group(request, group_id):

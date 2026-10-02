@@ -5,7 +5,9 @@
 <header class="dashboard-header">
   <div class="dashboard-header-inner">
     {% include 'components/brand.html' %}
-    <nav aria-label="Navegación principal"><a class="nav-active" href="{% url 'users:dashboard' %}" {% if request.resolver_match.url_name == "dashboard" %}aria-current="page"{% endif %}>Mi espacio</a></nav>
+    <nav aria-label="Navegación principal">
+      <a href="{% url 'users:dashboard' %}" {% if request.resolver_match.url_name == "dashboard" %}aria-current="page"{% endif %}>Mi espacio</a>
+    </nav>
     <form method="post" action="{% url 'users:logout' %}">
       {% csrf_token %}
       <button class="button button--quiet" type="submit">Cerrar sesión <span aria-hidden="true">↗</span></button>
