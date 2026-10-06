@@ -8,12 +8,17 @@ from django.test import SimpleTestCase
 
 from apps.plans.services import plan_service
 from apps.plans.services.exceptions import PlanNotFound, PlanUnavailable
+from apps.plans.services import proposal_service
+from apps.plans.services.proposal_exceptions import (
+    ProposalAlreadyExists, ProposalUnavailable,
+)
 from apps.users.services import clients
 from apps.users.services.exceptions import SessionExpired
 
 PLAN_ID = "7139c649-18c5-4743-b18d-c891c461e80d"
 USER_ID = "87c6ef36-64c5-4e6e-b37c-b760762d82b9"
 GROUP_ID = "9f3bb3a8-50ea-4f9d-a7c5-80e5ed548e8e"
+POINT = {"type": "Point", "coordinates": [-58.38, -34.6]}
 
 
 def plan_row(**kwargs):
@@ -122,3 +127,104 @@ class PlanSDKTests(SimpleTestCase):
         with self.assertRaises(PlanNotFound):
             plan_service.delete_plan("user-jwt", plan_id="invalid")
         self.assertFalse(self.requests)
+
+    def test_create_proposal_sends_authenticated_actor_and_ewkt(self):
+        self.responses = [(201, [{"id": 47}])]
+        self.assertEqual(proposal_service.create_proposal(
+            "user-jwt", plan_id=PLAN_ID, created_by=USER_ID,
+            tittle="Merienda", description="En el parque", date_pick=None,
+            proposal_type="juntada", position=POINT,
+        ), 47)
+        request = self.requests[0]
+        self.assertEqual(request.url.path, "/rest/v1/proposals")
+        self.assertEqual(json.loads(request.content), {
+            "plan_id": PLAN_ID, "created_by": USER_ID, "tittle": "Merienda",
+            "description": "En el parque", "date_pick": None,
+            "type": "juntada", "posicion": "SRID=4326;POINT(-58.38 -34.6)",
+        })
+
+    def test_list_proposals_validates_geojson_and_plan_scope(self):
+        self.responses = [(200, [{
+            "id": 47, "created_at": "2026-10-06T12:00:00Z",
+            "tittle": "Merienda", "description": None, "date_pick": None,
+            "created_by": USER_ID, "plan_id": PLAN_ID,
+            "type": "juntada", "posicion": POINT,
+        }])]
+        proposals = proposal_service.list_proposals("user-jwt", PLAN_ID)
+        self.assertEqual(proposals[0]["posicion"], POINT)
+        self.assertEqual(self.requests[0].url.params["plan_id"], "eq." + PLAN_ID)
+        self.responses = [(200, [{
+            "id": 47, "created_at": "2026-10-06T12:00:00Z",
+            "tittle": "Merienda", "description": None, "date_pick": None,
+            "created_by": USER_ID, "plan_id": PLAN_ID,
+            "type": "juntada", "posicion": None,
+        }])]
+        with self.assertRaises(ProposalUnavailable):
+            proposal_service.list_proposals("user-jwt", PLAN_ID)
+
+    def test_list_proposals_parses_geography_returned_as_ewkt(self):
+        self.responses = [(200, [{
+            "id": 47, "created_at": "2026-10-06T12:00:00Z",
+            "tittle": "Merienda", "description": None, "date_pick": None,
+            "created_by": USER_ID, "plan_id": PLAN_ID,
+            "type": "juntada", "posicion": "SRID=4326;POINT(-58.38 -34.6)",
+        }])]
+        proposals = proposal_service.list_proposals("user-jwt", PLAN_ID)
+        self.assertEqual(proposals[0]["posicion"], POINT)
+        self.assertEqual(proposals[0]["longitude"], -58.38)
+        self.assertEqual(proposals[0]["latitude"], -34.6)
+
+    def test_list_proposals_parses_postgis_ewkb_hex_point(self):
+        self.responses = [(200, [{
+            "id": 47, "created_at": "2026-10-06T12:00:00Z",
+            "tittle": "Merienda", "description": None, "date_pick": None,
+            "created_by": USER_ID, "plan_id": PLAN_ID,
+            "type": "juntada",
+            "posicion": "0101000020E6100000E7251898DBFD4CC022A67E77857341C0",
+        }])]
+        proposals = proposal_service.list_proposals("user-jwt", PLAN_ID)
+        self.assertEqual(proposals[0]["posicion"], {
+            "type": "Point", "coordinates": [-57.9832639806662, -34.9025105827716],
+        })
+
+    def test_unrecognized_position_format_is_logged_without_coordinates(self):
+        self.responses = [(200, [{
+            "id": 47, "created_at": "2026-10-06T12:00:00Z",
+            "tittle": "Merienda", "description": None, "date_pick": None,
+            "created_by": USER_ID, "plan_id": PLAN_ID,
+            "type": "juntada", "posicion": "secret-coordinate-value",
+        }])]
+        with self.assertLogs("planb", level="WARNING") as captured:
+            with self.assertRaises(ProposalUnavailable):
+                proposal_service.list_proposals("user-jwt", PLAN_ID)
+        self.assertIn("python_type=str", captured.output[0])
+        self.assertNotIn("secret-coordinate-value", captured.output[0])
+
+    def test_detects_existing_member_proposal_and_database_unique_conflict(self):
+        self.responses = [(200, [{"id": 47}]), (409, {
+            "code": "23505", "message": "duplicate key value violates unique constraint",
+            "details": None, "hint": None,
+        })]
+        self.assertTrue(proposal_service.has_user_proposal(
+            "user-jwt", plan_id=PLAN_ID, created_by=USER_ID,
+        ))
+        with self.assertRaises(ProposalAlreadyExists):
+            proposal_service.create_proposal(
+                "user-jwt", plan_id=PLAN_ID, created_by=USER_ID,
+                tittle="Otra propuesta", description="", date_pick=None,
+                proposal_type="juntada", position=POINT,
+            )
+
+    def test_permission_error_logs_safe_database_message(self):
+        self.responses = [(403, {
+            "code": "42501", "message": "new row violates row-level security policy",
+            "details": None, "hint": None,
+        })]
+        with self.assertLogs("planb", level="WARNING") as captured:
+            with self.assertRaises(ProposalUnavailable):
+                proposal_service.create_proposal(
+                    "user-jwt", plan_id=PLAN_ID, created_by=USER_ID,
+                    tittle="Merienda", description="", date_pick=None,
+                    proposal_type="juntada", position=POINT,
+                )
+        self.assertIn("row-level security policy", captured.output[0])

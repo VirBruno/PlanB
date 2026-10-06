@@ -1,0 +1,61 @@
+.proposal-form-panel { max-width: 760px; }
+.proposal-form-panel .auth-form { gap: 24px; }
+.proposal-form-panel .field input,
+.proposal-form-panel .field select { min-height: 56px; height: 56px; padding: 0 16px; font-size: 16px; }
+.proposal-form-panel .field textarea { min-height: 150px; padding: 14px 16px; font-size: 16px; }
+.proposal-form-panel .field label { margin-bottom: 9px; font-size: 14px; }
+.plan-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.plan-heading h1 { min-width: 0; flex: 1; }
+.plan-heading-actions { display: flex; flex: 0 0 auto; gap: 8px; }
+.plan-icon-button { display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); background: var(--white); transition: color .15s ease, border-color .15s ease, background-color .15s ease; }
+.plan-icon-button:hover { color: var(--blue); border-color: #b6c8fa; background: #f2f6ff; }
+.plan-icon-button svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.plan-icon-button--danger:hover { color: var(--danger); border-color: #e8bdc5; background: #fff1f3; }
+.location-picker { display: grid; gap: 12px; }
+.location-picker h2 { margin: 0; color: var(--navy); font-size: 18px; }
+.location-picker > div:first-child p { margin: 5px 0 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.city-search-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 10px; }
+.city-search-row .field input:focus { border-color: var(--blue); box-shadow: 0 0 0 4px #2355dc0d; outline: none; }
+.location-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.location-status { color: var(--muted); font-size: 12px; line-height: 1.5; }
+.city-results { display: grid; gap: 5px; margin: 0; padding: 0; list-style: none; }
+.city-results:empty { display: none; }
+.city-results button { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--white); color: var(--text); text-align: left; cursor: pointer; }
+.city-results button:hover, .city-results button:focus-visible { border-color: var(--blue); background: #f2f6ff; }
+.proposal-map { width: 100%; height: 340px; min-height: 280px; border: 1px solid var(--line); border-radius: 8px; background: #e7edf1; z-index: 0; }
+.proposal-location { display: grid; justify-items: start; gap: 8px; margin-top: 14px; }
+.proposal-location-label { color: var(--muted); font-size: 12px; font-weight: 650; }
+.proposal-map-link { display: grid; gap: 7px; width: min(100%, 420px); font-size: 12px; font-weight: 650; text-decoration: none; }
+.proposal-map-link > span { justify-self: start; }
+.proposal-map-preview { width: 100%; height: 156px; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: var(--canvas); }
+.proposal-map-preview .leaflet-control-attribution { font-size: 9px; }
+.proposal-map-preview .leaflet-control-zoom { display: none; }
+.proposal-map-preview .leaflet-container { font: inherit; }
+.proposal-list { display: grid; gap: 16px; margin: 16px 0 0; padding: 0; list-style: none; }
+.proposal-item { display: grid; gap: 12px; padding: 20px; border: 1px solid var(--line); border-radius: 8px; background: var(--white); box-shadow: 0 3px 12px #12244106; }
+.proposal-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.proposal-heading h3 { margin: 4px 0 0; color: var(--navy); font-size: 18px; overflow-wrap: anywhere; }
+.proposal-author { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+.proposal-author strong { color: var(--text); font-weight: 650; }
+.proposal-type { color: var(--muted); font-size: 11px; font-weight: 700; text-transform: uppercase; }
+.proposal-item > p { margin: 10px 0; color: var(--muted); font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }
+.proposal-actions { display: flex; align-items: center; gap: 12px; white-space: nowrap; font-size: 13px; }
+.proposal-actions form { margin: 0; }
+.proposal-actions .button { min-height: 40px; padding: 8px 12px; font-size: 12px; }
+.proposal-meta { display: flex; flex-wrap: wrap; gap: 16px; margin: 12px 0 0; font-size: 12px; }
+.proposal-meta div { display: flex; gap: 5px; }
+.proposal-meta dt { color: var(--muted); }
+.proposal-meta dd { margin: 0; }
+.empty-proposals { margin: 16px 0 0; color: var(--muted); font-size: 14px; }
+
+@media (max-width: 560px) {
+  .plan-heading { align-items: flex-start; gap: 10px; }
+  .plan-heading-actions { gap: 6px; }
+  .plan-icon-button { width: 38px; height: 38px; }
+  .city-search-row { grid-template-columns: 1fr; }
+  .city-search-row > button { justify-self: start; }
+  .proposal-map { height: 300px; }
+  .proposal-map-link { width: 100%; }
+  .proposal-map-preview { height: 150px; }
+  .proposal-heading { flex-direction: column; }
+}

@@ -86,3 +86,26 @@ def get_profile(access_token, user_id):
         return {"id": canonical_id, "username": row["username"]}
     except Exception:
         raise ServiceUnavailable() from None
+
+
+@sensitive_variables()
+def usernames_for_ids(user_ids):
+    """Resolve only the profile IDs already visible through an authorized domain query."""
+    try:
+        canonical_ids = sorted({str(UUID(str(user_id))) for user_id in user_ids})
+        if not canonical_ids:
+            return {}
+        with clients.administrative_client() as client:
+            rows = (client.table("profiles").select("id,username")
+                    .in_("id", canonical_ids).execute().data)
+        if not isinstance(rows, list):
+            raise ValueError
+        result = {}
+        for row in rows:
+            user_id = str(UUID(row["id"]))
+            if user_id not in canonical_ids or not isinstance(row["username"], str):
+                raise ValueError
+            result[user_id] = row["username"]
+        return result
+    except Exception:
+        raise ServiceUnavailable() from None

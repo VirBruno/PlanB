@@ -3,8 +3,9 @@
 Plan B es un proyecto universitario desarrollado con metodología Agile para
 facilitar la organización de planes compartidos. Esta entrega implementa
 registro e inicio de sesión por email o username, gestión de grupos y planes
-asociados a grupos. El owner del grupo puede administrar sus planes.
-Propuestas, invitaciones, preferencias y compatibilidad quedan para próximas US.
+asociados a grupos, y propuestas geográficas creadas por miembros de cada plan.
+El owner del grupo administra los planes; cada miembro administra sus propias
+propuestas.
 
 ## Stack y responsabilidades
 
@@ -15,6 +16,8 @@ Propuestas, invitaciones, preferencias y compatibilidad quedan para próximas US
   `django_internal`; puede estar en Supabase o en otra instancia.
 - psycopg 3.3.6, python-dotenv 1.2.3, supabase-py 2.31.0 y httpx 0.28.1.
 - CSS y JavaScript propios, sin framework frontend ni Django REST Framework.
+- Leaflet instalado localmente y OpenStreetMap/Nominatim para seleccionar
+   ubicaciones; PostGIS almacena la posición `geography` vía Supabase Data API.
 
 Las dependencias directas están fijadas en `requirements.txt`. No existe un
 usuario Django paralelo: `auth`, `admin` y `contenttypes` dejan de estar
@@ -47,7 +50,8 @@ PlanB/
 
 ## Requisitos previos
 
-Para instalar y correr tests: Git y Python 3.13 con `pip` y `venv`.
+Para instalar y correr tests: Git, Python 3.13 con `pip` y `venv`, y Node.js
+con `npm` para los assets de Leaflet.
 Para registro/login reales: una instancia Supabase preparada, PostgreSQL para
 sesiones y acceso a sus configuraciones por el equipo. Los comandos siguientes
 se ejecutan en PowerShell en Windows.
@@ -61,6 +65,7 @@ git switch feature/group-creation
 py -3.13 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
+npm ci
 ```
 
 La rama indicada corresponde a esta entrega; después de integrar el PR, usar
@@ -169,7 +174,10 @@ login. Si el proyecto permite sesión inmediata, el registro abre el dashboard.
 Login acepta email o username. El dashboard muestra los grupos a los que
 pertenecés y permite crear uno con nombre y descripción opcional. El creador
 queda asociado como owner. Desde el detalle de cada grupo se consultan sus
-planes; el owner del grupo puede crearlos, editarlos o eliminarlos.
+planes; el owner del grupo puede crearlos, editarlos o eliminarlos. Dentro de
+cada plan, cada miembro puede crear una propuesta de juntada, reunión o salida,
+elegir fecha y ubicación, y editar o eliminar la propia. También puede ver las
+propuestas compartidas por el resto del grupo.
 El cierre de sesión se realiza con su botón POST.
 
 ## Ramas y Pull Requests
@@ -221,3 +229,18 @@ administrador; la segunda exige `group_id` y deja la gestión sólo al owner del
 grupo (el rol admin del modelo actual). El listado está dentro de cada grupo.
 Django no aplica estas migraciones automáticamente. Consultar
 [preparación y validación de planes](docs/testing/planes.md).
+
+## Propuestas
+
+La app de planes envía la posición como GeoJSON al tipo `geography` de PostGIS.
+Confirmar que el enum contiene `juntada`, `reunión` y `salida`, y aplicar
+`supabase/migrations/202610060001_proposals_security.sql` después de las
+migraciones de grupos y planes, y luego
+`supabase/migrations/202610060002_proposals_one_per_user_plan.sql` para imponer
+una propuesta por usuario y plan, y
+`supabase/migrations/202610060003_proposals_postgis_schema_usage.sql` para los
+permisos del tipo geográfico en Data API, y
+`supabase/migrations/202610060004_proposal_author_usernames.sql` para mostrar
+los autores. El mapa usa Leaflet local; la búsqueda de ciudad usa Nominatim.
+Consultar el procedimiento en
+[pruebas de propuestas geográficas](docs/testing/planes.md#propuestas-geográficas).
