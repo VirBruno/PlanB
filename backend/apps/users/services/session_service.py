@@ -86,7 +86,7 @@ def current_user(request):
     try:
         user_id = auth_service.get_user(access_token)
         profile = profile_service.get_profile(access_token, user_id)
-        return {"id": profile["id"], "username": profile["username"]}
+        return profile
     except (InvalidCredentials, SessionExpired):
         invalidate_session(request)
         return None

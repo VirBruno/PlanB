@@ -3,10 +3,11 @@
 import re
 from uuid import UUID
 
+from django.utils.dateparse import parse_datetime
 from django.views.decorators.debug import sensitive_variables
 
 from . import clients
-from .exceptions import ServiceUnavailable
+from .exceptions import ServiceUnavailable, UsernameUnavailable
 
 USERNAME_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{2,29}\Z")
 
@@ -72,7 +73,7 @@ def get_profile(access_token, user_id):
         with clients.public_client(access_token=access_token) as client:
             rows = (
                 client.table("profiles")
-                .select("id,username")
+                .select("id,username,created_at,updated_at")
                 .eq("id", canonical_id)
                 .limit(1)
                 .execute()
@@ -81,10 +82,63 @@ def get_profile(access_token, user_id):
         if not isinstance(rows, list) or len(rows) != 1:
             raise ServiceUnavailable()
         row = rows[0]
-        if str(UUID(row["id"])) != canonical_id or not isinstance(row["username"], str):
+        created_at = parse_datetime(row["created_at"])
+        updated_at = parse_datetime(row["updated_at"])
+        if (
+            str(UUID(row["id"])) != canonical_id
+            or not isinstance(row["username"], str)
+            or created_at is None
+            or updated_at is None
+        ):
             raise ServiceUnavailable()
-        return {"id": canonical_id, "username": row["username"]}
+        return {
+            "id": canonical_id,
+            "username": row["username"],
+            "created_at": created_at,
+            "updated_at": updated_at,
+        }
     except Exception:
+        raise ServiceUnavailable() from None
+
+
+@sensitive_variables()
+def update_profile(access_token, user_id, username):
+    if not access_token:
+        raise ServiceUnavailable()
+    if _normalized_username(username) is None:
+        raise ServiceUnavailable()
+    try:
+        canonical_id = str(UUID(user_id))
+        with clients.public_client(access_token=access_token) as client:
+            rows = (
+                client.table("profiles")
+                .update({"username": username})
+                .eq("id", canonical_id)
+                .select("id,username,created_at,updated_at")
+                .execute()
+                .data
+            )
+        if not isinstance(rows, list) or len(rows) != 1:
+            raise ServiceUnavailable()
+        row = rows[0]
+        created_at = parse_datetime(row["created_at"])
+        updated_at = parse_datetime(row["updated_at"])
+        if (
+            str(UUID(row["id"])) != canonical_id
+            or row["username"] != username
+            or created_at is None
+            or updated_at is None
+        ):
+            raise ServiceUnavailable()
+        return {
+            "id": canonical_id,
+            "username": username,
+            "created_at": created_at,
+            "updated_at": updated_at,
+        }
+    except Exception as error:
+        if getattr(error, "code", None) == "23505":
+            raise UsernameUnavailable() from None
         raise ServiceUnavailable() from None
 
 

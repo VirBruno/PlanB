@@ -166,11 +166,32 @@ class SDKContractTests(SimpleTestCase):
         self.assertEqual(len(self.transports), 2)
 
     def test_profile_query_uses_user_bearer_and_minimum_columns(self):
-        self.responses = [(200, [{"id": USER_ID, "username": "Ana"}])]
+        self.responses = [(200, [{
+            "id": USER_ID,
+            "username": "Ana",
+            "created_at": "2026-01-01T00:00:00+00:00",
+            "updated_at": "2026-01-02T00:00:00+00:00",
+        }])]
         profile_service.get_profile("user-jwt", USER_ID)
         request = self.requests[0]
-        self.assertEqual(request.url.params["select"], "id,username")
+        self.assertEqual(request.url.params["select"], "id,username,created_at,updated_at")
         self.assertEqual(request.url.params["id"], "eq." + USER_ID)
+        self.assertEqual(request.headers["Authorization"], "Bearer user-jwt")
+        self.assertEqual(request.headers["apikey"], settings.SUPABASE_PUBLISHABLE_KEY)
+
+    def test_profile_update_uses_user_jwt_and_only_updates_username(self):
+        self.responses = [(200, [{
+            "id": USER_ID,
+            "username": "Nuevo",
+            "created_at": "2026-01-01T00:00:00+00:00",
+            "updated_at": "2026-01-02T00:00:00+00:00",
+        }])]
+        profile_service.update_profile("user-jwt", USER_ID, "Nuevo")
+        request = self.requests[0]
+        self.assertEqual(request.method, "PATCH")
+        self.assertEqual(request.url.path, "/rest/v1/profiles")
+        self.assertEqual(request.url.params["id"], "eq." + USER_ID)
+        self.assertEqual(json.loads(request.content), {"username": "Nuevo"})
         self.assertEqual(request.headers["Authorization"], "Bearer user-jwt")
         self.assertEqual(request.headers["apikey"], settings.SUPABASE_PUBLISHABLE_KEY)
 
