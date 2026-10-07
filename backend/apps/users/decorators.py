@@ -33,11 +33,13 @@ def supabase_login_required(view):
     return wrapped
 
 
-def private_page(view):
-    @wraps(view)
-    @never_cache
-    def wrapped(request, *args, **kwargs):
-        response = view(request, *args, **kwargs)
-        response["Referrer-Policy"] = "no-referrer"
-        return response
-    return wrapped
+def private_page(view=None, *, referrer_policy="no-referrer"):
+    def decorate(view_func):
+        @wraps(view_func)
+        @never_cache
+        def wrapped(request, *args, **kwargs):
+            response = view_func(request, *args, **kwargs)
+            response["Referrer-Policy"] = referrer_policy
+            return response
+        return wrapped
+    return decorate(view) if view else decorate

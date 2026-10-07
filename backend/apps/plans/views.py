@@ -1,18 +1,27 @@
+import json
+
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.debug import sensitive_variables
 from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.groups.services import group_service
 from apps.groups.services.exceptions import GroupNotFound, GroupUnavailable, InvalidGroup
 from apps.users.decorators import private_page, supabase_login_required
-from apps.users.services import session_service
+from apps.users.services import profile_service, session_service
+from apps.users.services.exceptions import ServiceUnavailable
 from .forms import PlanForm
+from .forms import ProposalForm
 from .services import plan_service
 from .services.exceptions import InvalidPlan, PlanNotFound, PlanUnavailable
+from .services import proposal_service
+from .services.proposal_exceptions import (
+    InvalidProposal, ProposalAlreadyExists, ProposalNotFound, ProposalUnavailable,
+)
 
 
 def _unavailable(request, *, retry_url=None):
@@ -106,26 +115,174 @@ def create(request, group_id):
     }, status=status_code)
 
 
-@private_page
+@private_page(referrer_policy="strict-origin-when-cross-origin")
 @require_http_methods(["GET"])
 @supabase_login_required
 @sensitive_variables()
 def detail(request, plan_id):
+    token = session_service.get_access_token(request)
     try:
-        plan = plan_service.get_plan(session_service.get_access_token(request), plan_id)
+        plan = plan_service.get_plan(token, plan_id)
         if not plan["group_id"]:
             raise PlanNotFound()
-        group = group_service.get_group(session_service.get_access_token(request), plan["group_id"])
+        group = group_service.get_group(token, plan["group_id"])
+        proposals = proposal_service.list_proposals(token, plan_id)
     except PlanNotFound:
         raise Http404("No encontramos ese plan.") from None
     except GroupNotFound:
         raise Http404("No encontramos ese plan.") from None
-    except (GroupUnavailable, InvalidGroup, PlanUnavailable):
+    except (GroupUnavailable, InvalidGroup, PlanUnavailable, ProposalUnavailable):
         return _unavailable(request)
+    try:
+        usernames = profile_service.usernames_for_ids(
+            proposal["created_by"] for proposal in proposals
+        )
+    except ServiceUnavailable:
+        usernames = {}
+    for proposal in proposals:
+        proposal["can_manage"] = proposal["created_by"] == request.planb_user["id"]
+        proposal["creator_username"] = usernames.get(proposal["created_by"], "Usuario")
     return render(request, "plans/detail.html", {
         "plan": plan, "group": group, "can_manage": group["role"] == "owner",
+        "can_create_proposal": not any(
+            proposal["created_by"] == request.planb_user["id"] for proposal in proposals
+        ),
+        "proposals": proposals,
         "planb_user": request.planb_user,
     })
+
+
+def _proposal_plan(request, plan_id):
+    try:
+        return _plan_and_group(request, plan_id)
+    except (PlanNotFound, GroupNotFound):
+        raise Http404("No encontramos ese plan.") from None
+    except (GroupUnavailable, InvalidGroup, PlanUnavailable):
+        return None
+
+
+def _proposal_form(request, *, plan_id, proposal=None):
+    plan_group = _proposal_plan(request, plan_id)
+    if plan_group is None:
+        return _unavailable(request)
+    plan, group = plan_group
+    initial = {}
+    if proposal:
+        initial = {
+            "tittle": proposal["tittle"], "description": proposal["description"] or "",
+            "date_pick": proposal["date_pick"], "type": proposal["type"],
+            "position": json.dumps(proposal["posicion"]),
+        }
+    form = ProposalForm(request.POST if request.method == "POST" else None, initial=initial)
+    status_code = 200
+    if request.method == "POST" and form.is_valid():
+        date_pick = form.cleaned_data["date_pick"]
+        if date_pick and timezone.is_naive(date_pick):
+            date_pick = timezone.make_aware(date_pick, timezone.get_current_timezone())
+        try:
+            if proposal:
+                proposal_service.update_proposal(
+                    session_service.get_access_token(request), plan_id=plan_id,
+                    proposal_id=proposal["id"], tittle=form.cleaned_data["tittle"],
+                    description=form.cleaned_data["description"], date_pick=date_pick,
+                    proposal_type=form.cleaned_data["type"],
+                    position=form.cleaned_data["position"],
+                )
+            else:
+                proposal_service.create_proposal(
+                    session_service.get_access_token(request), plan_id=plan_id,
+                    created_by=request.planb_user["id"],
+                    tittle=form.cleaned_data["tittle"],
+                    description=form.cleaned_data["description"], date_pick=date_pick,
+                    proposal_type=form.cleaned_data["type"],
+                    position=form.cleaned_data["position"],
+                )
+        except ProposalNotFound:
+            raise Http404("No encontramos esa propuesta.") from None
+        except ProposalAlreadyExists as error:
+            form.add_error(None, str(error))
+        except InvalidProposal as error:
+            form.add_error(None, str(error))
+        except ProposalUnavailable:
+            form.add_error(None, "No pudimos confirmar los cambios. Revisá las propuestas antes de volver a enviar.")
+            status_code = 503
+        else:
+            messages.success(
+                request, "La propuesta se guardó." if proposal else "La propuesta se creó.",
+            )
+            return redirect("plans:detail", plan_id=plan_id)
+    return render(request, "plans/proposal_form.html", {
+        "form": form, "plan": plan, "group": group,
+        "proposal": proposal, "is_edit": proposal is not None,
+        "planb_user": request.planb_user,
+    }, status=status_code)
+
+
+@private_page(referrer_policy="strict-origin-when-cross-origin")
+@require_http_methods(["GET", "POST"])
+@supabase_login_required
+@sensitive_variables()
+def proposal_create(request, plan_id):
+    if request.method == "GET":
+        try:
+            already_exists = proposal_service.has_user_proposal(
+                session_service.get_access_token(request),
+                plan_id=plan_id, created_by=request.planb_user["id"],
+            )
+        except ProposalUnavailable:
+            return _unavailable(request)
+        if already_exists:
+            messages.info(request, "Ya creaste una propuesta para este plan.")
+            return redirect("plans:detail", plan_id=plan_id)
+    return _proposal_form(request, plan_id=plan_id)
+
+
+@private_page(referrer_policy="strict-origin-when-cross-origin")
+@require_http_methods(["GET", "POST"])
+@supabase_login_required
+@sensitive_variables()
+def proposal_edit(request, plan_id, proposal_id):
+    plan_group = _proposal_plan(request, plan_id)
+    if plan_group is None:
+        return _unavailable(request)
+    try:
+        proposal = proposal_service.get_proposal(
+            session_service.get_access_token(request),
+            plan_id=plan_id, proposal_id=proposal_id,
+        )
+    except ProposalNotFound:
+        raise Http404("No encontramos esa propuesta.") from None
+    except ProposalUnavailable:
+        return _unavailable(request)
+    if proposal["created_by"] != request.planb_user["id"]:
+        raise PermissionDenied("Sólo quien creó la propuesta puede modificarla.")
+    return _proposal_form(request, plan_id=plan_id, proposal=proposal)
+
+
+@private_page
+@require_POST
+@supabase_login_required
+@sensitive_variables()
+def proposal_delete(request, plan_id, proposal_id):
+    if _proposal_plan(request, plan_id) is None:
+        return _unavailable(request)
+    try:
+        proposal = proposal_service.get_proposal(
+            session_service.get_access_token(request),
+            plan_id=plan_id, proposal_id=proposal_id,
+        )
+        if proposal["created_by"] != request.planb_user["id"]:
+            raise PermissionDenied("Sólo quien creó la propuesta puede eliminarla.")
+        proposal_service.delete_proposal(
+            session_service.get_access_token(request),
+            plan_id=plan_id, proposal_id=proposal_id,
+        )
+    except ProposalNotFound:
+        raise Http404("No encontramos esa propuesta.") from None
+    except ProposalUnavailable:
+        return _unavailable(request)
+    messages.success(request, "La propuesta se eliminó.")
+    return redirect("plans:detail", plan_id=plan_id)
 
 
 @private_page

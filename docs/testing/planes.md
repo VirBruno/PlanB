@@ -63,3 +63,30 @@ En un proyecto Supabase de prueba, verificar con dos usuarios autenticados:
 
 La migración SQL no se ha aplicado desde la suite Django; la validación remota
 requiere autorización y un entorno de prueba.
+
+## Propuestas geográficas
+
+Confirmar que `public.proposals` existe con el esquema indicado por el equipo,
+que `posicion` es `geography(Point,4326)` y que
+`public.types_of_proposals` contiene `juntada`, `reunión` y `salida`. Aplicar
+`supabase/migrations/202610060001_proposals_security.sql` y luego
+`202610060002_proposals_one_per_user_plan.sql`, después de las migraciones de
+grupos y planes. La segunda migración requiere resolver duplicados preexistentes
+por `plan_id` y `created_by`. Aplicar también
+`202610060003_proposals_postgis_schema_usage.sql` para conceder `USAGE` al rol
+`authenticated` en el esquema `postgis`, requerido al insertar `geography` por
+Data API, y `202610060004_proposal_author_usernames.sql` para permitir que el
+backend resuelva usernames de los autores de propuestas visibles. La app no
+aplica SQL remoto automáticamente.
+
+Desde `backend/`, ejecutar `python manage.py test apps.plans.tests` con
+`config.settings_test`. En una instancia Supabase de prueba, ejecutar
+`supabase/tests/proposals.sql` como administrador. Verificar que un miembro
+puede leer y crear propuestas, que no puede editar ni borrar la propuesta de
+otro usuario, que sólo puede tener una por plan, que sí puede administrar la
+propia y que una persona ajena no puede leerlas. Probar en navegador la selección por clic, búsqueda de ciudad y
+geolocalización (requiere permiso del navegador y HTTPS o localhost).
+
+Leaflet se instala con `npm ci` y sus assets se sirven desde Django.
+OpenStreetMap/Nominatim provee las teselas y la búsqueda; la ubicación elegida
+se envía al backend sólo al guardar la propuesta.

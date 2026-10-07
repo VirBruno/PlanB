@@ -220,6 +220,24 @@ class ProfileServiceTests(SimpleTestCase):
         self.administrative.assert_not_called()
         self.assertEqual(result, {"id": USER_ID, "username": "Ana"})
 
+    def test_usernames_for_ids_uses_admin_only_for_requested_profile_ids(self):
+        other_id = "a2e0c8f4-e4ae-4ee3-927a-9552974165f6"
+        self.client.table.return_value.select.return_value.in_.return_value.execute.return_value.data = [
+            {"id": USER_ID, "username": "Ana"},
+            {"id": other_id, "username": "Bruno"},
+        ]
+        self.assertEqual(profile_service.usernames_for_ids([USER_ID, other_id]), {
+            USER_ID: "Ana", other_id: "Bruno",
+        })
+        self.client.table.assert_called_once_with("profiles")
+        self.client.table.return_value.select.return_value.in_.assert_called_once_with(
+            "id", sorted([USER_ID, other_id]),
+        )
+
+    def test_usernames_for_empty_ids_does_not_query_provider(self):
+        self.assertEqual(profile_service.usernames_for_ids([]), {})
+        self.administrative.assert_not_called()
+
     def test_missing_profile_is_service_problem_not_invalid_credentials(self):
         self.query.execute.return_value.data = []
         with patch("apps.users.services.clients.public_client") as public:
