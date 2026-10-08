@@ -1,0 +1,35 @@
+{% extends 'components/authenticated_base.html' %}
+{% block title %}Notificaciones · Plan B{% endblock %}
+{% block workspace %}
+<a class="back-link" href="{% url 'users:dashboard' %}">← Mi espacio</a>
+<section class="group-panel" aria-labelledby="notifications-title">
+  <p class="eyebrow eyebrow--blue">NOVEDADES PARA VOS</p>
+  <h1 id="notifications-title">Notificaciones</h1>
+  {% if unavailable %}
+  <div class="notice notice--error" role="alert"><p>No pudimos cargar o confirmar tus notificaciones. Revisá el estado antes de volver a responder.</p><a href="{% url 'notifications:index' %}">Volver a intentar</a></div>
+  {% else %}
+  <ul class="notifications-list">
+    {% for notification in notifications_page.items %}
+    <li class="notification-card {% if not notification.read_at %}notification-card--unread{% endif %}">
+      {% if notification.type == 'group_invitation' %}
+      <h2>{{ notification.group_name }}</h2>
+      {% if notification.status == 'pending' %}
+        <p><strong>{{ notification.inviter_username }}</strong> te invitó a unirte al grupo.</p>
+        <div class="notification-actions">
+          <form method="post" action="{% url 'notifications:reject' notification.invitation_id %}">{% csrf_token %}<button class="button button--danger-quiet" type="submit">Rechazar<span class="sr-only"> invitación a {{ notification.group_name }}</span></button></form>
+          <form method="post" action="{% url 'notifications:accept' notification.invitation_id %}">{% csrf_token %}<button class="button button--primary" type="submit">Aceptar<span class="sr-only"> invitación a {{ notification.group_name }}</span></button></form>
+        </div>
+      {% elif notification.status == 'accepted' %}
+        <p class="notification-state">Invitación aceptada</p><p>Ya sos integrante de {{ notification.group_name }}.</p>
+        <a class="button button--primary" href="{% url 'groups:detail' notification.group_id %}">Ir al grupo</a>
+      {% else %}<p class="notification-state">Invitación rechazada</p>{% endif %}
+      {% else %}<h2>Nueva notificación</h2>{% endif %}
+      <div class="notification-meta"><time datetime="{{ notification.created_at|date:'c' }}" title="{{ notification.created_at|date:'d/m/Y H:i' }}">Hace {{ notification.created_at|timesince }}</time>
+      {% if not notification.read_at %}<span class="person-role">No leída</span><form method="post" action="{% url 'notifications:mark_read' notification.id %}">{% csrf_token %}<button class="button button--quiet" type="submit">Marcar como leída<span class="sr-only">: {{ notification.group_name }}</span></button></form>{% endif %}</div>
+    </li>
+    {% empty %}<li class="empty-state"><h2>Todavía no tenés notificaciones.</h2><p>Cuando te inviten a un grupo, vas a encontrar la invitación acá.</p></li>{% endfor %}
+  </ul>
+  {% if notifications_page.previous_page or notifications_page.next_page %}<nav class="pagination" aria-label="Páginas de notificaciones">{% if notifications_page.previous_page %}<a href="?page={{ notifications_page.previous_page }}">← Anterior</a>{% endif %}{% if notifications_page.next_page %}<a href="?page={{ notifications_page.next_page }}">Siguiente →</a>{% endif %}</nav>{% endif %}
+  {% endif %}
+</section>
+{% endblock %}

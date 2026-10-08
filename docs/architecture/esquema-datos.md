@@ -231,3 +231,11 @@ Las migraciones `202610010001_plans_security.sql` y
 UPDATE y DELETE requieren rol `owner`. `created_by` es sólo auditoría y no
 otorga permisos. Grants por columna impiden cambiar identidad, UUID y fecha de
 creación. Django transmite únicamente el JWT del usuario mediante Data API.
+## Invitaciones y notificaciones (20261008)
+
+Después de las migraciones anteriores, aplicar manualmente
+`202610080001_group_invitations.sql` y `202610080002_member_plan_creation.sql`.
+La primera agrega invitaciones/notificaciones con lectura RLS y escrituras por
+RPC; la segunda habilita INSERT de planes por miembros y conserva gestión del
+owner. No hay modelos Django nuevos ni cambios en Auth o secretos.
+Consultar [contratos, grants, SQL y prueba manual](../testing/invitaciones.md).

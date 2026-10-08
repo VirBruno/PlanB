@@ -23,11 +23,31 @@
     <a class="button button--danger-quiet" href="{% url 'groups:delete_confirmation' group.id %}">Eliminar grupo</a>
   </div>
   {% endif %}
+<section class="members-section" aria-labelledby="group-members-title">
+  <div class="section-heading">
+    <h2 id="group-members-title">Integrantes</h2>
+    <span class="section-line" aria-hidden="true"></span>
+    {% if group.role == 'owner' %}<a class="button button--quiet" href="{% url 'groups:invite' group.id %}">+ Invitar integrante</a>{% endif %}
+  </div>
+  {% if members_unavailable %}
+  <p class="notice notice--error" role="alert">No pudimos cargar los integrantes o las invitaciones. <a href="{% url 'groups:detail' group.id %}">Volver a intentar</a></p>
+  {% else %}
+  <ul class="people-list">
+    {% for person in members %}<li><span class="person-avatar" aria-hidden="true">{{ person.initials }}</span><span class="person-name">{{ person.username }}</span><span class="person-role">{{ person.role_label }}</span></li>{% endfor %}
+  </ul>
+  {% if group.role == 'owner' and pending_invitations %}
+  <h3>Invitaciones pendientes</h3>
+  <ul class="people-list">
+    {% for person in pending_invitations %}<li><span class="person-avatar" aria-hidden="true">{{ person.initials }}</span><span class="person-name">{{ person.username }}</span><span class="person-role">Pendiente</span></li>{% endfor %}
+  </ul>
+  {% endif %}
+  {% endif %}
+</section>
 <section class="plans-section" aria-labelledby="group-plans-title">
   <div class="section-heading">
     <h2 id="group-plans-title">Planes del grupo</h2>
     <span class="section-line" aria-hidden="true"></span>
-    {% if group.role == 'owner' and plans_page.items %}
+    {% if plans_page.items %}
     <a class="button button--primary plan-add-button" href="{% url 'groups:plan_create' group.id %}" aria-label="Crear plan" title="Crear plan">+</a>
     {% endif %}
   </div>
@@ -54,10 +74,8 @@
     </section>
     {% endfor %}
   </div>
-  {% elif group.role == 'owner' %}
-  <div class="empty-state"><h3>Este grupo todavía no tiene planes.</h3><p>Creá el primero para organizar una salida.</p><a class="button button--primary empty-action" href="{% url 'groups:plan_create' group.id %}">Crear plan</a></div>
   {% else %}
-  <div class="empty-state"><h3>Este grupo todavía no tiene planes.</h3></div>
+  <div class="empty-state"><h3>Este grupo todavía no tiene planes.</h3><p>Creá el primero para organizar una salida.</p><a class="button button--primary empty-action" href="{% url 'groups:plan_create' group.id %}">Crear plan</a></div>
   {% endif %}
 </section>
 </section>

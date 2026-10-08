@@ -107,7 +107,27 @@ class GroupViewsTests(TestCase):
         response = self.client.get(self.detail_url)
         content = response.content.decode()
         self.assertLess(content.index("Plan nuevo"), content.index("Plan anterior"))
-        self.assertLess(content.index('class="plans-section"'), content.index("</section>", content.index('class="group-panel"')))
+        from html.parser import HTMLParser
+
+        class PanelParser(HTMLParser):
+            def __init__(self):
+                super().__init__()
+                self.sections, self.plans_inside_panel = [], False
+
+            def handle_starttag(self, tag, attrs):
+                if tag == 'section':
+                    classes = dict(attrs).get('class', '').split()
+                    if 'plans-section' in classes:
+                        self.plans_inside_panel = any('group-panel' in parent for parent in self.sections)
+                    self.sections.append(classes)
+
+            def handle_endtag(self, tag):
+                if tag == 'section':
+                    self.sections.pop()
+
+        parser = PanelParser()
+        parser.feed(content)
+        self.assertTrue(parser.plans_inside_panel)
         self.assertContains(response, 'aria-label="Crear plan"')
         self.assertContains(response, f'href="/grupos/{GROUP_ID}/planes/nuevo/"')
         self.assertEqual(len(response.context["plans_by_date"]), 2)
@@ -133,14 +153,14 @@ class GroupViewsTests(TestCase):
 
     @patch("apps.groups.views.plan_service.list_plans", return_value={"items": [], "page": 1, "has_next": False})
     @patch("apps.groups.views.group_service.get_group")
-    def test_member_empty_state_has_no_create_action_or_global_nav_link(self, get, list_plans):
+    def test_member_empty_state_has_create_action_without_global_nav_link(self, get, list_plans):
         get.return_value = {
             "id": GROUP_ID, "name": "Escapadas", "description": "",
             "role": "member", "role_label": "Miembro", "created_at": None,
         }
         response = self.client.get(self.detail_url)
         self.assertContains(response, "Este grupo todavía no tiene planes.")
-        self.assertNotContains(response, "Crear plan")
+        self.assertContains(response, "Crear plan")
         self.assertNotContains(response, 'href="/planes/"')
 
     @patch("apps.groups.views.group_service.create_group")
@@ -229,6 +249,10 @@ class GroupNavigationFlowTests(TestCase):
             requests.append(request)
             self.assertEqual(request.headers["apikey"], settings.SUPABASE_PUBLISHABLE_KEY)
             self.assertEqual(request.headers["authorization"], "Bearer flow-jwt")
+            if request.url.path.endswith('/notifications'):
+                return httpx.Response(200, headers={'content-range': '*/0'})
+            if request.url.path.endswith(('/list_group_members', '/list_pending_group_invitations')):
+                return httpx.Response(200, json=[])
             if request.url.path.endswith("/rpc/create_group"):
                 payload = json.loads(request.content)
                 remote["group"] = group_row(name=payload["p_name"], description=payload["p_description"])

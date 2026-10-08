@@ -211,6 +211,10 @@ class ManagementNavigationTests(TestCase):
 
         def handle(request):
             self.assertEqual(request.headers["authorization"], "Bearer flow-jwt")
+            if request.url.path.endswith('/notifications'):
+                return httpx.Response(200, headers={'content-range': '*/0'})
+            if request.url.path.endswith(('/list_group_members', '/list_pending_group_invitations')):
+                return httpx.Response(200, json=[])
             if request.method == "POST":
                 payload = json.loads(request.content)
                 writes.append(request.url.path)

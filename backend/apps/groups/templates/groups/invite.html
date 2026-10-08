@@ -1,0 +1,27 @@
+{% extends 'components/authenticated_base.html' %}
+{% block title %}Invitar integrante · Plan B{% endblock %}
+{% block workspace %}
+<a class="back-link" href="{% url 'groups:detail' group.id %}">← {{ group.name }}</a>
+<section class="group-panel" aria-labelledby="invite-title">
+  <p class="eyebrow eyebrow--blue">HAY LUGAR PARA UNO MÁS</p>
+  <h1 id="invite-title">Invitar integrante</h1>
+  <p class="panel-description">Buscá a alguien por su username completo. Podrá aceptar o rechazar tu invitación.</p>
+  {% if error_message %}<p class="notice notice--error" role="alert">{{ error_message }}</p>{% endif %}
+  {% include 'components/form_errors.html' with form=invite_form %}
+  <form method="get" class="invitation-search">
+    {% include 'components/form_errors.html' with form=search_form %}
+    {% include 'components/field.html' with field=search_form.username %}
+    <button class="button button--primary" type="submit">Buscar usuario</button>
+  </form>
+  {% if search_form.is_bound and not search_form.errors %}
+    {% for candidate in candidates %}
+    <div class="invite-candidate">
+      <span class="person-avatar" aria-hidden="true">{{ candidate.initials }}</span><strong class="person-name">{{ candidate.username }}</strong>
+      {% if candidate.pending %}<span class="person-role">Invitación pendiente</span><button class="button button--quiet" disabled>Invitar</button>
+      {% else %}<form method="post" action="{% url 'groups:invite' group.id %}">{% csrf_token %}<input type="hidden" name="invited_user_id" value="{{ candidate.id }}"><button class="button button--primary" type="submit">Enviar invitación</button></form>{% endif %}
+    </div>
+    {% empty %}<p class="panel-description">No encontramos un candidato con ese username. Verificá que esté registrado y que todavía no integre el grupo.</p>{% endfor %}
+  {% endif %}
+  {% if pending_invitations %}<h2>Invitaciones pendientes</h2><ul class="people-list">{% for person in pending_invitations %}<li><span class="person-avatar" aria-hidden="true">{{ person.initials }}</span><span class="person-name">{{ person.username }}</span><span class="person-role">Pendiente</span></li>{% endfor %}</ul>{% endif %}
+</section>
+{% endblock %}

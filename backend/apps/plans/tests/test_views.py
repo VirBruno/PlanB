@@ -43,7 +43,7 @@ class PlanViewsTests(TestCase):
 
     @patch("apps.plans.views.plan_service.create_plan", return_value=PLAN_ID)
     @patch("apps.plans.views.group_service.get_group")
-    def test_only_group_owner_can_create_a_group_plan(self, get_group, create):
+    def test_group_owner_can_create_a_group_plan(self, get_group, create):
         get_group.return_value = {"id": GROUP_ID, "name": "Mi grupo", "role": "owner"}
         response = self.client.post(f"/grupos/{GROUP_ID}/planes/nuevo/", {
             "name": "Escapada", "description": "Viaje", "status": "true",
@@ -65,10 +65,30 @@ class PlanViewsTests(TestCase):
         create.assert_called_once()
 
     @patch("apps.plans.views.plan_service.create_plan")
-    @patch("apps.plans.views.group_service.get_group", return_value={"role": "member"})
-    def test_group_member_cannot_create_plan(self, get_group, create):
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
+    def test_group_member_can_open_create_plan(self, get_group, create):
         response = self.client.get(f"/grupos/{GROUP_ID}/planes/nuevo/")
-        self.assertEqual(response.status_code, 403)
+        self.assertContains(response, 'name="name"')
+        create.assert_not_called()
+
+    @patch("apps.plans.views.plan_service.create_plan", return_value=PLAN_ID)
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
+    def test_member_can_create_plan_with_server_identity(self, get_group, create):
+        response = self.client.post(f"/grupos/{GROUP_ID}/planes/nuevo/", {
+            'name': 'Salida', 'description': 'Parque', 'status': 'true',
+            'created_by': 'forged', 'role': 'owner', 'group_id': 'forged',
+        })
+        self.assertRedirects(response, f'/grupos/{GROUP_ID}/', fetch_redirect_response=False)
+        create.assert_called_once_with('private-jwt', created_by=USER_ID, group_id=GROUP_ID,
+                                       name='Salida', description='Parque', status=True)
+
+    @patch("apps.plans.views.plan_service.create_plan")
+    @patch("apps.plans.views.group_service.get_group")
+    def test_outsider_cannot_create_plan(self, get_group, create):
+        from apps.groups.services.exceptions import GroupNotFound
+        get_group.side_effect = GroupNotFound()
+        for method in ('get', 'post'):
+            self.assertEqual(getattr(self.client, method)(f'/grupos/{GROUP_ID}/planes/nuevo/').status_code, 404)
         create.assert_not_called()
 
     @patch("apps.plans.views.plan_service.list_plans")
