@@ -8,10 +8,9 @@
     <nav aria-label="Navegación principal">
       <a href="{% url 'users:dashboard' %}" {% if request.resolver_match.url_name == "dashboard" %}aria-current="page"{% endif %}>Mi espacio</a>
     </nav>
-    <form method="post" action="{% url 'users:logout' %}">
-      {% csrf_token %}
-      <button class="button button--quiet" type="submit">Cerrar sesión <span aria-hidden="true">↗</span></button>
-    </form>
+    <a class="profile-icon" href="{% url 'users:profile' %}" aria-label="Ir a mi perfil" title="Mi perfil">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="3.5"/><path d="M5 20v-1.4a7 7 0 0 1 14 0V20z"/></svg>
+    </a>
   </div>
 </header>
 <main class="dashboard-main" id="contenido">

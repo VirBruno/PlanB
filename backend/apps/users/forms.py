@@ -83,3 +83,13 @@ class LoginForm(forms.Form):
         except ValidationError:
             raise ValidationError("Ingresá un usuario o email válido.", code="invalid_identifier")
         return value.lower()
+
+
+class ProfileForm(forms.Form):
+    username = forms.CharField(
+        label="Nombre de usuario",
+        max_length=30,
+        validators=[validate_username],
+        help_text="3 a 30 caracteres. Letras sin acentos, números, punto, guion o guion bajo.",
+        widget=text_input("username", "Tu nombre en Plan B"),
+    )

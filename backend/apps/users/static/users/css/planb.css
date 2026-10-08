@@ -115,7 +115,9 @@ input:focus-visible { outline-offset: 2px; }
 .dashboard-header nav { align-self: stretch; display: flex; align-items: stretch; margin-left: 26px; }
 .dashboard-header nav a { display: flex; align-items: center; border-bottom: 3px solid transparent; color: var(--muted); text-decoration: none; font-size: 13px; font-weight: 650; padding: 3px 5px 0; }
 .dashboard-header nav a[aria-current="page"] { border-color: var(--blue); color: var(--blue); }
-.dashboard-header form { margin-left: auto; }
+.profile-icon { display: grid; place-items: center; width: 42px; height: 42px; margin-left: auto; border: 1px solid var(--line); border-radius: 50%; color: var(--muted); }
+.profile-icon:hover { border-color: #a4b4c9; color: var(--blue); background: #f2f5fb; }
+.profile-icon svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .dashboard-main { max-width: 1180px; margin: 0 auto; padding: 62px 40px 75px; min-height: calc(100svh - 160px); }
 .dashboard-welcome { display: flex; align-items: center; justify-content: space-between; gap: 28px; padding: 0 0 48px; }
 .dashboard-welcome .eyebrow { margin-bottom: 14px; }
@@ -139,6 +141,18 @@ input:focus-visible { outline-offset: 2px; }
 .empty-illustration > span:nth-child(3)::before { border-color: #81cbbd; background: #dff6f0; }
 .empty-illustration > i { position: absolute; right: 5px; top: 4px; color: var(--blue); font-size: 23px; font-style: normal; }
 .dashboard-footer { display: flex; justify-content: space-between; gap: 20px; max-width: 1180px; padding: 20px 40px 30px; margin: auto; color: var(--muted); font-size: 11px; }
+.profile-page { max-width: 760px; margin: 0 auto; animation: appear .35s ease both; }
+.profile-page > .eyebrow { margin-bottom: 12px; }
+.profile-page > h1 { margin: 0; font-size: 34px; line-height: 1.2; }
+.profile-intro { margin: 10px 0 30px; color: var(--muted); font-size: 14px; line-height: 1.7; }
+.profile-details { margin: 0; border-top: 1px solid var(--line); }
+.profile-details > div { display: grid; grid-template-columns: minmax(150px, 1fr) 2fr; gap: 20px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.profile-details dt { color: var(--muted); font-size: 13px; }
+.profile-details dd { margin: 0; font-size: 13px; overflow-wrap: anywhere; }
+.profile-edit { margin-top: 34px; }
+.profile-edit h2 { margin: 0 0 20px; font-size: 19px; }
+.profile-edit .auth-form { max-width: 440px; }
+.profile-logout { margin-top: 34px; padding-top: 20px; border-top: 1px solid var(--line); }
 @keyframes appear { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 @media (min-width: 1550px) { .auth-main { padding-left: 100px; padding-right: 100px; } .auth-panel { max-width: 460px; } }
 @media (max-width: 1000px) {
@@ -165,13 +179,14 @@ input:focus-visible { outline-offset: 2px; }
   .dashboard-header-inner .brand { font-size: 28px; }
   .dashboard-header nav { margin-left: 0; order: 3; width: 100%; margin-top: -7px; }
   .dashboard-header nav a { padding: 7px 0 12px; }
-  .dashboard-header form { margin-left: auto; }
+  .profile-icon { margin-left: auto; }
   .dashboard-main { padding: 39px 22px 45px; min-height: calc(100svh - 210px); }
   .dashboard-welcome { padding-bottom: 36px; gap: 16px; }
   .dashboard-welcome h1 { font-size: 32px; letter-spacing: -1px; }
   .welcome-stamp { width: 63px; height: 63px; font-size: 44px; border-radius: 20px; margin-right: 7px; }
   .welcome-stamp > span { font-size: 27px; right: -7px; top: -12px; }
   .dashboard-welcome .eyebrow { font-size: 10px; letter-spacing: 1.5px; }
+  .profile-details > div { grid-template-columns: 1fr; gap: 7px; }
   .empty-state { padding: 48px 24px; }
   .empty-state h3 { font-size: 18px; line-height: 1.5; }
   .dashboard-footer { padding: 20px 22px; font-size: 10px; }

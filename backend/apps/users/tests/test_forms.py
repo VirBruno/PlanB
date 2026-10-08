@@ -1,6 +1,6 @@
 from django.test import SimpleTestCase
 
-from apps.users.forms import LoginForm, RegisterForm
+from apps.users.forms import LoginForm, ProfileForm, RegisterForm
 
 
 class RegisterFormTests(SimpleTestCase):
@@ -104,3 +104,15 @@ class LoginFormTests(SimpleTestCase):
         form = LoginForm({"identifier": "persona", "password": ""})
         self.assertFalse(form.is_valid())
         self.assertIn("password", form.errors)
+
+
+class ProfileFormTests(SimpleTestCase):
+    def test_accepts_valid_username_and_trims_whitespace(self):
+        form = ProfileForm({"username": " Nuevo_usuario "})
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data["username"], "Nuevo_usuario")
+
+    def test_rejects_invalid_username(self):
+        form = ProfileForm({"username": "no válido"})
+        self.assertFalse(form.is_valid())
+        self.assertIn("username", form.errors)

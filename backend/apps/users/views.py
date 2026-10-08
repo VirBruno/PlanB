@@ -14,8 +14,9 @@ from django.views.decorators.http import require_http_methods, require_POST
 from .decorators import private_page, supabase_login_required
 from apps.groups.services import group_service
 from apps.groups.services.exceptions import GroupUnavailable, InvalidGroup
-from .forms import LoginForm, RegisterForm
+from .forms import LoginForm, ProfileForm, RegisterForm
 from .services import auth_service, session_service
+from .services import profile_service
 from .services.exceptions import (
     ConfirmationInvalid,
     InvalidCredentials,
@@ -168,6 +169,34 @@ def dashboard(request):
         context["groups_unavailable"] = True
         return render(request, "users/dashboard.html", context, status=503)
     return render(request, "users/dashboard.html", context)
+
+
+@private_page
+@require_http_methods(["GET", "POST"])
+@supabase_login_required
+def profile(request):
+    user = request.planb_user
+    form = ProfileForm(
+        request.POST if request.method == "POST" else None,
+        initial={"username": user["username"]},
+    )
+    status = 200
+    if request.method == "POST" and form.is_valid():
+        try:
+            profile_service.update_profile(
+                session_service.get_access_token(request),
+                user["id"],
+                form.cleaned_data["username"],
+            )
+        except UsernameUnavailable:
+            form.add_error("username", "Ese nombre de usuario ya está en uso. Probá con otro.")
+        except ServiceUnavailable:
+            form.add_error(None, UNAVAILABLE_ERROR)
+            status = 503
+        else:
+            messages.success(request, "Actualizaste tu perfil.")
+            return redirect("users:profile")
+    return render(request, "users/profile.html", {"form": form, "profile": user}, status=status)
 
 
 @private_page

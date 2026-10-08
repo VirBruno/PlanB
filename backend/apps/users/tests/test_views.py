@@ -239,9 +239,47 @@ class ProtectedRoutesTests(TestCase):
         response = self.client.get(reverse("users:dashboard"))
         self.assertContains(response, "Facundo")
         self.assertContains(response, 'class="brand" href="/dashboard/"')
+        self.assertContains(response, 'aria-label="Ir a mi perfil"')
         self.assertContains(response, "Todavía no participás de ningún grupo.")
-        self.assertContains(response, 'method="post" action="/logout/"')
         self.assertIn("no-store", response["Cache-Control"])
+
+    @patch("apps.users.views.profile_service.update_profile")
+    @patch(
+        "apps.users.services.session_service.current_user",
+        return_value={"id": "example-id", "username": "Facundo"},
+    )
+    def test_profile_updates_username_and_redirects(self, current, update_profile):
+        response = self.client.post(reverse("users:profile"), {"username": "Nuevo"})
+        self.assertRedirects(response, reverse("users:profile"), fetch_redirect_response=False)
+        update_profile.assert_called_once_with("test-jwt", "example-id", "Nuevo")
+
+    @patch("apps.users.views.profile_service.update_profile", side_effect=UsernameUnavailable())
+    @patch(
+        "apps.users.services.session_service.current_user",
+        return_value={"id": "example-id", "username": "Facundo"},
+    )
+    def test_profile_duplicate_username_shows_field_error(self, current, update_profile):
+        response = self.client.post(reverse("users:profile"), {"username": "Ocupado"})
+        self.assertContains(response, "Ese nombre de usuario ya está en uso.")
+        self.assertIn("username", response.context["form"].errors)
+
+    @patch("apps.users.views.profile_service.update_profile")
+    @patch(
+        "apps.users.services.session_service.current_user",
+        return_value={"id": "example-id", "username": "Facundo"},
+    )
+    def test_profile_rejects_invalid_username_without_provider_call(self, current, update_profile):
+        response = self.client.post(reverse("users:profile"), {"username": "inválido"})
+        self.assertEqual(response.status_code, 200)
+        update_profile.assert_not_called()
+
+    @patch("apps.users.services.session_service.current_user", return_value={"id": "example-id", "username": "Facundo"})
+    def test_profile_shows_details_and_logout_action(self, current):
+        response = self.client.get(reverse("users:profile"))
+        self.assertContains(response, "Cuenta creada")
+        self.assertNotContains(response, "Última actualización")
+        self.assertContains(response, "Nombre de usuario")
+        self.assertContains(response, 'method="post" action="/logout/"')
 
     @patch("apps.users.services.session_service.current_user", return_value={"id": "example-id", "username": "<script>alert(1)</script>"})
     def test_profile_text_is_escaped(self, current):
@@ -271,7 +309,7 @@ class ProtectedRoutesTests(TestCase):
 class CsrfTests(TestCase):
     def test_post_forms_require_csrf(self):
         client = Client(enforce_csrf_checks=True)
-        for name in ["register", "login", "email_confirmation", "logout"]:
+        for name in ["register", "login", "email_confirmation", "profile", "logout"]:
             with self.subTest(name=name):
                 response = client.post(reverse(f"users:{name}"), {"token_hash": "a" * 64})
                 self.assertEqual(response.status_code, 403)
