@@ -1,5 +1,6 @@
 -- INTEGRACIÓN: instancia Supabase de prueba autorizada, como administrador.
--- Requiere infraestructura, perfiles, grupos y ambas migraciones de planes;
+-- Requiere infraestructura, perfiles, grupos, ambas migraciones iniciales de planes
+-- y 202610080002_member_plan_creation.sql;
 -- no depende de la migración opcional de edición de grupos.
 -- Fixtures y cambios de datos se revierten; no ejecutar sobre producción.
 BEGIN;
@@ -39,12 +40,11 @@ BEGIN
     IF (SELECT count(*) FROM public.plans WHERE group_id = g) <> 1 THEN
         RAISE EXCEPTION 'El miembro no puede leer el plan de su grupo';
     END IF;
-    BEGIN
-        INSERT INTO public.plans(name, description, status, group_id, created_by)
-        VALUES ('No autorizado', 'No debe insertarse', true, g, auth.uid());
-        RAISE EXCEPTION 'Un miembro pudo crear planes';
-    EXCEPTION WHEN insufficient_privilege THEN NULL;
-    END;
+    INSERT INTO public.plans(name, description, status, group_id, created_by)
+        VALUES ('Plan del miembro', 'Creación autorizada', true, g, auth.uid());
+    IF NOT EXISTS (SELECT 1 FROM public.plans WHERE group_id = g AND name = 'Plan del miembro' AND created_by = auth.uid()) THEN
+        RAISE EXCEPTION 'El miembro no pudo crear su plan';
+    END IF;
     UPDATE public.plans SET name = 'Edición no autorizada' WHERE id = p;
     GET DIAGNOSTICS affected = ROW_COUNT;
     IF affected <> 0 THEN RAISE EXCEPTION 'Un miembro pudo editar planes'; END IF;
@@ -115,4 +115,4 @@ BEGIN
 END;
 $$;
 ROLLBACK;
-SELECT 'OK: lectura de miembros y gestión exclusiva del owner; fixtures revertidas.' AS resultado;
+SELECT 'OK: miembros leen/crean, sólo owner edita/elimina; fixtures revertidas.' AS resultado;

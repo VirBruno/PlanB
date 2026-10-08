@@ -4,7 +4,7 @@ Plan B es un proyecto universitario desarrollado con metodología Agile para
 facilitar la organización de planes compartidos. Esta entrega implementa
 registro e inicio de sesión por email o username, gestión de grupos y planes
 asociados a grupos, y propuestas geográficas creadas por miembros de cada plan.
-El owner del grupo administra los planes; cada miembro administra sus propias
+Todos los miembros pueden crear planes; el owner los edita/elimina y cada miembro administra sus propias
 propuestas.
 
 ## Stack y responsabilidades
@@ -174,7 +174,7 @@ login. Si el proyecto permite sesión inmediata, el registro abre el dashboard.
 Login acepta email o username. El dashboard muestra los grupos a los que
 pertenecés y permite crear uno con nombre y descripción opcional. El creador
 queda asociado como owner. Desde el detalle de cada grupo se consultan sus
-planes; el owner del grupo puede crearlos, editarlos o eliminarlos. Dentro de
+planes; todos los miembros pueden crearlos y el owner puede editarlos o eliminarlos. Dentro de
 cada plan, cada miembro puede crear una propuesta de juntada, reunión o salida,
 elegir fecha y ubicación, y editar o eliminar la propia. También puede ver las
 propuestas compartidas por el resto del grupo.
@@ -225,12 +225,23 @@ RLS y escritura exclusivamente por RPC. Ver el procedimiento completo en
 La app `backend/apps/plans/` usa Data API y el JWT de la sesión. La tabla
 `public.plans` debe existir con el esquema acordado. Aplicar en orden
 `202610010001_plans_security.sql` y `202610010002_group_owned_plans.sql` como
-administrador; la segunda exige `group_id` y deja la gestión sólo al owner del
-grupo (el rol admin del modelo actual). El listado está dentro de cada grupo.
+administrador; la segunda exige `group_id` y reserva edición/eliminación al owner.
+`202610080002_member_plan_creation.sql` habilita además creación por cualquier
+miembro del grupo. El listado está dentro de cada grupo.
 Django no aplica estas migraciones automáticamente. Consultar
 [preparación y validación de planes](docs/testing/planes.md).
 
-## Propuestas
+## Invitaciones y notificaciones
+
+El owner puede invitar usuarios registrados por username exacto. El destinatario
+acepta o rechaza desde Notificaciones; al aceptar, el grupo aparece en su dashboard
+y puede leer y crear planes. La campana muestra las notificaciones sin leer al
+cargar cada página. Aplicar manualmente, en orden,
+`supabase/migrations/202610080001_group_invitations.sql` y
+`supabase/migrations/202610080002_member_plan_creation.sql`, después de las
+migraciones anteriores. Ver [SQL exacto, permisos y prueba manual](docs/testing/invitaciones.md).
+
+## Propuestas geográficas existentes
 
 La app de planes envía la posición como GeoJSON al tipo `geography` de PostGIS.
 Confirmar que el enum contiene `juntada`, `reunión` y `salida`, y aplicar

@@ -11,7 +11,11 @@ from apps.users.decorators import private_page, supabase_login_required
 from apps.users.services import session_service
 from apps.plans.services import plan_service
 from apps.plans.services.exceptions import PlanUnavailable
-from .forms import GroupForm
+from .forms import GroupForm, InviteForm, InviteSearchForm
+from .services import invitation_service
+from .services.invitation_service import (
+    InvitationConflict, InvitationNotFound, InvitationUnavailable, InvalidInvitation,
+)
 from .services import group_service
 from .services.exceptions import GroupNotFound, GroupUnavailable, InvalidGroup
 
@@ -57,6 +61,13 @@ def detail(request, group_id):
         return render(request, "groups/detail.html", {
             "unavailable": True, "planb_user": request.planb_user,
         }, status=503)
+    people_context = {}
+    try:
+        people_context['members'] = invitation_service.list_members(access_token, group_id)
+        if group['role'] == 'owner':
+            people_context['pending_invitations'] = invitation_service.list_pending(access_token, group_id)
+    except (InvitationUnavailable, InvitationNotFound):
+        people_context['members_unavailable'] = True
     try:
         plans_page = plan_service.list_plans(access_token, page=1, group_id=str(group_id))
         all_plans = list(plans_page["items"])
@@ -69,6 +80,7 @@ def detail(request, group_id):
         return render(request, "groups/detail.html", {
             "group": group, "plans_unavailable": True,
             "planb_user": request.planb_user,
+            **people_context,
         }, status=503)
     plans_by_date = [
         {"date": date, "items": list(items)}
@@ -77,7 +89,49 @@ def detail(request, group_id):
     return render(request, "groups/detail.html", {
         "group": group, "plans_page": {"items": all_plans},
         "plans_by_date": plans_by_date, "planb_user": request.planb_user,
+        **people_context,
     })
+
+
+@private_page
+@require_http_methods(['GET', 'POST'])
+@supabase_login_required
+@sensitive_variables()
+def invite(request, group_id):
+    try:
+        group = _owned_group(request, group_id)
+    except GroupNotFound:
+        raise Http404('No encontramos ese grupo.') from None
+    except (GroupUnavailable, InvalidGroup):
+        return _management_unavailable(request, group_id)
+    token = session_service.get_access_token(request)
+    search_form = InviteSearchForm(request.GET if 'username' in request.GET else None)
+    invite_form = InviteForm(request.POST if request.method == 'POST' else None)
+    candidates, pending, status = [], [], 200
+    error_message = None
+    try:
+        if request.method == 'POST' and invite_form.is_valid():
+            invitation_service.create_invitation(token, group_id, invite_form.cleaned_data['invited_user_id'])
+            messages.success(request, 'La invitación se envió. La persona podrá responder desde sus notificaciones.')
+            return redirect('groups:detail', group_id=group_id)
+        pending = invitation_service.list_pending(token, group_id)
+        if search_form.is_bound and search_form.is_valid():
+            candidates = invitation_service.search_invitees(token, group_id, search_form.cleaned_data['username'])
+            pending_users = {item['invited_user_id'] for item in pending}
+            for candidate in candidates:
+                candidate['pending'] = candidate['id'] in pending_users
+    except InvitationNotFound:
+        raise Http404('No encontramos ese grupo.') from None
+    except (InvalidInvitation, InvitationConflict) as error:
+        error_message = str(error)
+        status = 409 if isinstance(error, InvitationConflict) else 400
+    except InvitationUnavailable as error:
+        error_message, status = str(error), 503
+    return render(request, 'groups/invite.html', {
+        'group': group, 'search_form': search_form, 'invite_form': invite_form,
+        'candidates': candidates, 'pending_invitations': pending,
+        'error_message': error_message, 'planb_user': request.planb_user,
+    }, status=status)
 
 def _owned_group(request, group_id):
     group = group_service.get_group(session_service.get_access_token(request), group_id)

@@ -90,3 +90,8 @@ geolocalización (requiere permiso del navegador y HTTPS o localhost).
 Leaflet se instala con `npm ci` y sus assets se sirven desde Django.
 OpenStreetMap/Nominatim provee las teselas y la búsqueda; la ubicación elegida
 se envía al backend sólo al guardar la propuesta.
+> Regla vigente desde `feature/group-invitations`: todos los miembros crean
+> planes; sólo el owner los edita/elimina. Las referencias anteriores a creación
+> exclusiva del owner corresponden a las dos migraciones iniciales. Aplicar
+> `202610080002_member_plan_creation.sql` después de ellas. Ver
+> [despliegue y pruebas de invitaciones](invitaciones.md).

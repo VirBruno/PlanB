@@ -5,6 +5,7 @@ from . import views
 app_name = "groups"
 urlpatterns = [
     path("nuevo/", views.create, name="create"),
+    path("<uuid:group_id>/invitar/", views.invite, name="invite"),
     path("<uuid:group_id>/editar/", views.edit, name="edit"),
     path("<uuid:group_id>/eliminar/confirmar/", views.delete_confirmation, name="delete_confirmation"),
     path("<uuid:group_id>/eliminar/", views.delete, name="delete"),

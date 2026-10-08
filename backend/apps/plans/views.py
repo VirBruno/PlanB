@@ -90,7 +90,6 @@ def create(request, group_id):
         raise Http404("No encontramos ese grupo.") from None
     except (GroupUnavailable, InvalidGroup):
         return _unavailable(request)
-    _require_group_admin(group)
     form = PlanForm(request.POST if request.method == "POST" else None)
     status_code = 200
     if request.method == "POST" and form.is_valid():

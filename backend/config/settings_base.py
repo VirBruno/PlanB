@@ -7,6 +7,7 @@ INSTALLED_APPS = [
     "apps.users.apps.UsersConfig",
     "apps.groups.apps.GroupsConfig",
     "apps.plans.apps.PlansConfig",
+    "apps.notifications.apps.NotificationsConfig",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -22,6 +23,7 @@ TEMPLATES = [{
     "OPTIONS": {"context_processors": [
         "django.template.context_processors.request",
         "django.contrib.messages.context_processors.messages",
+        "apps.notifications.context_processors.notification_badge",
     ]},
 }]
 WSGI_APPLICATION = "config.wsgi.application"

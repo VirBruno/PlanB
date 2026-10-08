@@ -212,13 +212,19 @@ class ProfileServiceTests(SimpleTestCase):
         self.client.auth.admin.get_user_by_id.assert_not_called()
 
     def test_profile_uses_user_jwt_and_returns_only_public_fields(self):
-        self.query.execute.return_value.data = [{"id": USER_ID, "username": "Ana", "secret": "hidden"}]
+        self.query.execute.return_value.data = [{
+            "id": USER_ID, "username": "Ana", "secret": "hidden",
+            "created_at": "2026-09-29T12:00:00Z", "updated_at": "2026-09-29T12:00:00Z",
+        }]
         with patch("apps.users.services.clients.public_client") as public:
             public.return_value.__enter__.return_value = self.client
             result = profile_service.get_profile("access", USER_ID)
         public.assert_called_once_with(access_token="access")
         self.administrative.assert_not_called()
-        self.assertEqual(result, {"id": USER_ID, "username": "Ana"})
+        self.assertEqual(set(result), {"id", "username", "created_at", "updated_at"})
+        self.assertEqual(result["id"], USER_ID)
+        self.assertEqual(result["username"], "Ana")
+        self.assertEqual(result["created_at"].year, 2026)
 
     def test_usernames_for_ids_uses_admin_only_for_requested_profile_ids(self):
         other_id = "a2e0c8f4-e4ae-4ee3-927a-9552974165f6"
