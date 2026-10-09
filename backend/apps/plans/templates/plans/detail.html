@@ -3,6 +3,7 @@
 {% block extra_css %}
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'users/css/proposals.css' %}">
+  <link rel="stylesheet" href="{% static 'users/css/plan-detail-social.css' %}">
   {% if proposals %}
   <link rel="stylesheet" href="{% static 'leaflet.css' %}">
   {% endif %}
@@ -15,10 +16,10 @@
 {% endblock %}
 {% block title %}{{ plan.name }} · Plan B{% endblock %}
 {% block workspace %}
-<a class="back-link" href="{% url 'groups:detail' group.id %}">← Volver al grupo</a>
-<section class="group-panel" aria-labelledby="plan-title">
-  <p class="eyebrow eyebrow--blue">TU PLAN EN PLAN B</p>
-  <div class="plan-heading">
+<a class="back-link pb-plan-back" href="{% url 'groups:detail' group.id %}">← Volver al grupo</a>
+<section class="group-panel pb-plan-detail" aria-labelledby="plan-title">
+  <p class="eyebrow pb-plan-eyebrow">TU ESPACIO PARA ORGANIZARTE</p>
+  <div class="plan-heading pb-plan-title-row">
     <h1 id="plan-title">{{ plan.name }}</h1>
     {% if can_manage %}
     <div class="plan-heading-actions" aria-label="Acciones del plan">
@@ -31,22 +32,22 @@
     </div>
     {% endif %}
   </div>
-  <p class="group-description">{{ plan.description|linebreaksbr }}</p>
+  {% if plan.description %}<p class="group-description">{{ plan.description|linebreaksbr }}</p>{% endif %}
   <dl class="group-meta">
     <div><dt>Estado</dt><dd>{% if plan.status %}Activo{% else %}Inactivo{% endif %}</dd></div>
     <div><dt>Creado el</dt><dd>{{ plan.created_at|date:"d/m/Y" }}</dd></div>
     <div><dt>Grupo</dt><dd><a href="{% url 'groups:detail' group.id %}">{{ group.name }}</a></dd></div>
   </dl>
-  <section class="proposals-section" aria-labelledby="proposals-title">
-    <div class="section-heading">
-      <h2 id="proposals-title">Propuestas</h2>
+  <section class="proposals-section pb-plan-proposals" aria-labelledby="proposals-title">
+    <div class="section-heading pb-proposals-heading">
+      <div><p class="pb-proposals-kicker">IDEAS DEL GRUPO</p><h2 id="proposals-title">Propuestas <span class="pb-proposals-count">{{ proposals|length }}</span></h2><p class="pb-proposals-subtitle">Explorá las alternativas que compartieron los integrantes.</p></div>
       {% if can_create_proposal %}<a class="button button--primary" href="{% url 'plans:proposal_create' plan.id %}">Nueva propuesta <span aria-hidden="true">+</span></a>{% endif %}
     </div>
     {% if proposals %}
-    <ul class="proposal-list">
+    <ul class="proposal-list pb-proposals-grid">
       {% for proposal in proposals %}
-      <li class="proposal-item">
-        <div class="proposal-heading">
+      <li class="proposal-item pb-proposal-card">
+        <div class="proposal-heading pb-proposal-card-heading">
           <div>
             <span class="proposal-type">{{ proposal.type|capfirst }}</span>
             <h3>{{ proposal.tittle }}</h3>
@@ -66,8 +67,8 @@
         <dl class="proposal-meta">
           {% if proposal.date_pick %}<div><dt>Fecha</dt><dd>{{ proposal.date_pick|date:"d/m/Y H:i" }}</dd></div>{% endif %}
         </dl>
-        <div class="proposal-location">
-          <span class="proposal-location-label">Ubicación</span>
+        <div class="proposal-location pb-proposal-card-location">
+          <span class="proposal-location-label">Ubicación propuesta</span>
           <a class="proposal-map-link" href="https://www.openstreetmap.org/?mlat={{ proposal.latitude|unlocalize }}&amp;mlon={{ proposal.longitude|unlocalize }}#map=16/{{ proposal.latitude|unlocalize }}/{{ proposal.longitude|unlocalize }}" target="_blank" rel="noopener noreferrer" aria-label="Abrir ubicación de {{ proposal.tittle }} en OpenStreetMap">
             <div class="proposal-map-preview" data-proposal-preview data-lat="{{ proposal.latitude|unlocalize }}" data-lon="{{ proposal.longitude|unlocalize }}" role="img" aria-label="Mapa de la ubicación de {{ proposal.tittle }}"></div>
             <span>Ver en OpenStreetMap</span>
@@ -77,7 +78,7 @@
       {% endfor %}
     </ul>
     {% else %}
-    <p class="empty-proposals">Todavía no hay propuestas para este plan.</p>
+    <div class="pb-proposals-empty"><span aria-hidden="true">✧</span><h3>¡El primer plan empieza con una idea!</h3><p>Todavía no hay propuestas para este plan.</p>{% if can_create_proposal %}<a class="button button--primary" href="{% url 'plans:proposal_create' plan.id %}">Compartir mi propuesta</a>{% endif %}</div>
     {% endif %}
     {% if not can_create_proposal %}<p class="empty-proposals">Ya compartiste tu propuesta para este plan.</p>{% endif %}
   </section>
