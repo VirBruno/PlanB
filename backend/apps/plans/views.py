@@ -171,6 +171,7 @@ def _proposal_form(request, *, plan_id, proposal=None):
             "tittle": proposal["tittle"], "description": proposal["description"] or "",
             "date_pick": proposal["date_pick"], "type": proposal["type"],
             "position": json.dumps(proposal["posicion"]),
+            "budget_min": proposal["budget_min"], "budget_max": proposal["budget_max"],
         }
     form = ProposalForm(request.POST if request.method == "POST" else None, initial=initial)
     status_code = 200
@@ -186,6 +187,8 @@ def _proposal_form(request, *, plan_id, proposal=None):
                     description=form.cleaned_data["description"], date_pick=date_pick,
                     proposal_type=form.cleaned_data["type"],
                     position=form.cleaned_data["position"],
+                    budget_min=form.cleaned_data["budget_min"],
+                    budget_max=form.cleaned_data["budget_max"],
                 )
             else:
                 proposal_service.create_proposal(
@@ -195,6 +198,8 @@ def _proposal_form(request, *, plan_id, proposal=None):
                     description=form.cleaned_data["description"], date_pick=date_pick,
                     proposal_type=form.cleaned_data["type"],
                     position=form.cleaned_data["position"],
+                    budget_min=form.cleaned_data["budget_min"],
+                    budget_max=form.cleaned_data["budget_max"],
                 )
         except ProposalNotFound:
             raise Http404("No encontramos esa propuesta.") from None

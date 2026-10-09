@@ -1,8 +1,9 @@
 from unittest.mock import patch
+from decimal import Decimal
 
 from django.test import TestCase
 
-from apps.plans.tests.test_services import GROUP_ID, PLAN_ID, USER_ID, plan_row
+from apps.plans.tests.test_services import GROUP_ID, PLAN_ID, USER_ID, plan_row, proposal_row
 from apps.plans.services.exceptions import PlanUnavailable
 from apps.plans.services.proposal_exceptions import (
     ProposalAlreadyExists, ProposalUnavailable,
@@ -158,6 +159,11 @@ class PlanViewsTests(TestCase):
         self.assertContains(response, "data-city-search")
         self.assertContains(response, "data-use-location")
         self.assertContains(response, "/static/leaflet.js")
+        self.assertContains(response, '<legend>Presupuesto</legend>')
+        self.assertContains(response, 'for="id_budget_min"')
+        self.assertContains(response, 'for="id_budget_max"')
+        self.assertContains(response, 'step="0.01"')
+        self.assertContains(response, 'Opcional.')
         self.assertEqual(
             response.headers["Referrer-Policy"], "strict-origin-when-cross-origin",
         )
@@ -219,6 +225,8 @@ class PlanViewsTests(TestCase):
         self.assertEqual(create.call_args.kwargs["position"], {
             "type": "Point", "coordinates": [-58.38, -34.6],
         })
+        self.assertIsNone(create.call_args.kwargs["budget_min"])
+        self.assertIsNone(create.call_args.kwargs["budget_max"])
 
     @patch("apps.plans.views.proposal_service.has_user_proposal", return_value=True)
     @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
@@ -249,3 +257,98 @@ class PlanViewsTests(TestCase):
     def test_proposal_outage_does_not_show_an_empty_success_state(self, get_plan, get_group, list_proposals):
         response = self.client.get(f"/planes/{PLAN_ID}/")
         self.assertEqual(response.status_code, 503)
+
+
+class ProposalBudgetViewsTests(TestCase):
+    def mock(self, target, **kwargs):
+        started = patch(target, **kwargs)
+        mocked = started.start()
+        self.addCleanup(started.stop)
+        return mocked
+
+    def setUp(self):
+        self.mock('apps.users.services.session_service.current_user', return_value={'id': USER_ID, 'username': 'Ana'})
+        self.mock('apps.users.services.session_service.get_access_token', return_value='private-jwt')
+        self.mock('apps.notifications.services.unread_count', return_value=0)
+        self.mock('apps.plans.views.group_service.get_group', return_value={'id': GROUP_ID, 'name': 'Grupo', 'role': 'member'})
+        self.mock('apps.plans.views.plan_service.get_plan', return_value=plan_row())
+        self.mock('apps.plans.views.profile_service.usernames_for_ids', return_value={USER_ID: 'Ana'})
+        self.create = self.mock('apps.plans.views.proposal_service.create_proposal', return_value=47)
+        self.update = self.mock('apps.plans.views.proposal_service.update_proposal', return_value=47)
+        self.proposal = proposal_row(budget_min=Decimal('10.50'), budget_max=Decimal('20.75'))
+        self.get = self.mock('apps.plans.views.proposal_service.get_proposal', return_value=self.proposal)
+        self.list = self.mock('apps.plans.views.proposal_service.list_proposals', return_value=[self.proposal])
+        self.new_url = f'/planes/{PLAN_ID}/propuestas/nueva/'
+        self.edit_url = f'/planes/{PLAN_ID}/propuestas/47/editar/'
+
+    def data(self, **values):
+        return {'tittle': 'Merienda', 'description': '', 'date_pick': '', 'type': 'juntada',
+                'position': '{"type":"Point","coordinates":[-58.38,-34.6]}', **values}
+
+    def test_create_submits_decimal_budget_and_authenticated_identity(self):
+        response = self.client.post(self.new_url, self.data(budget_min='1.25', budget_max='2.75', created_by='forged'))
+        self.assertRedirects(response, f'/planes/{PLAN_ID}/', fetch_redirect_response=False)
+        self.assertEqual(self.create.call_args.kwargs['budget_min'], Decimal('1.25'))
+        self.assertEqual(self.create.call_args.kwargs['budget_max'], Decimal('2.75'))
+        self.assertEqual(self.create.call_args.kwargs['created_by'], USER_ID)
+
+    def test_invalid_budget_preserves_input_and_never_calls_write_service(self):
+        for method_url in (self.new_url, self.edit_url):
+            response = self.client.post(method_url, self.data(budget_min='20.50', budget_max='10.25'))
+            self.assertContains(response, 'value="20.50"')
+            self.assertContains(response, 'value="10.25"')
+            self.assertContains(response, 'El presupuesto hasta debe ser mayor o igual')
+        self.create.assert_not_called()
+        self.update.assert_not_called()
+
+    def test_edit_form_prefills_current_budget(self):
+        response = self.client.get(self.edit_url)
+        self.assertContains(response, 'value="10.50"')
+        self.assertContains(response, 'value="20.75"')
+        self.assertEqual(response.context['form'].initial['budget_min'], Decimal('10.50'))
+        self.assertEqual(response.context['form'].initial['budget_max'], Decimal('20.75'))
+        self.update.assert_not_called()
+
+    def test_edit_adds_budget_to_a_proposal_without_budget(self):
+        self.proposal.update(budget_min=None, budget_max=None)
+        response = self.client.post(self.edit_url, self.data(budget_min='10.50', budget_max='20.75'))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.update.call_args.kwargs['budget_min'], Decimal('10.50'))
+        self.assertEqual(self.update.call_args.kwargs['budget_max'], Decimal('20.75'))
+
+    def test_edit_changes_one_limit_and_preserves_submitted_other_limit(self):
+        response = self.client.post(self.edit_url, self.data(budget_min='15.25', budget_max='20.75'))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.update.call_args.kwargs['budget_min'], Decimal('15.25'))
+        self.assertEqual(self.update.call_args.kwargs['budget_max'], Decimal('20.75'))
+
+    def test_edit_can_clear_either_or_both_limits(self):
+        for minimum, maximum in (('', '20.75'), ('10.50', ''), ('', '')):
+            response = self.client.post(self.edit_url, self.data(budget_min=minimum, budget_max=maximum))
+            self.assertEqual(response.status_code, 302)
+            self.assertEqual(self.update.call_args.kwargs['budget_min'], Decimal(minimum) if minimum else None)
+            self.assertEqual(self.update.call_args.kwargs['budget_max'], Decimal(maximum) if maximum else None)
+
+    def test_member_sees_proposal_budget_but_cannot_edit_someone_elses(self):
+        self.proposal['created_by'] = 'e0c9b706-c892-4f13-8432-86ce10caf447'
+        response = self.client.get(f'/planes/{PLAN_ID}/')
+        self.assertContains(response, 'Presupuesto')
+        self.assertContains(response, '10,50 – 20,75')
+        self.assertNotContains(response, self.edit_url)
+        for method in ('get', 'post'):
+            response = getattr(self.client, method)(self.edit_url, self.data(budget_min='0', budget_max='10'))
+            self.assertEqual(response.status_code, 403)
+        self.update.assert_not_called()
+
+    def test_detail_shows_partial_ranges_and_zero_without_currency(self):
+        for minimum, maximum, expected in ((Decimal('0'), None, 'Desde 0,00'),
+                                           (None, Decimal('0'), 'Hasta 0,00'),
+                                           (Decimal('0'), Decimal('0'), '0,00 – 0,00')):
+            self.proposal.update(budget_min=minimum, budget_max=maximum)
+            response = self.client.get(f'/planes/{PLAN_ID}/')
+            self.assertContains(response, expected)
+            self.assertNotContains(response, '$')
+
+    def test_detail_hides_undefined_budget(self):
+        self.proposal.update(budget_min=None, budget_max=None)
+        self.assertNotContains(self.client.get(f'/planes/{PLAN_ID}/'), 'Presupuesto')

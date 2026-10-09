@@ -95,3 +95,63 @@ se envía al backend sólo al guardar la propuesta.
 > exclusiva del owner corresponden a las dos migraciones iniciales. Aplicar
 > `202610080002_member_plan_creation.sql` después de ellas. Ver
 > [despliegue y pruebas de invitaciones](invitaciones.md).
+
+## Presupuesto opcional
+
+Con las migraciones anteriores aplicadas, ejecutar manualmente como administrador
+el contenido completo de `supabase/migrations/202610090001_proposal_budget_range.sql`
+en SQL Editor, incluidos BEGIN/COMMIT. No requiere migraciones Django ni cambios
+en `.env`. Aplicar el SQL antes de servir el código nuevo: las consultas de
+propuestas pasan a seleccionar `budget_min` y `budget_max`.
+
+La migración agrega ambos campos como `numeric(12,2) NULL`, tres constraints y
+grants INSERT/UPDATE por columna sólo para `authenticated`. Las políticas RLS,
+identidad, permisos de autor y unicidad por autor/plan se mantienen. Los checks
+no negativos rechazan también `NaN`, que PostgreSQL puede almacenar como numeric.
+Referencia: [tipos numéricos de PostgreSQL](https://www.postgresql.org/docs/current/datatype-numeric.html).
+Los campos no tienen moneda ni participan del plan ideal.
+
+El formulario incorpora Presupuesto con Desde/Hasta opcionales. Acepta uno o
+ambos límites, cero y decimales. Rechaza negativos, valores no numéricos/no finitos,
+rangos invertidos, más de dos decimales o más de diez dígitos enteros; no redondea
+entradas inválidas. Usar punto decimal en la request (por ejemplo `10.50`), sin
+símbolos de moneda. La visualización usa el formato local, por ejemplo `10,50`.
+
+La edición sigue siendo un formulario completo: precarga los valores actuales;
+modificar un límite conserva el otro enviado en el formulario. Vaciar cualquiera
+lo guarda como NULL; vaciar ambos elimina el rango. En el detalle se muestra
+`10,50 – 20,75`, `Desde 10,50` o `Hasta 20,75`; ambos NULL ocultan Presupuesto.
+
+Prueba manual con dos integrantes del mismo grupo:
+
+1. Crear una propuesta sin presupuesto y verificar que sigue siendo válida.
+2. Editarla agregando ambos límites, después modificando sólo uno, vaciando uno
+   y finalmente vaciando ambos. Recargar el detalle tras cada guardado.
+3. Probar límites iguales y cero; luego negativos, mínimo mayor al máximo,
+   letras y tres decimales. Los inválidos no deben guardarse ni redondearse.
+4. Con otro integrante, leer el presupuesto y comprobar que no puede editarlo,
+   incluso intentando la URL POST de edición de la propuesta ajena.
+5. Intentar una segunda propuesta del mismo autor/plan: debe seguir bloqueada.
+
+La suite normal permanece offline. Sus pruebas están en `apps/plans/tests/`
+(`test_forms.py`, `test_services.py`, `test_views.py`) y cubren validación Decimal,
+compatibilidad sin campos nuevos, payloads exactos del SDK, precarga/edición/borrado,
+lectura por miembros, ownership y la prohibición de duplicados.
+
+`supabase/tests/proposal_budget.sql` agrega integración de constraints, tipos,
+nullable, INSERT/UPDATE con los grants nuevos, RLS, aislamiento de outsiders,
+presupuesto ajeno y una propuesta por usuario/plan. Contiene fixtures reversibles
+y termina con ROLLBACK. Ejecutarlo sólo en Supabase local o en un proyecto de
+prueba autorizado, junto al script existente `supabase/tests/proposals.sql`.
+No ejecutar ninguno en el compartido. La suite Django no ejecuta ni valida RLS
+de PostgreSQL; no se aplicó SQL remoto durante esta implementación.
+
+Resultado local de esta entrega: 61 tests de planes/propuestas pasan, incluidos
+22 nuevos de presupuesto. La suite completa ejecutó 314 tests: 307 correctos y
+7 fallos preexistentes de interfaz. La ejecución inicial, antes del cambio,
+ya fallaba en esos mismos tests por expectativas del diseño anterior de grupos,
+marca y badge de notificaciones. No se modificaron funcionalidades ni tests ajenos
+para ocultarlos. `manage.py check`, `check --settings=config.settings_test`,
+`makemigrations --check --dry-run --settings=config.settings_test`, `pip check` y
+`git diff --check` finalizaron correctamente. La integración SQL queda pendiente
+en un entorno de prueba autorizado.
