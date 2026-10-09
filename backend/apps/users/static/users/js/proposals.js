@@ -1,5 +1,30 @@
 (() => {
-  if (!window.L) return;
+  const idealDialog = document.querySelector("[data-ideal-dialog]");
+  const closeIdealButton = document.querySelector("[data-close-ideal]");
+  if (idealDialog && typeof idealDialog.showModal === "function") {
+    idealDialog.showModal();
+    closeIdealButton?.focus();
+    closeIdealButton?.addEventListener("click", () => idealDialog.close());
+    idealDialog.addEventListener("click", (event) => {
+      if (event.target === idealDialog) idealDialog.close();
+    });
+    idealDialog.addEventListener("close", () => {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("ideal");
+      url.hash = "";
+      history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+      document.querySelector("[data-calculate-ideal]")?.focus();
+    });
+  }
+
+  const idealMapElement = document.querySelector("[data-ideal-map]");
+  if (!window.L) {
+    if (idealMapElement) {
+      idealMapElement.style.height = "min(55vh, 520px)";
+      idealMapElement.textContent = "No pudimos cargar el mapa.";
+    }
+    return;
+  }
 
   document.querySelectorAll("[data-proposal-preview]").forEach((element) => {
     const latitude = Number(element.dataset.lat);
@@ -21,6 +46,58 @@
     }).addTo(map);
     L.marker([latitude, longitude]).addTo(map);
   });
+
+  const idealDataElement = document.getElementById("proposal-ideal-data");
+  if (idealMapElement && idealDataElement) {
+    try {
+      const ideal = JSON.parse(idealDataElement.textContent);
+      idealMapElement.style.height = "min(55vh, 520px)";
+      idealMapElement.style.minHeight = "280px";
+      requestAnimationFrame(() => {
+        let mapStep = "validating proposal data";
+        try {
+          if (!Array.isArray(ideal.points) || !Array.isArray(ideal.center)) {
+            throw new Error("proposal coordinates are missing");
+          }
+          const configuredRadius = Number(ideal.radius_meters);
+          const radiusMeters = Number.isFinite(configuredRadius) && configuredRadius > 0
+            ? configuredRadius
+            : 200;
+          mapStep = "creating map";
+          const idealMap = L.map(idealMapElement, {
+            scrollWheelZoom: true,
+            attributionControl: true,
+          }).setView(ideal.center, 15);
+          mapStep = "drawing proposal markers";
+          ideal.points.forEach((point) => L.marker(point).addTo(idealMap));
+          mapStep = "drawing the intermediate area";
+          const idealArea = L.circle(ideal.center, {
+            radius: radiusMeters,
+            color: "#2355dc",
+            weight: 3,
+            fillColor: "#4d9b86",
+            fillOpacity: 0.2,
+          }).addTo(idealMap);
+          L.circleMarker(ideal.center, {
+            radius: 8, color: "#c24d35", fillColor: "#fff", fillOpacity: 1, weight: 3,
+          }).addTo(idealMap).bindTooltip("Centro geográfico");
+          idealMap.fitBounds(idealArea.getBounds(), { padding: [24, 24] });
+          mapStep = "loading map tiles";
+          L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19,
+            referrerPolicy: "strict-origin-when-cross-origin",
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+          }).addTo(idealMap);
+          requestAnimationFrame(() => idealMap.invalidateSize({ pan: false }));
+        } catch (error) {
+          console.error("No se pudo inicializar el mapa de la propuesta ideal.", error);
+          idealMapElement.textContent = `Falló ${mapStep}: ${error.message || error}`;
+        }
+      });
+    } catch {
+      idealMapElement.textContent = "No pudimos mostrar el mapa de la propuesta ideal.";
+    }
+  }
 
   const form = document.querySelector("[data-proposal-form]");
   const mapElement = document.querySelector("[data-proposal-map]");

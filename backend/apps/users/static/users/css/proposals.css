@@ -50,6 +50,22 @@
 .proposal-meta dt { color: var(--muted); }
 .proposal-meta dd { margin: 0; }
 .empty-proposals { margin: 16px 0 0; color: var(--muted); font-size: 14px; }
+.proposal-ideal-action { margin: 16px 0; }
+.proposal-ideal-dialog { width: min(920px, calc(100% - 32px)); max-width: none; max-height: calc(100dvh - 32px); padding: 0; overflow: visible; border: 0; border-radius: 10px; background: transparent; color: var(--text); }
+.proposal-ideal-dialog::backdrop { background: #090b18bf; backdrop-filter: blur(3px); }
+.proposal-ideal { position: relative; display: grid; gap: 16px; max-height: calc(100dvh - 32px); margin: 0; padding: 24px; overflow: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--white); box-shadow: 0 24px 80px #0005; }
+.proposal-ideal-close { position: absolute; top: 14px; right: 14px; display: grid; place-items: center; width: 38px; height: 38px; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: var(--white); color: var(--text); font-size: 25px; line-height: 1; cursor: pointer; }
+.proposal-ideal-close:hover { border-color: var(--navy); background: var(--canvas); }
+.proposal-ideal-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+.proposal-ideal-heading > div:first-child { padding-right: 36px; }
+.proposal-ideal-heading .eyebrow { margin: 0 0 5px; }
+.proposal-ideal-heading h3 { margin: 0; color: var(--navy); font-size: 20px; }
+.proposal-ideal-heading p:not(.eyebrow) { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+.proposal-ideal-budget { display: grid; justify-items: end; gap: 3px; text-align: right; }
+.proposal-ideal-budget span { color: var(--muted); font-size: 12px; }
+.proposal-ideal-budget strong { color: var(--navy); font-size: 22px; }
+.proposal-ideal-budget small { color: var(--muted); font-size: 11px; }
+.proposal-ideal-map { width: 100%; height: min(55vh, 520px); min-height: 280px; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: #e7edf1; z-index: 0; }
 
 @media (max-width: 560px) {
   .proposal-budget-fields { grid-template-columns: 1fr; }
@@ -62,4 +78,8 @@
   .proposal-map-link { width: 100%; }
   .proposal-map-preview { height: 150px; }
   .proposal-heading { flex-direction: column; }
+  .proposal-ideal-heading { flex-direction: column; }
+  .proposal-ideal-budget { justify-items: start; text-align: left; }
+  .proposal-ideal { padding: 20px 16px; }
+  .proposal-ideal-map { height: min(55vh, 420px); min-height: 250px; }
 }
