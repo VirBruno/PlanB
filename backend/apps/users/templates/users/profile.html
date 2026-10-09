@@ -1,28 +1,23 @@
 {% extends 'components/authenticated_base.html' %}
-{% block title %}Perfil · Plan B{% endblock %}
+{% load static %}
+{% block title %}Mi perfil · Plan B{% endblock %}
 {% block workspace %}
-<section class="profile-page" aria-labelledby="profile-title">
-  <p class="eyebrow eyebrow--blue">TU CUENTA</p>
-  <h1 id="profile-title">Perfil</h1>
-  <p class="profile-intro">Consultá tus datos y actualizá tu nombre de usuario.</p>
-
-  <dl class="profile-details">
-    <div><dt>Cuenta creada</dt><dd>{{ profile.created_at|date:"d/m/Y H:i" }}</dd></div>
-  </dl>
-
-  <section class="profile-edit" aria-labelledby="profile-edit-title">
-    <h2 id="profile-edit-title">Datos del perfil</h2>
-    <form method="post" action="{% url 'users:profile' %}" class="auth-form">
-      {% csrf_token %}
-      {% include 'components/form_errors.html' %}
-      {% include 'components/field.html' with field=form.username %}
-      <button class="button button--primary" type="submit">Guardar cambios <span aria-hidden="true">→</span></button>
-    </form>
+<div class="pb-profile-wrap">
+  <header class="pb-page-heading"><div><span class="pb-overline">TU ESPACIO PERSONAL</span><h1>Mi perfil</h1><p>Tu cuenta, tus datos y tu identidad en Plan B.</p></div></header>
+  <section class="pb-profile-card" aria-labelledby="profile-title">
+    <div class="pb-profile-banner"><span class="pb-overline">TU CUENTA</span><div class="pb-profile-person"><span class="pb-profile-avatar" aria-hidden="true">{{ planb_user.username|first|upper }}</span><div><h2 id="profile-title">{{ planb_user.username }}</h2><p>Tu espacio para organizar planes con amigos</p></div></div></div>
+    <div class="pb-profile-inner">
+      <dl class="pb-account-facts"><div><dt>Usuario actual</dt><dd>{{ planb_user.username }}</dd></div><div><dt>Cuenta creada</dt><dd>{{ profile.created_at|date:"d/m/Y H:i" }}</dd></div></dl>
+      <div class="pb-profile-form"><h3>Editar datos</h3><p>Podés actualizar tu nombre de usuario cuando lo necesites.</p>
+        <form method="post" action="{% url 'users:profile' %}" class="auth-form">
+          {% csrf_token %}
+          {% include 'components/form_errors.html' %}
+          {% include 'components/field.html' with field=form.username %}
+          <button class="button button--primary" type="submit">Guardar cambios <span aria-hidden="true">→</span></button>
+        </form>
+      </div>
+    </div>
   </section>
-
-  <form method="post" action="{% url 'users:logout' %}" class="profile-logout">
-    {% csrf_token %}
-    <button class="button button--quiet" type="submit">Cerrar sesión <span aria-hidden="true">↗</span></button>
-  </form>
-</section>
+  <form method="post" action="{% url 'users:logout' %}" class="pb-profile-signout">{% csrf_token %}<button class="button button--quiet" type="submit">Cerrar sesión <span aria-hidden="true">↗</span></button></form>
+</div>
 {% endblock %}

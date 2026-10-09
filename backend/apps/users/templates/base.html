@@ -5,15 +5,25 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="same-origin">
-  <meta name="theme-color" content="#122441">
+  <meta name="theme-color" content="#f6f5fc">
+  <script>try{document.documentElement.dataset.theme=localStorage.getItem("planb-theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")}catch(e){document.documentElement.dataset.theme="light"}</script>
   <title>{% block title %}Plan B{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'users/css/planb.css' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   {% block extra_css %}{% endblock %}
+  <link rel="stylesheet" href="{% static 'users/css/theme-redesign.css' %}">
+  <link rel="stylesheet" href="{% static 'users/css/auth-centered.css' %}">
+  {% block page_css %}{% endblock %}
+  {% block shell_css %}{% endblock %}
   <script src="{% static 'users/js/forms.js' %}" defer></script>
   {% block extra_js %}{% endblock %}
+  <script src="{% static 'users/js/theme.js' %}" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#contenido">Saltar al contenido</a>
   {% block body %}{% endblock %}
+  <button type="button" class="theme-toggle" data-theme-toggle aria-label="Cambiar tema">Cambiar tema</button>
 </body>
 </html>

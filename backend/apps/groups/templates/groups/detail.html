@@ -1,83 +1,43 @@
 {% extends 'components/authenticated_base.html' %}
+{% load static %}
 {% block title %}{% if group %}{{ group.name }}{% else %}Tu grupo{% endif %} · Plan B{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'users/css/group-social.css' %}">{% endblock %}
+{% block breadcrumbs %}
+  <a href="{% url 'users:dashboard' %}">Mi espacio</a><span aria-hidden="true">/</span>
+  <a href="{% url 'users:dashboard' %}#mis-grupos">Mis grupos</a><span aria-hidden="true">/</span>
+  <span aria-current="page">{% if group %}{{ group.name }}{% else %}Detalle de grupo{% endif %}</span>
+{% endblock %}
 {% block workspace %}
-<a class="back-link" href="{% url 'users:dashboard' %}">← Mis grupos</a>
-{% if unavailable %}
-<section class="group-panel" aria-labelledby="group-title">
-  <h1 id="group-title">No pudimos cargar el grupo.</h1>
-  <p class="panel-description">Esperá unos minutos y volvé a intentar.</p>
-  <a class="button button--primary" href="{{ retry_url|default:request.path }}">Volver a intentar</a>
-</section>
-{% else %}
-<section class="group-panel" data-group-surface style="--group-surface: group-{{ group.id }};" aria-labelledby="group-title">
-  <p class="eyebrow eyebrow--blue">TU GRUPO EN PLAN B</p>
-  <h1 id="group-title">{{ group.name }}</h1>
-  {% if group.description %}<p class="group-description">{{ group.description }}</p>{% else %}<p class="panel-description">Este grupo todavía no tiene descripción.</p>{% endif %}
-  <dl class="group-meta">
-    <div><dt>Tu rol</dt><dd>{{ group.role_label }}</dd></div>
-    <div><dt>Creado el</dt><dd>{{ group.created_at|date:"d/m/Y" }}</dd></div>
-  </dl>
-  {% if group.role == 'owner' %}
-  <div class="group-actions group-owner-actions">
-    <a class="button button--primary" href="{% url 'groups:edit' group.id %}">Editar grupo <span aria-hidden="true">→</span></a>
-    <a class="button button--danger-quiet" href="{% url 'groups:delete_confirmation' group.id %}">Eliminar grupo</a>
-  </div>
-  {% endif %}
-<section class="members-section" aria-labelledby="group-members-title">
-  <div class="section-heading">
-    <h2 id="group-members-title">Integrantes</h2>
-    <span class="section-line" aria-hidden="true"></span>
-    {% if group.role == 'owner' %}<a class="button button--quiet" href="{% url 'groups:invite' group.id %}">+ Invitar integrante</a>{% endif %}
-  </div>
-  {% if members_unavailable %}
-  <p class="notice notice--error" role="alert">No pudimos cargar los integrantes o las invitaciones. <a href="{% url 'groups:detail' group.id %}">Volver a intentar</a></p>
-  {% else %}
-  <ul class="people-list">
-    {% for person in members %}<li><span class="person-avatar" aria-hidden="true">{{ person.initials }}</span><span class="person-name">{{ person.username }}</span><span class="person-role">{{ person.role_label }}</span></li>{% endfor %}
-  </ul>
-  {% if group.role == 'owner' and pending_invitations %}
-  <h3>Invitaciones pendientes</h3>
-  <ul class="people-list">
-    {% for person in pending_invitations %}<li><span class="person-avatar" aria-hidden="true">{{ person.initials }}</span><span class="person-name">{{ person.username }}</span><span class="person-role">Pendiente</span></li>{% endfor %}
-  </ul>
-  {% endif %}
-  {% endif %}
-</section>
-<section class="plans-section" aria-labelledby="group-plans-title">
-  <div class="section-heading">
-    <h2 id="group-plans-title">Planes del grupo</h2>
-    <span class="section-line" aria-hidden="true"></span>
-    {% if plans_page.items %}
-    <a class="button button--primary plan-add-button" href="{% url 'groups:plan_create' group.id %}" aria-label="Crear plan" title="Crear plan">+</a>
+<div class="group-social-shell">
+    {% if unavailable %}
+    <section class="group-social-panel group-social-error" aria-labelledby="group-title"><h1 id="group-title">No pudimos cargar el grupo.</h1><p>Esperá unos minutos y volvé a intentar.</p><a class="button button--primary" href="{{ retry_url|default:request.path }}">Volver a intentar</a></section>
+    {% else %}
+    <header class="group-social-hero" aria-labelledby="group-title">
+      <div class="group-social-hero-main"><div class="group-social-avatar" aria-hidden="true">{{ group.name|first|upper }}</div><div class="group-social-identity"><span class="group-social-eyebrow">✦ TU COMUNIDAD</span><h1 id="group-title">{{ group.name }}</h1><p>{% if group.description %}{{ group.description }}{% else %}Un espacio para crear buenos momentos juntos.{% endif %}</p><div class="group-social-meta"><span>Tu rol: {{ group.role_label }}</span><span>Creado el {{ group.created_at|date:"d/m/Y" }}</span></div></div></div>
+      <a class="group-social-primary" href="{% url 'groups:plan_create' group.id %}"><span aria-hidden="true">＋</span> Nuevo plan</a>
+    </header>
+    <nav class="group-social-tabs" aria-label="Contenido del grupo"><a class="is-current" href="#planes-grupo">Planes</a><a href="#integrantes-grupo">Integrantes</a>{% if group.role == 'owner' %}<a href="#administracion-grupo">Administración</a>{% endif %}</nav>
+    <div class="group-social-columns">
+      <section class="group-social-panel group-social-plans" id="planes-grupo" aria-labelledby="group-plans-title">
+        <div class="group-social-heading"><div><span class="group-social-eyebrow">ORGANICEN ALGO BUENO</span><h2 id="group-plans-title">Planes del grupo</h2><p>Ideas y actividades que organizan entre todos.</p></div><a class="group-social-small-action" href="{% url 'groups:plan_create' group.id %}">＋ Crear plan</a></div>
+        {% if plans_unavailable %}<div class="notice notice--error" role="alert">No pudimos cargar los planes. <a href="{% url 'groups:detail' group.id %}">Volver a intentar</a></div>
+        {% elif plans_by_date %}
+        <div class="group-social-plan-groups">{% for date_group in plans_by_date %}
+          <section class="group-social-date"><h3>{{ date_group.date|date:"d/m/Y" }}</h3><ul class="group-social-plan-list">
+          {% for plan in date_group.items %}<li><a class="group-social-plan-card" href="{% url 'plans:detail' plan.id %}"><span class="group-social-plan-icon" aria-hidden="true">✧</span><span class="group-social-plan-info"><strong>{{ plan.name }}</strong><small>{% if plan.description %}{{ plan.description|truncatechars:100 }}{% else %}Abrí el plan para ver los detalles.{% endif %}</small><span class="group-social-plan-date">Creado a las {{ plan.created_at|date:"H:i" }}</span></span><span class="group-social-plan-status {% if plan.status %}is-active{% endif %}">{% if plan.status %}Activo{% else %}Inactivo{% endif %}</span><span class="group-social-arrow" aria-hidden="true">↗</span></a></li>{% endfor %}
+          </ul></section>{% endfor %}</div>
+        {% else %}<div class="group-social-empty"><span aria-hidden="true">✦</span><h3>Su primer plan empieza acá</h3><p>Creen una actividad para compartir ideas y organizarse entre todos.</p><a class="group-social-primary" href="{% url 'groups:plan_create' group.id %}">＋ Crear el primer plan</a></div>{% endif %}
+      </section>
+      <div class="group-social-right">
+        <section class="group-social-panel group-social-members" id="integrantes-grupo" aria-labelledby="group-members-title"><div class="group-social-heading"><div><span class="group-social-eyebrow">LAS PERSONAS DEL PLAN</span><h2 id="group-members-title">Integrantes</h2></div>{% if group.role == 'owner' %}<a class="group-social-small-action" href="{% url 'groups:invite' group.id %}">＋ Invitar</a>{% endif %}</div>
+          {% if members_unavailable %}<div class="notice notice--error" role="alert">No pudimos cargar los integrantes o las invitaciones. <a href="{% url 'groups:detail' group.id %}">Reintentar</a></div>
+          {% else %}<ul class="group-social-people">{% for person in members %}<li><span class="group-social-person-avatar" aria-hidden="true">{{ person.initials }}</span><span class="group-social-person-name">{{ person.username }}</span><span class="group-social-role">{{ person.role_label }}</span></li>{% empty %}<li class="group-social-no-members">Todavía no hay integrantes para mostrar.</li>{% endfor %}</ul>
+          {% if group.role == 'owner' and pending_invitations %}<h3 class="group-social-pending-title">Invitaciones pendientes</h3><ul class="group-social-people">{% for person in pending_invitations %}<li><span class="group-social-person-avatar" aria-hidden="true">{{ person.initials }}</span><span class="group-social-person-name">{{ person.username }}</span><span class="group-social-role">Pendiente</span></li>{% endfor %}</ul>{% endif %}{% endif %}
+        </section>
+        <section class="group-social-panel group-social-side-note"><span aria-hidden="true">✳</span><strong>Los mejores planes se hacen juntos.</strong><p>Sumá ideas, charlen y encuentren algo que les guste a todos.</p></section>
+        {% if group.role == 'owner' %}<section class="group-social-panel group-social-admin" id="administracion-grupo" aria-labelledby="group-admin-title"><div class="group-social-heading"><div><span class="group-social-eyebrow">SOLO ADMINISTRACIÓN</span><h2 id="group-admin-title">Administrar grupo</h2></div></div><div class="group-social-admin-actions"><a href="{% url 'groups:edit' group.id %}">Editar grupo <span aria-hidden="true">↗</span></a><a class="is-danger" href="{% url 'groups:delete_confirmation' group.id %}">Eliminar grupo <span aria-hidden="true">↗</span></a></div></section>{% endif %}
+      </div>
+    </div>
     {% endif %}
-  </div>
-  {% if plans_unavailable %}
-  <div class="notice notice--error" role="alert">
-    <p>No pudimos cargar los planes de este grupo.</p>
-    <p><a href="{% url 'groups:detail' group.id %}">Volver a intentar</a></p>
-  </div>
-  {% elif plans_by_date %}
-  <div class="plans-by-date">
-    {% for date_group in plans_by_date %}
-    <section class="plans-date-group" aria-labelledby="plans-date-{{ forloop.counter }}">
-      <h3 id="plans-date-{{ forloop.counter }}">{{ date_group.date|date:"l d F Y" }}</h3>
-      <ul class="group-grid">
-        {% for plan in date_group.items %}
-        <li class="group-card" data-plan-status="{{ plan.status|yesno:'active,inactive' }}">
-          <h3><a href="{% url 'plans:detail' plan.id %}">{{ plan.name }}</a></h3>
-          <p>{{ plan.description|truncatechars:160 }}</p>
-          <span class="plan-status">{% if plan.status %}Activo{% else %}Inactivo{% endif %}</span>
-          <span class="group-date">Creado el {{ plan.created_at|date:"H:i" }}</span>
-        </li>
-        {% endfor %}
-      </ul>
-    </section>
-    {% endfor %}
-  </div>
-  {% else %}
-  <div class="empty-state"><h3>Este grupo todavía no tiene planes.</h3><p>Creá el primero para organizar una salida.</p><a class="button button--primary empty-action" href="{% url 'groups:plan_create' group.id %}">Crear plan</a></div>
-  {% endif %}
-</section>
-</section>
-{% endif %}
+</div>
 {% endblock %}

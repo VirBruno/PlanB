@@ -1,51 +1,54 @@
 {% extends 'components/authenticated_base.html' %}
+{% load static %}
 {% block title %}Mi espacio · Plan B{% endblock %}
+
 {% block workspace %}
-<section class="dashboard-welcome" aria-labelledby="welcome-title">
-  <div>
-    <p class="eyebrow eyebrow--blue">ESTE ES TU ESPACIO</p>
-    <h1 id="welcome-title">Hola, <span>{{ planb_user.username }}</span><span class="hello-dot" aria-hidden="true">.</span></h1>
-    <p>Qué bueno tenerte en Plan B.</p>
-  </div>
-  <div class="welcome-stamp" aria-hidden="true">B<span>✦</span></div>
-</section>
-<section class="groups-section" aria-labelledby="groups-title">
-  <div class="section-heading">
-    <h2 id="groups-title">Mis grupos</h2><span class="section-line" aria-hidden="true"></span>
-    <a class="button button--primary" href="{% url 'groups:create' %}">Crear grupo <span aria-hidden="true">+</span></a>
-  </div>
-  {% if groups_unavailable %}
-    <div class="notice notice--error" role="alert">
-      <p>No pudimos cargar tus grupos. Esperá unos minutos y volvé a intentar.</p>
-      <p><a href="{% url 'users:dashboard' %}">Volver a intentar</a></p>
+  <section class="social-hero" aria-labelledby="welcome-title">
+    <div class="social-hero-copy">
+      <span class="social-kicker"><span aria-hidden="true">✳</span> TU ESPACIO</span>
+      <h1 id="welcome-title">¡Hola, <span>{{ planb_user.username }}</span>! <span aria-hidden="true">👋</span></h1>
+      <p>¿Qué plan hacemos hoy? Organizá algo lindo con tu gente.</p>
     </div>
-  {% elif groups_page.items %}
-    <ul class="group-grid">
+    <a class="social-cta" href="{% url 'groups:create' %}"><span aria-hidden="true">＋</span> Crear grupo</a>
+  </section>
+  <section class="social-mini-actions" aria-label="Accesos rápidos">
+    <a href="{% url 'groups:index' %}"><span aria-hidden="true">♧</span><strong>Mis grupos</strong><small>Tu gente, en un lugar</small></a>
+    <a href="{% url 'notifications:index' %}"><span aria-hidden="true">✉</span><strong>Invitaciones</strong><small>Revisá novedades</small></a>
+  </section>
+
+  <section class="social-groups-section" id="mis-grupos" aria-labelledby="groups-title">
+    <div class="social-section-heading"><div><span class="social-section-caption">TU COMUNIDAD</span><h2 id="groups-title">Mis grupos <span class="social-heading-spark" aria-hidden="true">✳</span></h2><p>Un lugar para cada grupo de personas con las que compartís planes.</p></div><a class="social-text-link" href="{% url 'groups:create' %}">Crear otro grupo <span aria-hidden="true">↗</span></a></div>
+    {% if groups_unavailable %}
+      <div class="notice notice--error" role="alert"><p>No pudimos cargar tus grupos. Esperá unos minutos y volvé a intentar.</p><p><a href="{% url 'users:dashboard' %}">Volver a intentar</a></p></div>
+    {% elif groups_page.items %}
+      <ul class="social-group-grid">
       {% for group in groups_page.items %}
-      <li class="group-card" style="--group-surface: group-{{ group.id }};">
-        <h3><a href="{% url 'groups:detail' group.id %}">{{ group.name }}</a></h3>
-        {% if group.description %}<p>{{ group.description|truncatechars:160 }}</p>{% else %}<p>Un espacio para compartir nuevos planes.</p>{% endif %}
-        <span class="group-card-arrow" aria-hidden="true">↗</span>
-        <span class="group-date">Creado el {{ group.created_at|date:"d/m/Y" }}</span>
-      </li>
+        <li class="social-group-item">
+          <a class="social-group-card" href="{% url 'groups:detail' group.id %}" aria-label="Abrir grupo {{ group.name }}">
+            <span class="social-group-avatar" aria-hidden="true">{{ group.name|first|upper }}</span>
+            <span class="social-group-content"><strong>{{ group.name }}</strong><span>{% if group.description %}{{ group.description|truncatechars:105 }}{% else %}Un espacio para compartir nuevos planes.{% endif %}</span><small>Creado el {{ group.created_at|date:"d/m/Y" }}</small></span>
+            <span class="social-group-chevron" aria-hidden="true">↗</span>
+          </a>
+        </li>
       {% endfor %}
-    </ul>
-  {% elif groups_page.page > 1 %}
-    <div class="empty-state"><h3>No hay más grupos en esta página.</h3><p><a href="{% url 'users:dashboard' %}">Volver a la primera página</a></p></div>
-  {% else %}
-    <div class="empty-state">
-      <div class="empty-illustration" aria-hidden="true"><span></span><span></span><span></span><i>✦</i></div>
-      <h3>Todavía no participás de ningún grupo.</h3>
-      <p>Dale un nombre a tu próximo plan compartido.</p>
-      <a class="button button--primary empty-action" href="{% url 'groups:create' %}">Crear mi primer grupo</a>
-    </div>
-  {% endif %}
-  {% if groups_page.previous_page or groups_page.next_page %}
-  <nav class="group-pagination" aria-label="Páginas de grupos">
-    {% if groups_page.previous_page %}<a class="button button--quiet" href="?page={{ groups_page.previous_page }}">← Anterior</a>{% endif %}
-    <span>Página {{ groups_page.page }}</span>
-    {% if groups_page.next_page %}<a class="button button--quiet" href="?page={{ groups_page.next_page }}">Siguiente →</a>{% endif %}
-  </nav>
-  {% endif %}
-</section>
+        <li class="social-group-item"><a class="social-add-group" href="{% url 'groups:create' %}"><span aria-hidden="true">＋</span><strong>Crear grupo</strong><small>Invitá a tus amigos</small></a></li>
+      </ul>
+    {% elif groups_page.page > 1 %}
+      <div class="social-empty"><h3>No hay más grupos en esta página.</h3><a href="{% url 'users:dashboard' %}">Volver a la primera página</a></div>
+    {% else %}
+      <div class="social-empty"><div class="social-empty-icon" aria-hidden="true">✦</div><h3>Los mejores planes empiezan en grupo.</h3><p>Todavía no participás de ningún grupo. Creá el primero e invitá a tus amigos.</p><a class="social-cta" href="{% url 'groups:create' %}">＋ Crear mi primer grupo</a></div>
+    {% endif %}
+    {% if groups_page.previous_page or groups_page.next_page %}
+      <nav class="group-pagination social-pagination" aria-label="Páginas de grupos">
+        {% if groups_page.previous_page %}<a class="button button--quiet" href="?page={{ groups_page.previous_page }}#mis-grupos">← Anterior</a>{% endif %}
+        <span>Página {{ groups_page.page }}</span>
+        {% if groups_page.next_page %}<a class="button button--quiet" href="?page={{ groups_page.next_page }}#mis-grupos">Siguiente →</a>{% endif %}
+      </nav>
+    {% endif %}
+  </section>
+
+  <section class="social-next" id="mis-planes" aria-label="Cómo organizar un plan">
+    <div><span class="social-section-caption">ASÍ EMPIEZA TODO</span><h2>Menos mensajes.<br>Más momentos juntos.</h2><p>Creá un grupo, reuní a tus amigos y organizá planes desde un mismo lugar.</p></div>
+    <ol class="social-steps"><li><span>01</span><div><strong>Creá tu grupo</strong><small>Elegí un nombre para tu grupo.</small></div></li><li><span>02</span><div><strong>Sumá a tus amigos</strong><small>Compartí una invitación.</small></div></li><li><span>03</span><div><strong>Organizá un plan</strong><small>Proponé actividades desde el grupo.</small></div></li></ol>
+  </section>
 {% endblock %}
