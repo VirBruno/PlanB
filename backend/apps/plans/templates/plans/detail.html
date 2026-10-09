@@ -2,7 +2,7 @@
 {% load static l10n %}
 {% block extra_css %}
   {{ block.super }}
-  <link rel="stylesheet" href="{% static 'users/css/proposals.css' %}">
+  <link rel="stylesheet" href="{% static 'users/css/proposals.css' %}?v=3">
   <link rel="stylesheet" href="{% static 'users/css/plan-detail-social.css' %}">
   {% if proposals %}
   <link rel="stylesheet" href="{% static 'leaflet.css' %}">
@@ -11,7 +11,7 @@
 {% block extra_js %}
   {% if proposals %}
   <script src="{% static 'leaflet.js' %}" defer></script>
-  <script src="{% static 'users/js/proposals.js' %}" defer></script>
+  <script src="{% static 'users/js/proposals.js' %}?v=9" defer></script>
   {% endif %}
 {% endblock %}
 {% block title %}{{ plan.name }} · Plan B{% endblock %}
@@ -44,6 +44,38 @@
       {% if can_create_proposal %}<a class="button button--primary" href="{% url 'plans:proposal_create' plan.id %}">Nueva propuesta <span aria-hidden="true">+</span></a>{% endif %}
     </div>
     {% if proposals %}
+    {% if can_manage %}
+    <form class="proposal-ideal-action" method="post" action="{% url 'plans:proposal_ideal' plan.id %}">
+      {% csrf_token %}
+      <button class="button button--primary" type="submit" data-calculate-ideal>Calcular propuesta ideal</button>
+    </form>
+    {% endif %}
+    {% if ideal_summary %}
+    <dialog class="proposal-ideal-dialog" id="proposal-ideal-card" data-ideal-dialog aria-labelledby="proposal-ideal-title">
+      <section class="proposal-ideal">
+        <button class="proposal-ideal-close" type="button" data-close-ideal aria-label="Cerrar propuesta ideal" title="Cerrar propuesta ideal">&times;</button>
+        <div class="proposal-ideal-heading">
+          <div>
+            <p class="eyebrow eyebrow--blue">UBICACIÓN INTERMEDIA</p>
+            <h3 id="proposal-ideal-title">Propuesta ideal</h3>
+            <p>Área aproximada de 2 cuadras de radio (200 m), centrada entre las ubicaciones propuestas.</p>
+          </div>
+          <div class="proposal-ideal-budget">
+            <span>Presupuesto ideal</span>
+            {% if ideal_summary.ideal_budget != None %}
+            <strong>{{ ideal_summary.ideal_budget|floatformat:2 }}</strong>
+            <small>Promedio de {{ ideal_summary.budget_count }} propuesta{{ ideal_summary.budget_count|pluralize:"s" }} con presupuesto</small>
+            {% else %}
+            <strong>Sin datos</strong>
+            <small>Ninguna propuesta informó presupuesto</small>
+            {% endif %}
+          </div>
+        </div>
+        <div class="proposal-ideal-map" data-ideal-map role="img" aria-label="Mapa del centro geográfico y perímetro de las propuestas"></div>
+      </section>
+      {{ ideal_summary|json_script:"proposal-ideal-data" }}
+    </dialog>
+    {% endif %}
     <ul class="proposal-list pb-proposals-grid">
       {% for proposal in proposals %}
       <li class="proposal-item pb-proposal-card">
@@ -66,6 +98,9 @@
         {% if proposal.description %}<p>{{ proposal.description|linebreaksbr }}</p>{% endif %}
         <dl class="proposal-meta">
           {% if proposal.date_pick %}<div><dt>Fecha</dt><dd>{{ proposal.date_pick|date:"d/m/Y H:i" }}</dd></div>{% endif %}
+          {% if proposal.budget_min != None or proposal.budget_max != None %}
+          <div><dt>Presupuesto</dt><dd>{% if proposal.budget_min != None and proposal.budget_max != None %}{{ proposal.budget_min|floatformat:2 }} – {{ proposal.budget_max|floatformat:2 }}{% elif proposal.budget_min != None %}Desde {{ proposal.budget_min|floatformat:2 }}{% else %}Hasta {{ proposal.budget_max|floatformat:2 }}{% endif %}</dd></div>
+          {% endif %}
         </dl>
         <div class="proposal-location pb-proposal-card-location">
           <span class="proposal-location-label">Ubicación propuesta</span>

@@ -1,5 +1,6 @@
 import json
 import math
+from decimal import Decimal
 
 from django import forms
 
@@ -59,6 +60,23 @@ class ProposalForm(forms.Form):
         widget=forms.TextInput(attrs={"placeholder": "Ej.: Buenos Aires"}),
         help_text="Buscá una ciudad y elegí el punto en el mapa.",
     )
+    budget_min = forms.DecimalField(
+        label="Desde", required=False, min_value=Decimal("0"),
+        max_digits=12, decimal_places=2,
+        widget=forms.NumberInput(attrs={"step": "0.01", "min": "0", "inputmode": "decimal"}),
+    )
+    budget_max = forms.DecimalField(
+        label="Hasta", required=False, min_value=Decimal("0"),
+        max_digits=12, decimal_places=2,
+        widget=forms.NumberInput(attrs={"step": "0.01", "min": "0", "inputmode": "decimal"}),
+    )
+
+    def clean(self):
+        cleaned = super().clean()
+        budget_min, budget_max = cleaned.get("budget_min"), cleaned.get("budget_max")
+        if budget_min is not None and budget_max is not None and budget_min > budget_max:
+            self.add_error("budget_max", "El presupuesto hasta debe ser mayor o igual al presupuesto desde.")
+        return cleaned
 
     def clean_tittle(self):
         value = self.cleaned_data["tittle"].strip()

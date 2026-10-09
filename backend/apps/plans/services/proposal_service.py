@@ -1,10 +1,13 @@
 """Propuestas remotas: Data API + JWT del usuario; RLS controla el acceso."""
 import logging
+from decimal import Decimal, InvalidOperation
 from math import isfinite
 import re
 import struct
 from uuid import UUID
 
+from django.core.exceptions import ValidationError
+from django.core.validators import DecimalValidator
 from django.utils.dateparse import parse_datetime
 from django.views.decorators.debug import sensitive_variables
 from postgrest.exceptions import APIError
@@ -16,8 +19,39 @@ from .proposal_exceptions import (
 )
 
 PROPOSAL_TYPES = ("juntada", "reunión", "salida")
-COLUMNS = "id,created_at,tittle,description,date_pick,created_by,plan_id,type,posicion"
+COLUMNS = "id,created_at,tittle,description,date_pick,created_by,plan_id,type,posicion,budget_min,budget_max"
 logger = logging.getLogger("planb")
+
+
+def _budget(value):
+    if value is None or value == "":
+        return None
+    if isinstance(value, bool) or not isinstance(value, (Decimal, str, int, float)):
+        raise InvalidProposal()
+    try:
+        # El SDK puede decodificar numeric como int/float; str recupera su forma
+        # decimal. Nunca convertir Decimal a float para enviar importes.
+        amount = value if isinstance(value, Decimal) else Decimal(str(value))
+        if not amount.is_finite() or amount < 0:
+            raise InvalidProposal()
+        DecimalValidator(max_digits=12, decimal_places=2)(amount)
+    except (InvalidOperation, ValidationError, ValueError):
+        raise InvalidProposal() from None
+    return amount
+
+
+def _budget_range(budget_min, budget_max):
+    minimum, maximum = _budget(budget_min), _budget(budget_max)
+    if minimum is not None and maximum is not None and minimum > maximum:
+        raise InvalidProposal()
+    return minimum, maximum
+
+
+def _budget_payload(budget_min, budget_max):
+    minimum, maximum = _budget_range(budget_min, budget_max)
+    # PostgREST acepta strings decimales para numeric sin redondeo binario.
+    return {"budget_min": format(minimum, "f") if minimum is not None else None,
+            "budget_max": format(maximum, "f") if maximum is not None else None}
 
 
 def _uuid(value, error_type):
@@ -119,6 +153,10 @@ def _proposal(row, expected_plan_id=None):
         )
         raise ProposalUnavailable() from None
     result["longitude"], result["latitude"] = result["posicion"]["coordinates"]
+    try:
+        result["budget_min"], result["budget_max"] = _budget_range(result["budget_min"], result["budget_max"])
+    except InvalidProposal:
+        raise ValueError from None
     return result
 
 
@@ -218,7 +256,7 @@ def get_proposal(access_token, *, plan_id, proposal_id):
 
 @sensitive_variables()
 def create_proposal(access_token, *, plan_id, created_by, tittle, description,
-                    date_pick, proposal_type, position):
+                    date_pick, proposal_type, position, budget_min=None, budget_max=None):
     if not access_token:
         raise SessionExpired()
     canonical_plan_id = _uuid(plan_id, InvalidProposal)
@@ -226,6 +264,7 @@ def create_proposal(access_token, *, plan_id, created_by, tittle, description,
     point = _position(position)
     if proposal_type not in PROPOSAL_TYPES:
         raise InvalidProposal()
+    budget = _budget_payload(budget_min, budget_max)
     try:
         with clients.public_client(access_token=access_token) as client:
             rows = (client.table("proposals").insert({
@@ -233,6 +272,7 @@ def create_proposal(access_token, *, plan_id, created_by, tittle, description,
                 "tittle": tittle, "description": description or None,
                 "date_pick": _date_value(date_pick), "type": proposal_type,
                 "posicion": _position_ewkt(point),
+                **budget,
             }).select("id").execute().data)
         if not isinstance(rows, list) or len(rows) != 1:
             raise ValueError
@@ -246,7 +286,7 @@ def create_proposal(access_token, *, plan_id, created_by, tittle, description,
 
 @sensitive_variables()
 def update_proposal(access_token, *, plan_id, proposal_id, tittle, description,
-                    date_pick, proposal_type, position):
+                    date_pick, proposal_type, position, budget_min=None, budget_max=None):
     if not access_token:
         raise SessionExpired()
     canonical_plan_id = _uuid(plan_id, ProposalNotFound)
@@ -255,12 +295,14 @@ def update_proposal(access_token, *, plan_id, proposal_id, tittle, description,
     point = _position(position)
     if proposal_type not in PROPOSAL_TYPES:
         raise InvalidProposal()
+    budget = _budget_payload(budget_min, budget_max)
     try:
         with clients.public_client(access_token=access_token) as client:
             rows = (client.table("proposals").update({
                 "tittle": tittle, "description": description or None,
                 "date_pick": _date_value(date_pick), "type": proposal_type,
                 "posicion": _position_ewkt(point),
+                **budget,
             }).eq("plan_id", canonical_plan_id).eq("id", proposal_id)
                     .select("id").execute().data)
         if not isinstance(rows, list):

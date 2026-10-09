@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal, ROUND_HALF_UP
 
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
@@ -23,6 +24,8 @@ from .services.proposal_exceptions import (
     InvalidProposal, ProposalAlreadyExists, ProposalNotFound, ProposalUnavailable,
 )
 
+IDEAL_AREA_RADIUS_METERS = 200
+
 
 def _unavailable(request, *, retry_url=None):
     return render(request, "plans/unavailable.html", {
@@ -43,6 +46,41 @@ def _plan_and_group(request, plan_id):
 def _require_group_admin(group):
     if group["role"] != "owner":
         raise PermissionDenied("Sólo el admin del grupo puede gestionar sus planes.")
+
+
+def _proposal_ideal_summary(proposals):
+    points = sorted({
+        (float(proposal["longitude"]), float(proposal["latitude"]))
+        for proposal in proposals
+    })
+    if not points:
+        return None
+
+    budget_estimates = []
+    for proposal in proposals:
+        minimum = proposal.get("budget_min")
+        maximum = proposal.get("budget_max")
+        if minimum is not None or maximum is not None:
+            minimum = Decimal(str(minimum)) if minimum is not None else Decimal(str(maximum))
+            maximum = Decimal(str(maximum)) if maximum is not None else minimum
+            budget_estimates.append((minimum + maximum) / 2)
+
+    ideal_budget = None
+    if budget_estimates:
+        ideal_budget = (sum(budget_estimates) / len(budget_estimates)).quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP,
+        )
+
+    return {
+        "points": [[latitude, longitude] for longitude, latitude in points],
+        "center": [
+            sum(latitude for _, latitude in points) / len(points),
+            sum(longitude for longitude, _ in points) / len(points),
+        ],
+        "radius_meters": IDEAL_AREA_RADIUS_METERS,
+        "ideal_budget": ideal_budget,
+        "budget_count": len(budget_estimates),
+    }
 
 
 @private_page
@@ -141,14 +179,29 @@ def detail(request, plan_id):
     for proposal in proposals:
         proposal["can_manage"] = proposal["created_by"] == request.planb_user["id"]
         proposal["creator_username"] = usernames.get(proposal["created_by"], "Usuario")
+    show_ideal = request.GET.get("ideal") == "1" and group["role"] == "owner"
     return render(request, "plans/detail.html", {
         "plan": plan, "group": group, "can_manage": group["role"] == "owner",
         "can_create_proposal": not any(
             proposal["created_by"] == request.planb_user["id"] for proposal in proposals
         ),
         "proposals": proposals,
+        "ideal_summary": _proposal_ideal_summary(proposals) if show_ideal else None,
         "planb_user": request.planb_user,
     })
+
+
+@private_page
+@require_POST
+@supabase_login_required
+@sensitive_variables()
+def proposal_ideal(request, plan_id):
+    plan_group = _proposal_plan(request, plan_id)
+    if plan_group is None:
+        return _unavailable(request)
+    _, group = plan_group
+    _require_group_admin(group)
+    return redirect(f"{reverse('plans:detail', args=[plan_id])}?ideal=1#proposal-ideal-card")
 
 
 def _proposal_plan(request, plan_id):
@@ -171,6 +224,7 @@ def _proposal_form(request, *, plan_id, proposal=None):
             "tittle": proposal["tittle"], "description": proposal["description"] or "",
             "date_pick": proposal["date_pick"], "type": proposal["type"],
             "position": json.dumps(proposal["posicion"]),
+            "budget_min": proposal["budget_min"], "budget_max": proposal["budget_max"],
         }
     form = ProposalForm(request.POST if request.method == "POST" else None, initial=initial)
     status_code = 200
@@ -186,6 +240,8 @@ def _proposal_form(request, *, plan_id, proposal=None):
                     description=form.cleaned_data["description"], date_pick=date_pick,
                     proposal_type=form.cleaned_data["type"],
                     position=form.cleaned_data["position"],
+                    budget_min=form.cleaned_data["budget_min"],
+                    budget_max=form.cleaned_data["budget_max"],
                 )
             else:
                 proposal_service.create_proposal(
@@ -195,6 +251,8 @@ def _proposal_form(request, *, plan_id, proposal=None):
                     description=form.cleaned_data["description"], date_pick=date_pick,
                     proposal_type=form.cleaned_data["type"],
                     position=form.cleaned_data["position"],
+                    budget_min=form.cleaned_data["budget_min"],
+                    budget_max=form.cleaned_data["budget_max"],
                 )
         except ProposalNotFound:
             raise Http404("No encontramos esa propuesta.") from None
