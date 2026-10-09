@@ -202,6 +202,19 @@ class PlanSDKTests(SimpleTestCase):
             "type": "Point", "coordinates": [-57.9832639806662, -34.9025105827716],
         })
 
+    def test_list_proposals_parses_user_supplied_postgis_ewkb_hex_point(self):
+        self.responses = [(200, [{
+            "id": 47, "created_at": "2026-10-06T12:00:00Z",
+            "tittle": "Merienda", "description": None, "date_pick": None,
+            "created_by": USER_ID, "plan_id": PLAN_ID,
+            "type": "juntada",
+            "posicion": "0101000020E61000008F53742497FF4CC05F984C158C7241C0",
+            "budget_min": None, "budget_max": None,
+        }])]
+        proposals = proposal_service.list_proposals("user-jwt", PLAN_ID)
+        self.assertEqual(proposals[0]["longitude"], -57.9968)
+        self.assertEqual(proposals[0]["latitude"], -34.8949)
+
     def test_unrecognized_position_format_is_logged_without_coordinates(self):
         self.responses = [(200, [{
             "id": 47, "created_at": "2026-10-06T12:00:00Z",

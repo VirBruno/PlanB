@@ -150,6 +150,40 @@ class PlanViewsTests(TestCase):
     def test_detail_rejects_post(self):
         self.assertEqual(self.client.post(f"/planes/{PLAN_ID}/").status_code, 405)
 
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "owner"})
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row())
+    def test_admin_can_request_proposal_ideal(self, get_plan, get_group):
+        response = self.client.post(f"/planes/{PLAN_ID}/propuestas/ideal/")
+        self.assertRedirects(
+            response, f"/planes/{PLAN_ID}/?ideal=1#proposal-ideal-card",
+            fetch_redirect_response=False,
+        )
+
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row())
+    def test_member_cannot_request_proposal_ideal(self, get_plan, get_group):
+        self.assertEqual(
+            self.client.post(f"/planes/{PLAN_ID}/propuestas/ideal/").status_code, 403,
+        )
+
+    def test_proposal_ideal_summary_calculates_radius_center_and_budget(self):
+        from apps.plans.views import _proposal_ideal_summary
+
+        result = _proposal_ideal_summary([
+            {"longitude": -58.4, "latitude": -34.6,
+             "budget_min": Decimal("100"), "budget_max": Decimal("200")},
+            {"longitude": -58.3, "latitude": -34.6,
+             "budget_min": Decimal("200"), "budget_max": Decimal("300")},
+            {"longitude": -58.35, "latitude": -34.5,
+             "budget_min": None, "budget_max": None},
+        ])
+        self.assertAlmostEqual(result["center"][0], -34.56666666666666)
+        self.assertAlmostEqual(result["center"][1], -58.35)
+        self.assertEqual(result["radius_meters"], 200)
+        self.assertEqual(len(result["points"]), 3)
+        self.assertEqual(result["ideal_budget"], Decimal("200.00"))
+        self.assertEqual(result["budget_count"], 2)
+
     @patch("apps.plans.views.proposal_service.has_user_proposal", return_value=False)
     @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
     @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row())
@@ -205,10 +239,30 @@ class PlanViewsTests(TestCase):
         self.assertContains(response, "data-lat=\"-34.7\"")
         self.assertContains(response, "/static/leaflet.js")
         self.assertNotContains(response, f"/planes/{PLAN_ID}/propuestas/nueva/")
+        self.assertNotContains(response, f"/planes/{PLAN_ID}/propuestas/ideal/")
         self.assertContains(response, "Ya compartiste tu propuesta para este plan.")
         self.assertEqual(
             response.headers["Referrer-Policy"], "strict-origin-when-cross-origin",
         )
+
+    @patch("apps.plans.views.proposal_service.list_proposals", return_value=[
+        {"id": 47, "created_by": USER_ID, "tittle": "Merienda", "type": "juntada",
+         "description": "", "date_pick": None, "latitude": -34.6, "longitude": -58.4,
+         "budget_min": Decimal("100"), "budget_max": Decimal("200")},
+    ])
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "owner"})
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row())
+    def test_admin_sees_ideal_proposal_card_and_map_after_calculation(self, get_plan, get_group, list_proposals):
+        response = self.client.get(f"/planes/{PLAN_ID}/?ideal=1")
+        self.assertContains(response, "Propuesta ideal")
+        self.assertContains(response, "Presupuesto ideal")
+        self.assertContains(response, "150.00")
+        self.assertContains(response, "data-ideal-dialog")
+        self.assertContains(response, 'aria-label="Cerrar propuesta ideal"')
+        self.assertContains(response, "data-ideal-map")
+        self.assertContains(response, "proposal-ideal-data")
+        self.assertContains(response, "/static/users/js/proposals.js?v=9")
+        self.assertContains(response, "/static/users/css/proposals.css?v=3")
 
     @patch("apps.plans.views.proposal_service.create_proposal", return_value=47)
     @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
