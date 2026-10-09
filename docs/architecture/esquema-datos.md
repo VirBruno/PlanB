@@ -239,3 +239,23 @@ La primera agrega invitaciones/notificaciones con lectura RLS y escrituras por
 RPC; la segunda habilita INSERT de planes por miembros y conserva gestión del
 owner. No hay modelos Django nuevos ni cambios en Auth o secretos.
 Consultar [contratos, grants, SQL y prueba manual](../testing/invitaciones.md).
+
+## Presupuesto opcional de propuestas
+
+`202610090001_proposal_budget_range.sql` extiende `public.proposals` mediante
+`ALTER TABLE`, sin cambiar `tittle`, `type`, `posicion`, PostGIS ni relaciones.
+
+| Columna | Tipo | Nulabilidad | Significado |
+| --- | --- | --- | --- |
+| `budget_min` | `numeric(12,2)` | NULL permitido | Límite inferior del rango económico informado por el usuario. |
+| `budget_max` | `numeric(12,2)` | NULL permitido | Límite superior del rango económico informado por el usuario. |
+
+Cada límite es opcional, no negativo y finito; si ambos existen, mínimo <= máximo.
+Las propuestas existentes conservan NULL en ambos. No se asume moneda y estos
+campos todavía no participan del cálculo del plan ideal, recomendaciones ni ranking.
+
+Sólo se agregan grants INSERT/UPDATE por columna para `authenticated`; las policies
+RLS y el índice único por `(plan_id, created_by)` se preservan. Django usa
+`Decimal`, valida hasta dos decimales y diez dígitos enteros y transmite strings
+decimales a Data API sin convertirlos a float. Un input vacío se persiste como NULL.
+Ver [despliegue y pruebas](../testing/planes.md#presupuesto-opcional).

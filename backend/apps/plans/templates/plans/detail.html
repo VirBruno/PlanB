@@ -65,6 +65,9 @@
         {% if proposal.description %}<p>{{ proposal.description|linebreaksbr }}</p>{% endif %}
         <dl class="proposal-meta">
           {% if proposal.date_pick %}<div><dt>Fecha</dt><dd>{{ proposal.date_pick|date:"d/m/Y H:i" }}</dd></div>{% endif %}
+          {% if proposal.budget_min != None or proposal.budget_max != None %}
+          <div><dt>Presupuesto</dt><dd>{% if proposal.budget_min != None and proposal.budget_max != None %}{{ proposal.budget_min|floatformat:2 }} – {{ proposal.budget_max|floatformat:2 }}{% elif proposal.budget_min != None %}Desde {{ proposal.budget_min|floatformat:2 }}{% else %}Hasta {{ proposal.budget_max|floatformat:2 }}{% endif %}</dd></div>
+          {% endif %}
         </dl>
         <div class="proposal-location">
           <span class="proposal-location-label">Ubicación</span>

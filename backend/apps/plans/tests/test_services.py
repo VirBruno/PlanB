@@ -1,5 +1,6 @@
 """Ejecuta el SDK real de Supabase sobre un transporte HTTP en memoria."""
 import json
+from decimal import Decimal
 from unittest.mock import patch
 
 import httpx
@@ -10,7 +11,7 @@ from apps.plans.services import plan_service
 from apps.plans.services.exceptions import PlanNotFound, PlanUnavailable
 from apps.plans.services import proposal_service
 from apps.plans.services.proposal_exceptions import (
-    ProposalAlreadyExists, ProposalUnavailable,
+    InvalidProposal, ProposalAlreadyExists, ProposalNotFound, ProposalUnavailable,
 )
 from apps.users.services import clients
 from apps.users.services.exceptions import SessionExpired
@@ -27,6 +28,15 @@ def plan_row(**kwargs):
         "name": "Escapada", "description": "Viaje compartido",
         "status": True, "group_id": GROUP_ID, "created_by": USER_ID,
         **kwargs,
+    }
+
+
+def proposal_row(**kwargs):
+    return {
+        "id": 47, "created_at": "2026-10-06T12:00:00Z", "tittle": "Merienda",
+        "description": None, "date_pick": None, "created_by": USER_ID,
+        "plan_id": PLAN_ID, "type": "juntada", "posicion": POINT,
+        "budget_min": None, "budget_max": None, **kwargs,
     }
 
 
@@ -141,6 +151,7 @@ class PlanSDKTests(SimpleTestCase):
             "plan_id": PLAN_ID, "created_by": USER_ID, "tittle": "Merienda",
             "description": "En el parque", "date_pick": None,
             "type": "juntada", "posicion": "SRID=4326;POINT(-58.38 -34.6)",
+            "budget_min": None, "budget_max": None,
         })
 
     def test_list_proposals_validates_geojson_and_plan_scope(self):
@@ -149,6 +160,7 @@ class PlanSDKTests(SimpleTestCase):
             "tittle": "Merienda", "description": None, "date_pick": None,
             "created_by": USER_ID, "plan_id": PLAN_ID,
             "type": "juntada", "posicion": POINT,
+            "budget_min": None, "budget_max": None,
         }])]
         proposals = proposal_service.list_proposals("user-jwt", PLAN_ID)
         self.assertEqual(proposals[0]["posicion"], POINT)
@@ -158,6 +170,7 @@ class PlanSDKTests(SimpleTestCase):
             "tittle": "Merienda", "description": None, "date_pick": None,
             "created_by": USER_ID, "plan_id": PLAN_ID,
             "type": "juntada", "posicion": None,
+            "budget_min": None, "budget_max": None,
         }])]
         with self.assertRaises(ProposalUnavailable):
             proposal_service.list_proposals("user-jwt", PLAN_ID)
@@ -168,6 +181,7 @@ class PlanSDKTests(SimpleTestCase):
             "tittle": "Merienda", "description": None, "date_pick": None,
             "created_by": USER_ID, "plan_id": PLAN_ID,
             "type": "juntada", "posicion": "SRID=4326;POINT(-58.38 -34.6)",
+            "budget_min": None, "budget_max": None,
         }])]
         proposals = proposal_service.list_proposals("user-jwt", PLAN_ID)
         self.assertEqual(proposals[0]["posicion"], POINT)
@@ -181,6 +195,7 @@ class PlanSDKTests(SimpleTestCase):
             "created_by": USER_ID, "plan_id": PLAN_ID,
             "type": "juntada",
             "posicion": "0101000020E6100000E7251898DBFD4CC022A67E77857341C0",
+            "budget_min": None, "budget_max": None,
         }])]
         proposals = proposal_service.list_proposals("user-jwt", PLAN_ID)
         self.assertEqual(proposals[0]["posicion"], {
@@ -193,6 +208,7 @@ class PlanSDKTests(SimpleTestCase):
             "tittle": "Merienda", "description": None, "date_pick": None,
             "created_by": USER_ID, "plan_id": PLAN_ID,
             "type": "juntada", "posicion": "secret-coordinate-value",
+            "budget_min": None, "budget_max": None,
         }])]
         with self.assertLogs("planb", level="WARNING") as captured:
             with self.assertRaises(ProposalUnavailable):
@@ -228,3 +244,89 @@ class PlanSDKTests(SimpleTestCase):
                     proposal_type="juntada", position=POINT,
                 )
         self.assertIn("row-level security policy", captured.output[0])
+
+    def test_create_budget_sends_exact_decimal_strings_and_nulls(self):
+        for minimum, maximum in ((Decimal("1.25"), Decimal("2.75")),
+                                 (Decimal("9999999999.99"), None), (None, Decimal("0"))):
+            self.responses = [(201, [{"id": 47}])]
+            proposal_service.create_proposal(
+                "user-jwt", plan_id=PLAN_ID, created_by=USER_ID, tittle="Merienda",
+                description="", date_pick=None, proposal_type="juntada", position=POINT,
+                budget_min=minimum, budget_max=maximum,
+            )
+            payload = json.loads(self.requests[-1].content)
+            self.assertEqual(payload["budget_min"], str(minimum) if minimum is not None else None)
+            self.assertEqual(payload["budget_max"], str(maximum) if maximum is not None else None)
+            self.assertEqual(payload["created_by"], USER_ID)
+            self.assertEqual(payload["posicion"], "SRID=4326;POINT(-58.38 -34.6)")
+
+    def test_update_budget_adds_changes_and_clears_values(self):
+        for minimum, maximum in ((Decimal("10.50"), Decimal("20.75")),
+                                 (Decimal("12.25"), None), (None, None)):
+            self.responses = [(200, [{"id": 47}])]
+            proposal_service.update_proposal(
+                "user-jwt", plan_id=PLAN_ID, proposal_id=47, tittle="Merienda",
+                description="", date_pick=None, proposal_type="juntada", position=POINT,
+                budget_min=minimum, budget_max=maximum,
+            )
+            request = self.requests[-1]
+            self.assertEqual(request.method, "PATCH")
+            self.assertEqual(request.url.params["plan_id"], "eq." + PLAN_ID)
+            self.assertEqual(request.url.params["id"], "eq.47")
+            payload = json.loads(request.content)
+            self.assertEqual(payload["budget_min"], str(minimum) if minimum is not None else None)
+            self.assertEqual(payload["budget_max"], str(maximum) if maximum is not None else None)
+            self.assertNotIn("created_by", payload)
+            self.assertNotIn("plan_id", payload)
+
+    def test_services_validate_budget_before_opening_transport(self):
+        for minimum, maximum in (("-1", None), (None, "-1"), ("20", "10"), ("1.234", None),
+                                 (None, "NaN"), ("Infinity", None), ("$ 1000", None),
+                                 ("10000000000", None), (True, None)):
+            for operation, identifiers in ((proposal_service.create_proposal, {"created_by": USER_ID}),
+                                            (proposal_service.update_proposal, {"proposal_id": 47})):
+                with self.subTest(operation=operation.__name__, minimum=minimum, maximum=maximum):
+                    with self.assertRaises(InvalidProposal):
+                        operation("user-jwt", plan_id=PLAN_ID, tittle="Merienda", description="",
+                                  date_pick=None, proposal_type="juntada", position=POINT,
+                                  budget_min=minimum, budget_max=maximum, **identifiers)
+        self.assertFalse(self.requests)
+
+    def test_read_budget_returns_decimals_from_json_numbers_or_strings(self):
+        for minimum, maximum in ((1.25, 2.75), ("9999999999.99", None), (None, 0), (None, None)):
+            self.responses = [(200, [proposal_row(budget_min=minimum, budget_max=maximum)])]
+            result = proposal_service.list_proposals("user-jwt", PLAN_ID)[0]
+            self.assertEqual(result["budget_min"], Decimal(str(minimum)) if minimum is not None else None)
+            self.assertEqual(result["budget_max"], Decimal(str(maximum)) if maximum is not None else None)
+            self.assertIn("budget_min", self.requests[-1].url.params["select"])
+            self.assertIn("budget_max", self.requests[-1].url.params["select"])
+
+    def test_get_proposal_includes_budget_for_editing(self):
+        self.responses = [(200, [proposal_row(budget_min="0.00", budget_max="10.50")])]
+        result = proposal_service.get_proposal("user-jwt", plan_id=PLAN_ID, proposal_id=47)
+        self.assertEqual(result["budget_min"], Decimal("0.00"))
+        self.assertEqual(result["budget_max"], Decimal("10.50"))
+
+    def test_malformed_budget_response_is_unavailable(self):
+        for minimum, maximum in (("NaN", None), ("20", "10"), (None, "-1"), ("bad", None)):
+            self.responses = [(200, [proposal_row(budget_min=minimum, budget_max=maximum)])]
+            with self.assertRaises(ProposalUnavailable):
+                proposal_service.list_proposals("user-jwt", PLAN_ID)
+
+    def test_budget_does_not_bypass_one_proposal_per_user_plan(self):
+        self.responses = [(409, {"code": "23505", "message": "duplicate", "details": None, "hint": None})]
+        with self.assertRaises(ProposalAlreadyExists):
+            proposal_service.create_proposal(
+                "user-jwt", plan_id=PLAN_ID, created_by=USER_ID, tittle="Otra", description="",
+                date_pick=None, proposal_type="juntada", position=POINT,
+                budget_min=Decimal("0"), budget_max=Decimal("10"),
+            )
+
+    def test_rls_blocked_budget_update_is_not_success(self):
+        self.responses = [(200, [])]
+        with self.assertRaises(ProposalNotFound):
+            proposal_service.update_proposal(
+                "user-jwt", plan_id=PLAN_ID, proposal_id=47, tittle="Merienda", description="",
+                date_pick=None, proposal_type="juntada", position=POINT,
+                budget_min=Decimal("10"), budget_max=Decimal("20"),
+            )

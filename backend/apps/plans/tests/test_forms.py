@@ -1,4 +1,5 @@
 from django.test import SimpleTestCase
+from decimal import Decimal
 
 from apps.plans.forms import PlanForm, ProposalForm
 
@@ -58,3 +59,39 @@ class ProposalFormTests(SimpleTestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("type", form.errors)
         self.assertEqual(form.fields["type"].initial, "")
+
+    def test_budget_is_optional_and_empty_values_are_none(self):
+        for data in (self.proposal_data(), self.proposal_data(budget_min="", budget_max="")):
+            form = ProposalForm(data)
+            self.assertTrue(form.is_valid(), form.errors)
+            self.assertIsNone(form.cleaned_data["budget_min"])
+            self.assertIsNone(form.cleaned_data["budget_max"])
+
+    def test_budget_accepts_partial_ranges_zero_and_exact_decimals(self):
+        for minimum, maximum in (("10", "20"), ("10", ""), ("", "20"),
+                                 ("0", ""), ("", "0"), ("0", "0"),
+                                 ("1.25", "2.75"), ("9999999999.99", "9999999999.99")):
+            with self.subTest(minimum=minimum, maximum=maximum):
+                form = ProposalForm(self.proposal_data(budget_min=minimum, budget_max=maximum))
+                self.assertTrue(form.is_valid(), form.errors)
+                self.assertEqual(form.cleaned_data["budget_min"], Decimal(minimum) if minimum else None)
+                self.assertEqual(form.cleaned_data["budget_max"], Decimal(maximum) if maximum else None)
+
+    def test_budget_rejects_negative_values_in_either_field(self):
+        for field in ("budget_min", "budget_max"):
+            form = ProposalForm(self.proposal_data(**{field: "-0.01"}))
+            self.assertFalse(form.is_valid())
+            self.assertIn(field, form.errors)
+
+    def test_budget_minimum_cannot_exceed_maximum(self):
+        form = ProposalForm(self.proposal_data(budget_min="20", budget_max="10"))
+        self.assertFalse(form.is_valid())
+        self.assertIn("budget_max", form.errors)
+
+    def test_invalid_budget_is_not_silently_rounded_or_normalized(self):
+        for field in ("budget_min", "budget_max"):
+            for value in ("1.234", "10000000000", "$ 1000", "1,25", "abc", "NaN", "Infinity", "-Infinity"):
+                with self.subTest(field=field, value=value):
+                    form = ProposalForm(self.proposal_data(**{field: value}))
+                    self.assertFalse(form.is_valid())
+                    self.assertIn(field, form.errors)

@@ -20,10 +20,18 @@
     {% csrf_token %}
     {% include 'components/form_errors.html' %}
     {% for field in form %}
-      {% if field.name != 'position' and field.name != 'city' %}
+      {% if field.name != 'position' and field.name != 'city' and field.name != 'budget_min' and field.name != 'budget_max' %}
         {% include 'components/field.html' %}
       {% endif %}
     {% endfor %}
+    <fieldset class="proposal-budget" aria-describedby="budget-help">
+      <legend>Presupuesto</legend>
+      <p class="field-help" id="budget-help">Opcional. Indicá cuánto estás dispuesto a gastar; podés completar uno o ambos límites.</p>
+      <div class="proposal-budget-fields">
+        {% include 'components/field.html' with field=form.budget_min %}
+        {% include 'components/field.html' with field=form.budget_max %}
+      </div>
+    </fieldset>
     {{ form.position }}
     <section class="location-picker" aria-labelledby="location-heading">
       <div>
