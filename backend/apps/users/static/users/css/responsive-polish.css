@@ -1,0 +1,169 @@
+/* Plan B — Etapa 11: ajustes responsive centralizados.
+   Se carga al final del layout autenticado; no altera la lógica ni Leaflet. */
+.pb-app-shell,.pb-app-shell .pb-app-content,.pb-app-shell .pb-app-content > *,
+.pb-app-shell .social-dashboard,.pb-app-shell .group-social-shell {min-width:0}
+.pb-app-shell img,.pb-app-shell video,.pb-app-shell svg {max-width:100%}
+.pb-app-shell h1,.pb-app-shell h2,.pb-app-shell h3,
+.pb-app-shell .social-group-content,.pb-app-shell .pb-breadcrumbs {overflow-wrap:anywhere}
+.pb-app-shell :is(input,select,textarea){max-width:100%}
+.pb-app-shell .pb-breadcrumbs {min-width:0}
+.pb-app-shell .pb-app-topbar {min-width:0}
+.pb-app-shell :is(.proposal-map,.proposal-map-preview,.pfs-form .proposal-map,.leaflet-container){max-width:100%}
+
+/* Tablet: dejar espacio útil para las tarjetas sin comprimir la navegación. */
+@media (min-width:701px) and (max-width:1100px){
+ .pb-app-shell .pb-app-content{padding:22px 24px 62px!important}
+ .pb-app-shell .social-group-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .pb-app-shell .pb-proposals-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+ .pb-app-shell .pf-layout{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:850px){
+ .pb-app-shell .pb-plan-grid{grid-template-columns:minmax(0,1fr)}
+ .pb-app-shell .pb-account-facts{grid-template-columns:minmax(0,1fr)}
+ .pb-app-shell .pb-page-heading{align-items:flex-start;flex-wrap:wrap}
+ .pb-app-shell .pb-plan-summary{align-items:flex-start}
+}
+/* Teléfonos: navegación inferior persistente y sin solapar controles. */
+@media (max-width:700px){
+ html:has(.pb-app-shell){scroll-padding-bottom:110px}
+ .pb-app-shell{grid-template-columns:minmax(0,1fr)!important;padding-bottom:calc(86px + env(safe-area-inset-bottom))!important}
+ .pb-app-shell .pb-app-content{max-width:100%!important;width:100%!important;padding:18px 16px 34px!important}
+ .pb-app-shell .pb-app-topbar{gap:8px;margin-bottom:20px!important;align-items:flex-start}
+ .pb-app-shell .pb-breadcrumbs{font-size:11px;gap:6px;line-height:1.6;padding-top:7px}
+ .pb-app-shell .pb-header-actions{gap:6px}
+ .pb-app-shell .pb-header-actions a{width:36px;height:36px;flex:none}
+ .pb-app-shell .social-sidebar{position:fixed!important;top:auto!important;bottom:0!important;left:0!important;right:0!important;width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;display:block!important;overflow:visible!important;padding:8px 8px calc(8px + env(safe-area-inset-bottom))!important;background:var(--sd-panel)!important;backdrop-filter:blur(24px)!important;-webkit-backdrop-filter:blur(24px)!important;border-top:1px solid var(--glass-border);z-index:100!important}
+ .pb-app-shell .social-sidebar :is(.social-side-brand,.social-side-bottom){display:none!important}
+ .pb-app-shell .social-side-nav{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));align-items:stretch;gap:2px!important;margin:0!important}
+ .pb-app-shell .social-side-nav a{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:4px!important;min-width:0!important;min-height:53px!important;height:auto!important;margin:0!important;padding:7px 1px!important;text-align:center!important;font-size:10px!important;line-height:1.2!important;white-space:normal!important;border-radius:11px!important}
+ .pb-app-shell .social-side-nav a>span{font-size:19px!important;line-height:1!important}
+ .pb-app-shell .social-hero{padding:22px 18px!important;gap:15px}
+ .pb-app-shell .social-hero h1{font-size:clamp(25px,7vw,34px)!important;line-height:1.2}
+ .pb-app-shell .social-cta{min-height:44px}
+ .pb-app-shell .social-mini-actions{grid-template-columns:minmax(0,1fr)!important;gap:10px!important;margin-bottom:24px!important}
+ .pb-app-shell .social-group-grid,.pb-app-shell .pb-groups-grid,
+ .pb-app-shell .pb-plan-grid,.pb-app-shell .pb-proposals-grid{grid-template-columns:minmax(0,1fr)!important}
+ .pb-app-shell .social-section-heading,.pb-app-shell .pb-page-heading{flex-direction:column;align-items:flex-start;gap:12px}
+ .pb-app-shell .social-next{grid-template-columns:minmax(0,1fr)!important;padding:20px 18px!important;margin-top:24px!important}
+ .pb-app-shell .pf-layout,.pb-app-shell .pfs-form{grid-template-columns:minmax(0,1fr)!important}
+ .pb-app-shell .pf-main,.pb-app-shell .pfs-section{padding:20px 16px!important}
+ .pb-app-shell .pfs-section:first-of-type,.pb-app-shell .pfs-section:nth-of-type(2),.pb-app-shell .pfs-section.location-picker{grid-column:1!important}
+ .pb-app-shell .pfs-form .city-search-row{grid-template-columns:minmax(0,1fr)!important}
+ .pb-app-shell .pfs-form .proposal-map{height:290px!important;min-height:230px!important}
+ .pb-app-shell .proposal-map-preview{height:190px!important}
+ .pb-app-shell .pb-profile-banner,.pb-app-shell .pb-profile-inner{padding:21px 18px!important}
+ .pb-app-shell .pb-profile-person{align-items:flex-start;gap:12px}
+ .pb-app-shell .pb-profile-avatar{width:56px;height:56px;font-size:24px}
+ .pb-app-shell .pb-account-facts{grid-template-columns:minmax(0,1fr)!important}
+ .pb-app-shell .pb-plan-summary{padding:18px!important;gap:12px}
+ .pb-app-shell .pb-section-label h2{white-space:normal}
+ .pb-app-shell .pb-proposals-heading{flex-wrap:wrap}
+ .pb-app-shell .pb-notifications__card{min-width:0}
+ .pb-app-shell :is(.pf-form .group-actions,.pfs-actions){flex-wrap:wrap}
+}
+@media(max-width:390px){
+ .pb-app-shell .pb-app-content{padding-left:12px!important;padding-right:12px!important}
+ .pb-app-shell .social-side-nav a{font-size:9px!important}
+ .pb-app-shell .social-side-nav a>span{font-size:17px!important}
+ .pb-app-shell .social-hero h1{font-size:25px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .pb-app-shell *, .pb-app-shell *::before,.pb-app-shell *::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+
+/* Etapa 11.3 — Un solo icono SVG visible en el selector.
+   Sin clase theme-toggle: evita los estilos globales del botón flotante.
+   El botón solo cambia de icono según data-theme; theme.js sigue funcionando. */
+.pb-app-shell .pb-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  gap: 10px;
+}
+.pb-app-shell .pb-header-actions > :is(a, button.pb-theme-header-toggle) {
+  appearance: none;
+  position: relative;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  flex: 0 0 40px;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  min-height: 40px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--glass-border);
+  border-radius: 50%;
+  background: var(--sd-panel);
+  color: var(--sd-ink);
+  font-size: 0;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: none;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.pb-app-shell .pb-header-actions > :is(a, button.pb-theme-header-toggle):hover {
+  border-color: #9584f1;
+  background: rgba(149,132,241,.14);
+}
+.pb-app-shell .pb-header-actions > :is(a, button.pb-theme-header-toggle):focus-visible {
+  outline: 3px solid #9584f1;
+  outline-offset: 3px;
+}
+/* Nunca mezclar pseudo-iconos con los SVG reales. */
+.pb-app-shell .pb-header-actions button.pb-theme-header-toggle::before,
+.pb-app-shell .pb-header-actions button.pb-theme-header-toggle::after {
+  content: none !important;
+  display: none !important;
+}
+.pb-app-shell .pb-header-actions .pb-header-icon,
+.pb-app-shell .pb-header-actions button.pb-theme-header-toggle .pb-theme-icon {
+  display: block;
+  width: 20px;
+  height: 20px;
+  max-width: 20px;
+  max-height: 20px;
+  flex: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  margin: 0;
+  padding: 0;
+  transform: none;
+}
+.pb-app-shell .pb-header-actions button.pb-theme-header-toggle .pb-theme-sun { display: none; }
+html[data-theme="dark"] .pb-app-shell .pb-header-actions button.pb-theme-header-toggle .pb-theme-moon { display: none; }
+html[data-theme="dark"] .pb-app-shell .pb-header-actions button.pb-theme-header-toggle .pb-theme-sun { display: block; }
+
+/* Iconos de navegación uniformes. */
+.pb-app-shell .social-side-nav a > .pb-nav-icon {
+  display: block;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  flex: none;
+  stroke-width: 1.85;
+  color: currentColor;
+}
+.pb-app-shell .social-side-nav a > .pb-nav-label {
+  font-size: inherit !important;
+  line-height: inherit !important;
+  font-weight: inherit;
+  text-align: left !important;
+  width: auto !important;
+}
+@media(max-width:700px) {
+  .pb-app-shell .pb-header-actions { gap: 6px; }
+  .pb-app-shell .pb-app-topbar { align-items: center; }
+  .pb-app-shell .social-side-nav a > .pb-nav-label {
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+    text-align: center !important;
+  }
+}
+@media(max-width:390px) {
+  .pb-app-shell .social-side-nav a > .pb-nav-label { font-size: 9px !important; }
+}
