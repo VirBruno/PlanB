@@ -21,6 +21,36 @@ from .services.exceptions import GroupNotFound, GroupUnavailable, InvalidGroup
 
 
 @private_page
+@require_http_methods(["GET"])
+@supabase_login_required
+@sensitive_variables()
+def index(request):
+    try:
+        page = int(request.GET.get("page", "1"))
+    except (ValueError, TypeError):
+        page = 1
+
+    context = {
+        "planb_user": request.planb_user,
+    }
+
+    try:
+        context["groups_page"] = group_service.list_groups(
+            session_service.get_access_token(request),
+            page=page,
+        )
+    except (GroupUnavailable, InvalidGroup):
+        context["groups_unavailable"] = True
+        return render(
+            request,
+            "groups/index.html",
+            context,
+            status=503,
+        )
+
+    return render(request, "groups/index.html", context)
+
+@private_page
 @require_http_methods(["GET", "POST"])
 @supabase_login_required
 @sensitive_variables()

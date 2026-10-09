@@ -1,12 +1,20 @@
 {% extends 'components/authenticated_base.html' %}
+{% load static %}
 {% block title %}Editar grupo · Plan B{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'users/css/forms-social.css' %}">{% endblock %}
+{% block breadcrumbs %}<a href="{% url 'users:dashboard' %}">Mi espacio</a><span aria-hidden="true">/</span><span aria-current="page">Editar grupo</span>{% endblock %}
 {% block workspace %}
-<a class="back-link" href="{% url 'groups:detail' group.id %}">← Volver al grupo</a>
-<section class="group-panel" data-group-surface style="--group-surface: group-{{ group.id }};" aria-labelledby="group-title">
-  <p class="eyebrow eyebrow--blue">DALE TU TOQUE</p>
-  <h1 id="group-title">Editá tu grupo.</h1>
-  <p class="panel-description">Actualizá el nombre o contá un poco más sobre sus planes.</p>
-  <form method="post" class="auth-form" data-submit-form>
+<div class="pf-workspace">
+  <div class="pf-layout">
+    <section class="pf-main" aria-labelledby="pf-heading">
+      <div class="pf-heading">
+        <span class="pf-eyebrow"><span class="pf-sparkle" aria-hidden="true">✳</span> DALE TU TOQUE</span>
+        <h1 id="pf-heading">Dale tu toque</h1>
+        <p>Actualizá los datos del grupo sin perder los planes ni sus integrantes.</p>
+        
+      </div>
+      <div class="pf-form-wrap">
+  <form method="post" class="auth-form pf-form" data-submit-form>
     {% csrf_token %}
     {% include 'components/form_errors.html' %}
     {% for field in form %}{% include 'components/field.html' %}{% endfor %}
@@ -16,5 +24,19 @@
     </div>
     <p class="submit-status sr-only" role="status" aria-live="polite"></p>
   </form>
-</section>
+      </div>
+    </section>
+    <aside class="pf-aside" aria-label="Información para empezar">
+      <div class="pf-aside-symbol" aria-hidden="true"><span>✦</span><span>✳</span></div>
+      <p class="pf-aside-kicker">PLAN B · JUNTOS ES MEJOR</p>
+      <h2>Identidad del grupo</h2>
+      <p>Mantené el nombre y la descripción de tu comunidad al día.</p>
+      <div class="pf-aside-steps">
+        <div><span>01</span> Una idea para compartir</div>
+        <div><span>02</span> Personas que se suman</div>
+        <div><span>03</span> Momentos para recordar</div>
+      </div>
+    </aside>
+  </div>
+</div>
 {% endblock %}

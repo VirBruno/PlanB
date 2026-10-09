@@ -1,22 +1,14 @@
 {% extends 'components/authenticated_base.html' %}
 {% load static %}
 {% block title %}{% if group %}{{ group.name }}{% else %}Tu grupo{% endif %} · Plan B{% endblock %}
-{% block page_css %}<link rel="stylesheet" href="{% static 'users/css/dashboard-social.css' %}"><link rel="stylesheet" href="{% static 'users/css/group-social.css' %}">{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'users/css/group-social.css' %}">{% endblock %}
+{% block breadcrumbs %}
+  <a href="{% url 'users:dashboard' %}">Mi espacio</a><span aria-hidden="true">/</span>
+  <a href="{% url 'users:dashboard' %}#mis-grupos">Mis grupos</a><span aria-hidden="true">/</span>
+  <span aria-current="page">{% if group %}{{ group.name }}{% else %}Detalle de grupo{% endif %}</span>
+{% endblock %}
 {% block workspace %}
-<div class="social-dashboard social-dashboard-v2 group-social-shell">
-  <aside class="social-sidebar" aria-label="Navegación del espacio">
-    <a class="social-side-brand" href="{% url 'users:dashboard' %}"><span class="social-side-logo">B</span><span>planb<span class="social-brand-dot">.</span></span></a>
-    <nav class="social-side-nav" aria-label="Secciones de Plan B">
-      <a href="{% url 'users:dashboard' %}"><span aria-hidden="true">⌂</span> Inicio</a>
-      <a class="social-side-active" href="{% url 'users:dashboard' %}#mis-grupos" aria-current="page"><span aria-hidden="true">♧</span> Mis grupos</a>
-      <a href="{% url 'users:dashboard' %}#mis-planes"><span aria-hidden="true">▤</span> Planes</a>
-      <a href="{% url 'notifications:index' %}"><span aria-hidden="true">✉</span> Notificaciones</a>
-      <a href="{% url 'users:profile' %}"><span aria-hidden="true">◯</span> Mi perfil</a>
-    </nav>
-    <div class="social-side-bottom"><span class="social-side-bottom-icon" aria-hidden="true">✦</span><strong>Más planes,<br>más momentos.</strong><small>Todo comienza con tu grupo.</small></div>
-  </aside>
-  <div class="social-dashboard-content group-social-content">
-    <div class="social-topbar"><span><a href="{% url 'users:dashboard' %}">Mi espacio</a> <span aria-hidden="true">/</span> <a href="{% url 'users:dashboard' %}#mis-grupos">Mis grupos</a> <span aria-hidden="true">/</span> {% if group %}{{ group.name }}{% else %}Detalle{% endif %}</span><div><a href="{% url 'notifications:index' %}" aria-label="Notificaciones">✉</a><a href="{% url 'users:profile' %}" aria-label="Mi perfil">◯</a></div></div>
+<div class="group-social-shell">
     {% if unavailable %}
     <section class="group-social-panel group-social-error" aria-labelledby="group-title"><h1 id="group-title">No pudimos cargar el grupo.</h1><p>Esperá unos minutos y volvé a intentar.</p><a class="button button--primary" href="{{ retry_url|default:request.path }}">Volver a intentar</a></section>
     {% else %}
@@ -47,6 +39,5 @@
       </div>
     </div>
     {% endif %}
-  </div>
 </div>
 {% endblock %}

@@ -1,12 +1,20 @@
 {% extends 'components/authenticated_base.html' %}
+{% load static %}
 {% block title %}Crear grupo · Plan B{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'users/css/forms-social.css' %}">{% endblock %}
+{% block breadcrumbs %}<a href="{% url 'users:dashboard' %}">Mi espacio</a><span aria-hidden="true">/</span><span aria-current="page">Crear grupo</span>{% endblock %}
 {% block workspace %}
-<a class="back-link" href="{% url 'users:dashboard' %}">← Mis grupos</a>
-<section class="group-panel" aria-labelledby="group-title">
-  <p class="eyebrow eyebrow--blue">UN NUEVO PUNTO DE ENCUENTRO</p>
-  <h1 id="group-title">Creá tu grupo.</h1>
-  <p class="panel-description">Dale un nombre a ese próximo plan compartido.</p>
-  <form method="post" class="auth-form" data-submit-form>
+<div class="pf-workspace">
+  <div class="pf-layout">
+    <section class="pf-main" aria-labelledby="pf-heading">
+      <div class="pf-heading">
+        <span class="pf-eyebrow"><span class="pf-sparkle" aria-hidden="true">✳</span> TU GENTE, TUS PLANES</span>
+        <h1 id="pf-heading">Creá tu grupo</h1>
+        <p>Todo gran plan empieza con un grupo. Poné un nombre y reuní a tu gente.</p>
+        
+      </div>
+      <div class="pf-form-wrap">
+  <form method="post" class="auth-form pf-form" data-submit-form>
     {% csrf_token %}
     {% include 'components/form_errors.html' %}
     {% for field in form %}{% include 'components/field.html' %}{% endfor %}
@@ -16,5 +24,19 @@
     </div>
     <p class="submit-status sr-only" role="status" aria-live="polite"></p>
   </form>
-</section>
+      </div>
+    </section>
+    <aside class="pf-aside" aria-label="Información para empezar">
+      <div class="pf-aside-symbol" aria-hidden="true"><span>✦</span><span>✳</span></div>
+      <p class="pf-aside-kicker">PLAN B · JUNTOS ES MEJOR</p>
+      <h2>Tu nuevo espacio</h2>
+      <p>Elegí un nombre que todos reconozcan. Después podrás invitar integrantes y organizar planes.</p>
+      <div class="pf-aside-steps">
+        <div><span>01</span> Una idea para compartir</div>
+        <div><span>02</span> Personas que se suman</div>
+        <div><span>03</span> Momentos para recordar</div>
+      </div>
+    </aside>
+  </div>
+</div>
 {% endblock %}

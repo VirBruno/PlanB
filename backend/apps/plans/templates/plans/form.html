@@ -1,12 +1,20 @@
 {% extends 'components/authenticated_base.html' %}
-{% block title %}{% if is_edit %}Editar plan{% else %}Crear plan{% endif %} · Plan B{% endblock %}
+{% load static %}
+{% block title %}Crear/editar plan · Plan B{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'users/css/forms-social.css' %}">{% endblock %}
+{% block breadcrumbs %}<a href="{% url 'users:dashboard' %}">Mi espacio</a><span aria-hidden="true">/</span><span aria-current="page">Crear o editar plan</span>{% endblock %}
 {% block workspace %}
-<a class="back-link" href="{% if is_edit %}{% url 'plans:detail' plan.id %}{% else %}{% url 'groups:detail' group.id %}{% endif %}">← Volver al grupo</a>
-<section class="group-panel" aria-labelledby="plan-form-title">
-  <p class="eyebrow eyebrow--blue">ORGANIZÁ TU PRÓXIMA SALIDA</p>
-  <h1 id="plan-form-title">{% if is_edit %}Editá tu plan.{% else %}Creá un plan.{% endif %}</h1>
-  <p class="panel-description">Grupo: {{ group.name }}</p>
-  <form method="post" class="auth-form" data-submit-form>
+<div class="pf-workspace">
+  <div class="pf-layout">
+    <section class="pf-main" aria-labelledby="pf-heading">
+      <div class="pf-heading">
+        <span class="pf-eyebrow"><span class="pf-sparkle" aria-hidden="true">✳</span> PLANES QUE SE CONVIERTEN EN MOMENTOS</span>
+        <h1 id="pf-heading">{% if is_edit %}Editá tu plan{% else %}Creá un plan{% endif %}</h1>
+        <p>{% if is_edit %}Ajustá los detalles para que el grupo esté al tanto.{% else %}Una buena idea merece un lugar donde empezar.{% endif %}</p>
+        <span class="pf-group-note">Grupo: {{ group.name }}</span>
+      </div>
+      <div class="pf-form-wrap">
+  <form method="post" class="auth-form pf-form" data-submit-form>
     {% csrf_token %}
     {% include 'components/form_errors.html' %}
     {% for field in form %}{% include 'components/field.html' %}{% endfor %}
@@ -16,5 +24,19 @@
     </div>
     <p class="submit-status sr-only" role="status" aria-live="polite"></p>
   </form>
-</section>
+      </div>
+    </section>
+    <aside class="pf-aside" aria-label="Información para empezar">
+      <div class="pf-aside-symbol" aria-hidden="true"><span>✦</span><span>✳</span></div>
+      <p class="pf-aside-kicker">PLAN B · JUNTOS ES MEJOR</p>
+      <h2>Contanos tu idea</h2>
+      <p>Definí el nombre y los detalles del plan para que el grupo pueda participar.</p>
+      <div class="pf-aside-steps">
+        <div><span>01</span> Una idea para compartir</div>
+        <div><span>02</span> Personas que se suman</div>
+        <div><span>03</span> Momentos para recordar</div>
+      </div>
+    </aside>
+  </div>
+</div>
 {% endblock %}

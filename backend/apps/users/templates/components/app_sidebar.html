@@ -1,0 +1,11 @@
+<aside class="social-sidebar" aria-label="Menú de Plan B">
+  <a class="social-side-brand" href="{% url 'users:dashboard' %}" aria-label="Plan B, ir al inicio"><span class="social-side-logo" aria-hidden="true">B</span><span>planb<span class="social-brand-dot">.</span></span></a>
+  <nav class="social-side-nav" aria-label="Navegación principal">
+    <a href="{% url 'users:dashboard' %}" {% if request.resolver_match.namespace == 'users' and request.resolver_match.url_name == 'dashboard' %}class="social-side-active" aria-current="page"{% endif %}><span aria-hidden="true">⌂</span> Inicio</a>
+    <a href="{% url 'groups:index' %}" {% if request.resolver_match.namespace == 'groups' %}class="social-side-active" aria-current="page"{% endif %}><span aria-hidden="true">♧</span> Mis grupos</a>
+    <a href="{% url 'plans:index' %}" {% if request.resolver_match.namespace == 'plans' %}class="social-side-active" aria-current="page"{% endif %}><span aria-hidden="true">▤</span> Planes</a>
+    <a href="{% url 'notifications:index' %}" {% if request.resolver_match.namespace == 'notifications' %}class="social-side-active" aria-current="page"{% endif %}><span aria-hidden="true">✉</span> Notificaciones</a>
+    <a href="{% url 'users:profile' %}" {% if request.resolver_match.namespace == 'users' and request.resolver_match.url_name == 'profile' %}class="social-side-active" aria-current="page"{% endif %}><span aria-hidden="true">◯</span> Mi perfil</a>
+  </nav>
+  <div class="social-side-bottom"><span class="social-side-bottom-icon" aria-hidden="true">✦</span><strong>Más planes,<br>más momentos.</strong><small>Todo comienza con tu grupo.</small></div>
+</aside>

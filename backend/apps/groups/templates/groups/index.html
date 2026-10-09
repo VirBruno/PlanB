@@ -1,0 +1,45 @@
+{% extends 'components/authenticated_base.html' %}
+{% load static %}
+{% block title %}Mis grupos · Plan B{% endblock %}
+{% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'users/css/groups-index.css' %}">{% endblock %}
+{% block workspace %}
+<section class="pb-groups-index" aria-labelledby="groups-index-title">
+  <header class="pb-groups-heading">
+    <div><span class="social-section-caption">TU COMUNIDAD</span>
+      <h1 id="groups-index-title">Mis grupos</h1>
+      <p>Tu gente, tus conversaciones y todos los planes que organizan juntos.</p>
+    </div>
+    <a class="social-cta" href="{% url 'groups:create' %}">＋ Crear grupo</a>
+  </header>
+  {% if groups_unavailable %}
+    <div class="notice notice--error" role="alert"><p>No pudimos cargar tus grupos. Probá nuevamente en unos minutos.</p><a href="{% url 'groups:index' %}">Reintentar</a></div>
+  {% elif groups_page.items %}
+    <ul class="pb-groups-grid">
+      {% for group in groups_page.items %}
+        <li>
+          <a class="pb-groups-card" href="{% url 'groups:detail' group.id %}" aria-label="Ver grupo {{ group.name }}">
+            <span class="pb-groups-avatar" aria-hidden="true">{{ group.name|first|upper }}</span>
+            <span class="pb-groups-info"><strong>{{ group.name }}</strong>
+              <span>{% if group.description %}{{ group.description|truncatechars:125 }}{% else %}Un espacio para organizar planes con tu gente.{% endif %}</span>
+              <small>Creado el {{ group.created_at|date:"d/m/Y" }}</small>
+            </span>
+            <span class="pb-groups-arrow" aria-hidden="true">↗</span>
+          </a>
+        </li>
+      {% endfor %}
+      <li><a class="pb-groups-new" href="{% url 'groups:create' %}"><span aria-hidden="true">＋</span><strong>Nuevo grupo</strong><small>Invitá a tus amigos</small></a></li>
+    </ul>
+  {% elif groups_page.page > 1 %}
+    <div class="pb-groups-empty"><h2>No hay más grupos en esta página</h2><a href="{% url 'groups:index' %}">Volver al comienzo</a></div>
+  {% else %}
+    <div class="pb-groups-empty"><span class="pb-groups-empty-icon" aria-hidden="true">✳</span><h2>Todo gran plan empieza con un grupo</h2><p>Creá tu primer grupo e invitá a las personas con las que querés organizarte.</p><a class="social-cta" href="{% url 'groups:create' %}">Crear mi primer grupo</a></div>
+  {% endif %}
+  {% if groups_page.previous_page or groups_page.next_page %}
+    <nav class="pb-groups-pagination" aria-label="Páginas de grupos">
+      {% if groups_page.previous_page %}<a href="?page={{ groups_page.previous_page }}">← Anterior</a>{% endif %}
+      <span>Página {{ groups_page.page }}</span>
+      {% if groups_page.next_page %}<a href="?page={{ groups_page.next_page }}">Siguiente →</a>{% endif %}
+    </nav>
+  {% endif %}
+</section>
+{% endblock %}

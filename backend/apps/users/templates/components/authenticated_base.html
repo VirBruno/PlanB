@@ -1,27 +1,29 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block extra_css %}<link rel="stylesheet" href="{% static 'users/css/group-transitions.css' %}">{% endblock %}
+{% block shell_css %}<link rel="stylesheet" href="{% static 'users/css/dashboard-social.css' %}"><link rel="stylesheet" href="{% static 'users/css/app-shell.css' %}"><link rel="stylesheet" href="{% static 'users/css/workspace-polish.css' %}">{% endblock %}
 {% block body %}
-<header class="dashboard-header">
-  <div class="dashboard-header-inner">
-    {% include 'components/brand.html' %}
-    <nav aria-label="Navegación principal">
-      <a href="{% url 'users:dashboard' %}" {% if request.resolver_match.url_name == "dashboard" %}aria-current="page"{% endif %}>Mi espacio</a>
-    </nav>
-    <div class="header-account-actions">
-    <a class="notification-bell" href="{% url 'notifications:index' %}" aria-label="Notificaciones{% if notifications_unread %}: {{ notifications_unread }} sin leer{% elif notifications_badge_unavailable %}: contador no disponible{% endif %}" title="Notificaciones" {% if request.resolver_match.namespace == 'notifications' %}aria-current="page"{% endif %}>
-      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
-      {% if notifications_unread %}<span class="notification-badge" aria-hidden="true">{{ notifications_unread }}</span>{% elif notifications_badge_unavailable %}<span class="notification-badge notification-badge--unknown" aria-hidden="true">?</span>{% endif %}
-    </a>
-    <a class="profile-icon" href="{% url 'users:profile' %}" aria-label="Ir a mi perfil" title="Mi perfil">
-      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="3.5"/><path d="M5 20v-1.4a7 7 0 0 1 14 0V20z"/></svg>
-    </a>
+<div class="social-dashboard social-dashboard-v2 pb-app-shell">
+  {% include 'components/app_sidebar.html' %}
+  <main class="dashboard-main social-dashboard-content pb-app-content" id="contenido">
+    <div class="social-topbar pb-app-topbar">
+      <nav class="pb-breadcrumbs" aria-label="Ruta de navegación">
+        {% block breadcrumbs %}
+          <a href="{% url 'users:dashboard' %}">Mi espacio</a>
+          {% if request.resolver_match.namespace == 'notifications' %}<span aria-hidden="true">/</span><span aria-current="page">Notificaciones</span>
+          {% elif request.resolver_match.url_name == 'profile' %}<span aria-hidden="true">/</span><span aria-current="page">Mi perfil</span>
+          {% elif request.resolver_match.namespace == 'groups' %}<span aria-hidden="true">/</span>{% if request.resolver_match.url_name == 'index' %}<span aria-current="page">Mis grupos</span>{% else %}<a href="{% url 'groups:index' %}">Mis grupos</a>{% endif %}
+          {% elif request.resolver_match.namespace == 'plans' %}<span aria-hidden="true">/</span><span>Planes</span>
+          {% else %}<span aria-hidden="true">/</span><span aria-current="page">Inicio</span>{% endif %}
+        {% endblock %}
+      </nav>
+      <div class="pb-header-actions">
+        <a href="{% url 'notifications:index' %}" aria-label="Notificaciones" title="Notificaciones">✉{% if notifications_unread %}<span class="pb-notification-dot" aria-hidden="true"></span>{% endif %}</a>
+        <a href="{% url 'users:profile' %}" aria-label="Mi perfil" title="Mi perfil">◯</a>
+      </div>
     </div>
-  </div>
-</header>
-<main class="dashboard-main" id="contenido">
-  {% include 'components/messages.html' %}
-  {% block workspace %}{% endblock %}
-</main>
-<footer class="dashboard-footer"><span>Siempre hay un Plan B.</span><span>Hecho para encontrarnos</span></footer>
+    {% include 'components/messages.html' %}
+    {% block workspace %}{% endblock %}
+  </main>
+</div>
 {% endblock %}
