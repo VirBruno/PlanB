@@ -2,7 +2,7 @@
 {% load static l10n %}
 {% block extra_css %}
   {{ block.super }}
-  <link rel="stylesheet" href="{% static 'users/css/proposals.css' %}?v=3">
+  <link rel="stylesheet" href="{% static 'users/css/proposals.css' %}?v=5">
   <link rel="stylesheet" href="{% static 'users/css/plan-detail-social.css' %}">
   {% if proposals %}
   <link rel="stylesheet" href="{% static 'leaflet.css' %}">
@@ -11,7 +11,10 @@
 {% block extra_js %}
   {% if proposals %}
   <script src="{% static 'leaflet.js' %}" defer></script>
-  <script src="{% static 'users/js/proposals.js' %}?v=9" defer></script>
+  <script src="{% static 'users/js/proposals.js' %}?v=11" defer></script>
+  {% if election_method == 'combat' %}
+  <script src="{% static 'users/js/proposal-combat.js' %}" defer></script>
+  {% endif %}
   {% endif %}
 {% endblock %}
 {% block title %}{{ plan.name }} · Plan B{% endblock %}
@@ -44,14 +47,40 @@
       {% if can_create_proposal %}<a class="button button--primary" href="{% url 'plans:proposal_create' plan.id %}">Nueva propuesta <span aria-hidden="true">+</span></a>{% endif %}
     </div>
     {% if proposals %}
-    <form class="proposal-ideal-action" method="post" action="{% url 'plans:proposal_ideal' plan.id %}">
-      {% csrf_token %}
-      <div class="pb-ideal-action-copy">
-        <span class="pb-ideal-action-symbol" aria-hidden="true">✧</span>
-        <div><strong>Un punto de encuentro</strong><p>Encontrá una ubicación intermedia y un presupuesto de referencia para el grupo.</p></div>
+    <section class="proposal-election" id="proposal-election" aria-labelledby="proposal-election-title">
+      <div class="proposal-election-heading">
+        <div>
+          <p class="eyebrow eyebrow--blue">ELECCIÓN DEL GRUPO</p>
+          <h3 id="proposal-election-title">Método de elección</h3>
+        </div>
+        {% if election_method %}<span class="proposal-method-active">{% if election_method == 'ideal' %}Punto de encuentro{% elif election_method == 'votes' %}Votación{% else %}Combate{% endif %}</span>{% else %}<span class="proposal-method-active">Sin elegir</span>{% endif %}
       </div>
-      <button class="button button--primary" type="submit" data-calculate-ideal>Calcular propuesta ideal <span aria-hidden="true">→</span></button>
-    </form>
+      {% if can_manage %}
+      <details class="proposal-method-picker" {% if not election_method %}open{% endif %}>
+        <summary data-method-picker>Elija su Método de elección</summary>
+        <form method="post" action="{% url 'plans:proposal_election_method' plan.id %}">
+          {% csrf_token %}
+          <div class="proposal-method-options" role="group" aria-label="Métodos de elección">
+            <button class="proposal-method-option{% if election_method == 'ideal' %} is-active{% endif %}" type="submit" name="method" value="ideal" {% if election_method == 'ideal' %}aria-pressed="true"{% endif %}>
+              <strong>1. Punto de encuentro</strong><span>Calcula ubicación intermedia y presupuesto de referencia.</span>
+            </button>
+            <button class="proposal-method-option{% if election_method == 'votes' %} is-active{% endif %}" type="submit" name="method" value="votes" {% if election_method == 'votes' %}aria-pressed="true"{% endif %}>
+              <strong>2. Votación</strong><span>Cada integrante elige una propuesta.</span>
+            </button>
+            <button class="proposal-method-option{% if election_method == 'combat' %} is-active{% endif %}" type="submit" name="method" value="combat" {% if election_method == 'combat' %}aria-pressed="true"{% endif %}>
+              <strong>3. Combate</strong><span>Jugá una partida y sumá puntos para tu propuesta.</span>
+            </button>
+          </div>
+        </form>
+      </details>
+      {% else %}
+      <p class="proposal-method-note">El owner del grupo define el método para este plan.</p>
+      {% endif %}
+    </section>
+    {% if election_method == 'ideal' or show_ideal_popup %}
+    {% if election_method == 'ideal' %}
+    <a class="proposal-ideal-view" href="?ideal=1#proposal-ideal-card">Ver cálculo de ubicación y presupuesto</a>
+    {% endif %}
     {% if ideal_summary %}
     <dialog class="proposal-ideal-dialog" id="proposal-ideal-card" data-ideal-dialog aria-labelledby="proposal-ideal-title">
       <section class="proposal-ideal">
@@ -78,6 +107,43 @@
       {{ ideal_summary|json_script:"proposal-ideal-data" }}
     </dialog>
     {% endif %}
+    {% elif election_method == 'votes' %}
+    <section class="proposal-leaderboard" aria-labelledby="proposal-vote-title">
+      <div class="proposal-leaderboard-heading"><h3 id="proposal-vote-title">Votación</h3><p>Podés cambiar tu voto o quitarlo cuando quieras.</p></div>
+      {% if champion_id %}<p class="proposal-champion">Propuesta campeona: <strong>{{ leaderboard.0.tittle }}</strong></p>{% endif %}
+      <ol class="proposal-ranking">
+        {% for proposal in leaderboard %}
+        <li{% if proposal.id == champion_id %} class="is-champion"{% endif %}><span class="proposal-ranking-place">{{ forloop.counter }}</span><span class="proposal-ranking-name">{{ proposal.tittle }}<small>{{ proposal.creator_username }}</small></span><strong>{{ proposal.votes }} voto{{ proposal.votes|pluralize }}</strong></li>
+        {% endfor %}
+      </ol>
+    </section>
+    {% elif election_method == 'combat' %}
+    <section class="proposal-leaderboard" id="proposal-combat" aria-labelledby="proposal-combat-title">
+      <div class="proposal-leaderboard-heading"><div><h3 id="proposal-combat-title">Combate</h3><p>La mejor partida de cada autor suma al marcador de su propuesta.</p></div></div>
+      {% if champion_id %}<p class="proposal-champion">Propuesta campeona: <strong>{{ leaderboard.0.tittle }}</strong></p>{% endif %}
+      <ol class="proposal-ranking">
+        {% for proposal in leaderboard %}
+        <li{% if proposal.id == champion_id %} class="is-champion"{% endif %}><span class="proposal-ranking-place">{{ forloop.counter }}</span><span class="proposal-ranking-name">{{ proposal.tittle }}<small>{{ proposal.creator_username }}</small></span><strong>{% if election_method == 'votes' %}{{ proposal.votes }} voto{{ proposal.votes|pluralize }}{% else %}{{ proposal.Score }} pts{% endif %}</strong></li>
+        {% endfor %}
+      </ol>
+      {% if election_method == 'combat' %}
+      {% if my_proposal %}
+      <div class="proposal-combat-game" data-combat-game>
+        <div class="proposal-combat-copy"><span>Tu propuesta</span><strong>{{ my_proposal.tittle }}</strong><span>Mejor puntaje: {{ my_proposal.Score }}</span></div>
+        <canvas class="proposal-combat-canvas" width="720" height="320" data-combat-canvas role="img" aria-label="Juego de vuelo: evitá los obstáculos para sumar puntos"></canvas>
+        <div class="proposal-combat-controls"><button class="button button--primary" type="button" data-combat-start>Jugar</button><button class="button button--quiet" type="button" data-combat-flap disabled>Volar</button><span data-combat-score aria-live="polite">Puntaje: 0</span></div>
+        <p class="proposal-combat-status" data-combat-status aria-live="polite">Presioná Espacio o Volar para mantenerte en el aire.</p>
+        <form method="post" action="{% url 'plans:proposal_score' plan.id my_proposal.id %}" data-combat-save hidden>
+          {% csrf_token %}<input type="hidden" name="score" value="0" data-combat-score-input>
+          <button class="button button--primary" type="submit">Guardar puntaje</button>
+        </form>
+      </div>
+      {% else %}
+      <p class="proposal-method-note">Creá tu propuesta para poder jugar por ella.</p>
+      {% endif %}
+      {% endif %}
+    </section>
+    {% endif %}
     <ul class="proposal-list pb-proposals-grid">
       {% for proposal in proposals %}
       <li class="proposal-item pb-proposal-card">
@@ -98,6 +164,19 @@
           {% endif %}
         </div>
         {% if proposal.description %}<p>{{ proposal.description|linebreaksbr }}</p>{% endif %}
+        {% if election_method == 'votes' %}
+        <div class="proposal-election-score"><strong>{{ proposal.votes }} voto{{ proposal.votes|pluralize }}</strong>{% if proposal.id == champion_id %}<span class="proposal-champion-badge">Campeona</span>{% endif %}
+          {% if proposal.id == voted_proposal_id %}
+          <span class="proposal-voted-label">Tu voto</span>
+          <form method="post" action="{% url 'plans:proposal_vote' plan.id proposal.id %}">{% csrf_token %}<button class="button button--quiet" type="submit" disabled aria-current="true">Voto actual</button></form>
+          <form method="post" action="{% url 'plans:proposal_vote_remove' plan.id %}">{% csrf_token %}<button class="button button--danger-quiet" type="submit">Quitar voto</button></form>
+          {% else %}
+          <form method="post" action="{% url 'plans:proposal_vote' plan.id proposal.id %}">{% csrf_token %}<button class="button button--primary" type="submit">Votar</button></form>
+          {% endif %}
+        </div>
+        {% elif election_method == 'combat' %}
+        <div class="proposal-election-score"><strong>{{ proposal.Score }} puntos</strong>{% if proposal.id == champion_id %}<span class="proposal-champion-badge">Campeona</span>{% endif %}</div>
+        {% endif %}
         <dl class="proposal-meta">
           {% if proposal.date_pick %}<div><dt>Fecha</dt><dd>{{ proposal.date_pick|date:"d/m/Y H:i" }}</dd></div>{% endif %}
           {% if proposal.budget_min != None or proposal.budget_max != None %}

@@ -13,7 +13,7 @@
       url.searchParams.delete("ideal");
       url.hash = "";
       history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
-      document.querySelector("[data-calculate-ideal]")?.focus();
+      document.querySelector("[data-method-picker]")?.focus();
     });
   }
 

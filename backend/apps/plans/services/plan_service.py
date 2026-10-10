@@ -10,7 +10,9 @@ from apps.users.services.exceptions import SessionExpired
 from .exceptions import InvalidPlan, PlanNotFound, PlanUnavailable
 
 PAGE_SIZE = 12
-COLUMNS = "id,created_at,name,description,status,group_id,created_by"
+COLUMNS = "id,created_at,name,description,status,group_id,created_by,election_method"
+LEGACY_COLUMNS = COLUMNS.removesuffix(",election_method")
+ELECTION_METHODS = ("ideal", "votes", "combat")
 
 
 def _canonical_uuid(value, error_type):
@@ -21,7 +23,11 @@ def _canonical_uuid(value, error_type):
 
 
 def _plan(row):
-    result = {key: row[key] for key in COLUMNS.split(",")}
+    result = {
+        key: row[key] for key in COLUMNS.split(",")
+        if key != "election_method"
+    }
+    result["election_method"] = row.get("election_method")
     result["id"] = _canonical_uuid(result["id"], ValueError)
     for key in ("group_id", "created_by"):
         result[key] = (
@@ -30,6 +36,8 @@ def _plan(row):
     if (not isinstance(result["name"], str)
             or not isinstance(result["description"], str)
             or type(result["status"]) is not bool):
+        raise ValueError
+    if result["election_method"] not in (None, *ELECTION_METHODS):
         raise ValueError
     result["created_at"] = parse_datetime(result["created_at"])
     if result["created_at"] is None:
@@ -48,6 +56,27 @@ def _translate(error):
     raise PlanUnavailable() from None
 
 
+def _missing_election_method(error):
+    return (
+        isinstance(error, APIError)
+        and error.code in ("42703", "PGRST204")
+        and "election_method" in (error.message or "").lower()
+    )
+
+
+def _list_plan_rows(client, *, columns, group_id, start):
+    query = client.table("plans").select(columns)
+    if group_id:
+        query = query.eq("group_id", group_id)
+    return (query.order("created_at", desc=True).order("id", desc=True)
+            .range(start, start + PAGE_SIZE).execute().data)
+
+
+def _get_plan_rows(client, *, columns, plan_id):
+    return (client.table("plans").select(columns)
+            .eq("id", plan_id).limit(1).execute().data)
+
+
 @sensitive_variables()
 def list_plans(access_token, *, page=1, group_id=None):
     if not access_token:
@@ -58,11 +87,16 @@ def list_plans(access_token, *, page=1, group_id=None):
     start = (page - 1) * PAGE_SIZE
     try:
         with clients.public_client(access_token=access_token) as client:
-            query = client.table("plans").select(COLUMNS)
-            if canonical_group:
-                query = query.eq("group_id", canonical_group)
-            rows = (query.order("created_at", desc=True).order("id", desc=True)
-                    .range(start, start + PAGE_SIZE).execute().data)
+            try:
+                rows = _list_plan_rows(
+                    client, columns=COLUMNS, group_id=canonical_group, start=start,
+                )
+            except APIError as error:
+                if not _missing_election_method(error):
+                    raise
+                rows = _list_plan_rows(
+                    client, columns=LEGACY_COLUMNS, group_id=canonical_group, start=start,
+                )
         if not isinstance(rows, list):
             raise ValueError
         return {
@@ -83,8 +117,14 @@ def get_plan(access_token, plan_id):
     canonical_id = _canonical_uuid(plan_id, PlanNotFound)
     try:
         with clients.public_client(access_token=access_token) as client:
-            rows = (client.table("plans").select(COLUMNS)
-                    .eq("id", canonical_id).limit(1).execute().data)
+            try:
+                rows = _get_plan_rows(client, columns=COLUMNS, plan_id=canonical_id)
+            except APIError as error:
+                if not _missing_election_method(error):
+                    raise
+                rows = _get_plan_rows(
+                    client, columns=LEGACY_COLUMNS, plan_id=canonical_id,
+                )
         if not isinstance(rows, list):
             raise ValueError
         if not rows:

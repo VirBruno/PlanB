@@ -146,6 +146,40 @@ prueba autorizado, junto al script existente `supabase/tests/proposals.sql`.
 No ejecutar ninguno en el compartido. La suite Django no ejecuta ni valida RLS
 de PostgreSQL; no se aplicó SQL remoto durante esta implementación.
 
+## Métodos de elección
+
+Con las migraciones de propuestas y presupuesto aplicadas, ejecutar manualmente
+en orden, como administrador y en una instancia de prueba,
+`supabase/migrations/202610100001_proposal_election_methods.sql` y luego
+`supabase/migrations/202610100002_flexible_proposal_elections.sql`. La primera
+agrega el modo compartido, las métricas `votes` y `"Score"`, el registro privado
+`proposal_votes` y RPCs. La segunda permite cambiar de método y cambiar/eliminar
+el voto propio, manteniendo los conteos. No se ejecutan con Django ni conceden
+escritura directa de métricas a usuarios.
+
+Prueba manual con dos integrantes:
+
+1. Como owner del grupo, elegir Punto de encuentro y comprobar que abre el
+  cálculo geográfico existente; elegir Votación y comprobar que cada persona
+  puede emitir un voto y que el conteo y la propuesta campeona se actualizan.
+2. Cambiar el voto a otra propuesta y confirmar que baja el conteo anterior y
+  sube el nuevo; quitar el voto y confirmar que desaparece y el conteo baja.
+3. Cambiar entre Votación y Combate después de tener resultados; verificar que
+  el método cambia y que los votos/puntajes anteriores se conservan.
+4. Elegir Combate, jugar con Espacio, las flechas, el botón Volar o tocando el
+  canvas, guardar el resultado y comprobar el leaderboard después de recargar.
+  Repetir con una puntuación menor y confirmar que conserva el máximo.
+5. Confirmar que un integrante no puede cambiar el método del plan ni guardar
+  puntaje en la propuesta de otra persona.
+
+`supabase/tests/proposal_election.sql` valida selección por owner, voto único,
+cambio/eliminación del voto, cambio de método con resultados, persistencia del
+score máximo y grants.
+Contiene fixtures reversibles y termina con ROLLBACK. Ejecutarlo como
+administrador sólo en Supabase local o en un proyecto de prueba autorizado.
+La puntuación se calcula en el navegador: el RPC restringe quién puede guardar
+y en qué propuesta, pero no valida que el puntaje provenga de una partida legítima.
+
 Resultado local de esta entrega: 61 tests de planes/propuestas pasan, incluidos
 22 nuevos de presupuesto. La suite completa ejecutó 314 tests: 307 correctos y
 7 fallos preexistentes de interfaz. La ejecución inicial, antes del cambio,

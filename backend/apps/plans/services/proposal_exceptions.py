@@ -17,5 +17,13 @@ class ProposalAlreadyExists(ProposalError):
     message = "Ya creaste una propuesta para este plan."
 
 
+class ElectionSchemaUnavailable(ProposalUnavailable):
+    message = "Aplicá la migración de métodos de elección en Supabase para habilitar esta función."
+
+
+class ElectionFlexibilityUnavailable(ProposalUnavailable):
+    message = "Aplicá la migración flexible de elecciones para cambiar métodos o votos existentes."
+
+
 class ProposalNotFound(ProposalError):
     message = "No encontramos esa propuesta."

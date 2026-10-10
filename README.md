@@ -178,6 +178,9 @@ planes; todos los miembros pueden crearlos y el owner puede editarlos o eliminar
 cada plan, cada miembro puede crear una propuesta de juntada, reunión o salida,
 elegir fecha y ubicación, y editar o eliminar la propia. También puede ver las
 propuestas compartidas por el resto del grupo.
+En planes con propuestas, el owner del grupo elige el método: punto de encuentro
+geográfico, votación de un voto por integrante o Combate, un juego corto cuyo
+mejor puntaje se guarda para la propuesta de quien juega.
 El cierre de sesión se realiza con su botón POST.
 
 ## Ramas y Pull Requests
@@ -255,3 +258,15 @@ permisos del tipo geográfico en Data API, y
 los autores. El mapa usa Leaflet local; la búsqueda de ciudad usa Nominatim.
 Consultar el procedimiento en
 [pruebas de propuestas geográficas](docs/testing/planes.md#propuestas-geográficas).
+
+## Métodos de elección
+
+Después de aplicar las migraciones de propuestas y presupuesto, aplicar en orden
+como administrador `supabase/migrations/202610100001_proposal_election_methods.sql`
+y `supabase/migrations/202610100002_flexible_proposal_elections.sql`. El owner
+del grupo puede cambiar el método en cualquier momento; los resultados previos
+se conservan. Cada integrante puede cambiar o eliminar su voto. Combate conserva
+el mejor puntaje de cada autor en su propuesta y muestra el leaderboard. La
+integración está en `supabase/tests/proposal_election.sql`; usar sólo Supabase
+local o un proyecto de prueba autorizado. Ver
+[despliegue y pruebas de elección](docs/testing/planes.md#métodos-de-elección).

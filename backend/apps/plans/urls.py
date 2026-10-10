@@ -5,7 +5,11 @@ from . import views
 app_name = "plans"
 urlpatterns = [
     path("", views.index, name="index"),
+    path("<uuid:plan_id>/propuestas/metodo/", views.proposal_election_method, name="proposal_election_method"),
     path("<uuid:plan_id>/propuestas/ideal/", views.proposal_ideal, name="proposal_ideal"),
+    path("<uuid:plan_id>/propuestas/voto/eliminar/", views.proposal_vote_remove, name="proposal_vote_remove"),
+    path("<uuid:plan_id>/propuestas/<int:proposal_id>/votar/", views.proposal_vote, name="proposal_vote"),
+    path("<uuid:plan_id>/propuestas/<int:proposal_id>/score/", views.proposal_score, name="proposal_score"),
     path("<uuid:plan_id>/propuestas/nueva/", views.proposal_create, name="proposal_create"),
     path("<uuid:plan_id>/propuestas/<int:proposal_id>/editar/", views.proposal_edit, name="proposal_edit"),
     path("<uuid:plan_id>/propuestas/<int:proposal_id>/eliminar/", views.proposal_delete, name="proposal_delete"),

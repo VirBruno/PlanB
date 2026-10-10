@@ -20,8 +20,10 @@ from .forms import ProposalForm
 from .services import plan_service
 from .services.exceptions import InvalidPlan, PlanNotFound, PlanUnavailable
 from .services import proposal_service
+from .services import election_service
 from .services.proposal_exceptions import (
-    InvalidProposal, ProposalAlreadyExists, ProposalNotFound, ProposalUnavailable,
+    ElectionFlexibilityUnavailable, ElectionSchemaUnavailable, InvalidProposal,
+    ProposalAlreadyExists, ProposalNotFound, ProposalUnavailable,
 )
 
 IDEAL_AREA_RADIUS_METERS = 200
@@ -179,16 +181,45 @@ def detail(request, plan_id):
     for proposal in proposals:
         proposal["can_manage"] = proposal["created_by"] == request.planb_user["id"]
         proposal["creator_username"] = usernames.get(proposal["created_by"], "Usuario")
+    my_proposal = next(
+        (proposal for proposal in proposals if proposal["can_manage"]), None,
+    )
+    election_method = plan.get("election_method")
+    voted_proposal_id = None
+    if election_method == "votes":
+        try:
+            voted_proposal_id = election_service.voted_proposal(
+                token, plan_id=plan_id,
+            )
+        except ProposalUnavailable:
+            return _unavailable(request)
+    leaderboard = []
+    champion_id = None
+    if election_method in ("votes", "combat"):
+        score_key = "votes" if election_method == "votes" else "Score"
+        leaderboard = sorted(
+            proposals, key=lambda proposal: (-proposal[score_key], proposal["id"]),
+        )
+        if leaderboard and leaderboard[0][score_key] > 0 and (
+            len(leaderboard) == 1 or leaderboard[0][score_key] > leaderboard[1][score_key]
+        ):
+            champion_id = leaderboard[0]["id"]
     # El cálculo es de consulta: cualquier integrante con acceso al plan puede verlo.
     # _plan_and_group/get_group ya valida la pertenencia mediante el JWT del usuario.
     show_ideal = request.GET.get("ideal") == "1"
     return render(request, "plans/detail.html", {
         "plan": plan, "group": group, "can_manage": group["role"] == "owner",
+        "election_method": election_method,
         "can_create_proposal": not any(
             proposal["created_by"] == request.planb_user["id"] for proposal in proposals
         ),
         "proposals": proposals,
+        "my_proposal": my_proposal,
+        "leaderboard": leaderboard,
+        "champion_id": champion_id,
+        "voted_proposal_id": voted_proposal_id,
         "ideal_summary": _proposal_ideal_summary(proposals) if show_ideal else None,
+        "show_ideal_popup": show_ideal and election_method in (None, "ideal"),
         "planb_user": request.planb_user,
     })
 
@@ -204,6 +235,129 @@ def proposal_ideal(request, plan_id):
     # _proposal_plan verifica que la persona autenticada puede acceder al plan y
     # a su grupo. No se requieren permisos de owner para este cálculo de lectura.
     return redirect(f"{reverse('plans:detail', args=[plan_id])}?ideal=1#proposal-ideal-card")
+
+
+@private_page
+@require_POST
+@supabase_login_required
+@sensitive_variables()
+def proposal_election_method(request, plan_id):
+    plan_group = _proposal_plan(request, plan_id)
+    if plan_group is None:
+        return _unavailable(request)
+    _, group = plan_group
+    _require_group_admin(group)
+    method = request.POST.get("method")
+    try:
+        election_service.set_method(
+            session_service.get_access_token(request), plan_id=plan_id, method=method,
+        )
+    except InvalidProposal:
+        messages.error(request, "El método de elección no es válido.")
+    except ElectionFlexibilityUnavailable:
+        messages.error(request, "Para cambiar el método después de tener resultados, aplicá 202610100002_flexible_proposal_elections.sql en Supabase.")
+        return redirect(f"{reverse('plans:detail', args=[plan_id])}#proposal-election")
+    except ElectionSchemaUnavailable:
+        if method == "ideal":
+            messages.info(request, "Se abrió el cálculo ideal; aplicá la migración para guardar el método.")
+            return redirect(
+                f"{reverse('plans:detail', args=[plan_id])}?ideal=1#proposal-ideal-card",
+            )
+        messages.error(request, "Para usar Votación o Combate, aplicá primero la migración de métodos de elección en Supabase.")
+        return redirect(f"{reverse('plans:detail', args=[plan_id])}#proposal-election")
+    except ProposalUnavailable:
+        if method == "ideal":
+            messages.info(request, "Se abrió el cálculo ideal; el método todavía no pudo guardarse.")
+            return redirect(
+                f"{reverse('plans:detail', args=[plan_id])}?ideal=1#proposal-ideal-card",
+            )
+        return _unavailable(request)
+    else:
+        messages.success(request, "Se actualizó el método de elección.")
+        if method == "ideal":
+            return redirect(
+                f"{reverse('plans:detail', args=[plan_id])}?ideal=1#proposal-ideal-card",
+            )
+    return redirect(f"{reverse('plans:detail', args=[plan_id])}#proposal-election")
+
+
+@private_page
+@require_POST
+@supabase_login_required
+@sensitive_variables()
+def proposal_vote(request, plan_id, proposal_id):
+    if _proposal_plan(request, plan_id) is None:
+        return _unavailable(request)
+    try:
+        election_service.cast_vote(
+            session_service.get_access_token(request),
+            plan_id=plan_id, proposal_id=proposal_id,
+        )
+    except ElectionFlexibilityUnavailable:
+        messages.error(request, "Para cambiar un voto existente, aplicá 202610100002_flexible_proposal_elections.sql en Supabase.")
+    except ElectionSchemaUnavailable:
+        messages.error(request, "La votación requiere aplicar la migración de métodos de elección en Supabase.")
+    except (InvalidProposal, ProposalNotFound):
+        messages.error(request, "No se pudo registrar ese voto.")
+    except ProposalUnavailable:
+        return _unavailable(request)
+    else:
+        messages.success(request, "Tu voto quedó registrado.")
+    return redirect(f"{reverse('plans:detail', args=[plan_id])}#proposals-title")
+
+
+@private_page
+@require_POST
+@supabase_login_required
+@sensitive_variables()
+def proposal_vote_remove(request, plan_id):
+    if _proposal_plan(request, plan_id) is None:
+        return _unavailable(request)
+    try:
+        removed_proposal_id = election_service.remove_vote(
+            session_service.get_access_token(request), plan_id=plan_id,
+        )
+    except ElectionFlexibilityUnavailable:
+        messages.error(request, "Para eliminar un voto existente, aplicá 202610100002_flexible_proposal_elections.sql en Supabase.")
+    except ElectionSchemaUnavailable:
+        messages.error(request, "La votación requiere aplicar la migración de métodos de elección en Supabase.")
+    except InvalidProposal:
+        messages.error(request, "No se pudo eliminar el voto.")
+    except ProposalUnavailable:
+        return _unavailable(request)
+    else:
+        if removed_proposal_id is None:
+            messages.info(request, "No tenés un voto registrado para eliminar.")
+        else:
+            messages.success(request, "Se eliminó tu voto.")
+    return redirect(f"{reverse('plans:detail', args=[plan_id])}#proposals-title")
+
+
+@private_page
+@require_POST
+@supabase_login_required
+@sensitive_variables()
+def proposal_score(request, plan_id, proposal_id):
+    if _proposal_plan(request, plan_id) is None:
+        return _unavailable(request)
+    try:
+        score = int(request.POST.get("score", ""))
+    except (ValueError, TypeError):
+        score = -1
+    try:
+        election_service.save_score(
+            session_service.get_access_token(request), plan_id=plan_id,
+            proposal_id=proposal_id, score=score,
+        )
+    except ElectionSchemaUnavailable:
+        messages.error(request, "Combate requiere aplicar la migración de métodos de elección en Supabase.")
+    except (InvalidProposal, ProposalNotFound):
+        messages.error(request, "No se pudo guardar ese puntaje.")
+    except ProposalUnavailable:
+        return _unavailable(request)
+    else:
+        messages.success(request, "Se guardó tu mejor puntaje.")
+    return redirect(f"{reverse('plans:detail', args=[plan_id])}#proposal-combat")
 
 
 def _proposal_plan(request, plan_id):

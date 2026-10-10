@@ -19,7 +19,7 @@ from .proposal_exceptions import (
 )
 
 PROPOSAL_TYPES = ("juntada", "reunión", "salida")
-COLUMNS = "id,created_at,tittle,description,date_pick,created_by,plan_id,type,posicion,budget_min,budget_max"
+COLUMNS = 'id,created_at,tittle,description,date_pick,created_by,plan_id,type,posicion,budget_min,budget_max,votes,"Score"'
 logger = logging.getLogger("planb")
 
 
@@ -120,8 +120,15 @@ def _position_ewkt(value):
 
 
 def _proposal(row, expected_plan_id=None):
-    result = {key: row[key] for key in COLUMNS.split(",")}
+    result = {key: row[key] for key in COLUMNS.split(",") if key not in ("votes", '"Score"')}
+    result["votes"] = row.get("votes") if row.get("votes") is not None else 0
+    result["Score"] = row.get("Score") if row.get("Score") is not None else 0
     if isinstance(result["id"], bool) or not isinstance(result["id"], int) or result["id"] < 1:
+        raise ValueError
+    if any(
+        isinstance(result[field], bool) or not isinstance(result[field], int) or result[field] < 0
+        for field in ("votes", "Score")
+    ):
         raise ValueError
     result["created_by"] = _uuid(result["created_by"], ValueError)
     result["plan_id"] = _uuid(result["plan_id"], ValueError)
