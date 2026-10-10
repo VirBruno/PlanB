@@ -193,11 +193,11 @@ class PlanViewsTests(TestCase):
         self.assertContains(response, "data-city-search")
         self.assertContains(response, "data-use-location")
         self.assertContains(response, "/static/leaflet.js")
-        self.assertContains(response, '<legend>Presupuesto</legend>')
+        self.assertContains(response, '<legend>Presupuesto (opcional)</legend>')
         self.assertContains(response, 'for="id_budget_min"')
         self.assertContains(response, 'for="id_budget_max"')
         self.assertContains(response, 'step="0.01"')
-        self.assertContains(response, 'Opcional.')
+        self.assertContains(response, 'Presupuesto (opcional)')
         self.assertEqual(
             response.headers["Referrer-Policy"], "strict-origin-when-cross-origin",
         )
@@ -234,7 +234,7 @@ class PlanViewsTests(TestCase):
         self.assertContains(response, "Propuesta de otra persona")
         self.assertContains(response, "Propuesta por <strong>Ana</strong>")
         self.assertContains(response, "Propuesta por <strong>Bruno</strong>")
-        self.assertContains(response, 'class="proposal-item"', count=2)
+        self.assertContains(response, 'class="proposal-item', count=2)
         self.assertContains(response, "data-proposal-preview")
         self.assertContains(response, "data-lat=\"-34.7\"")
         self.assertContains(response, "/static/leaflet.js")
