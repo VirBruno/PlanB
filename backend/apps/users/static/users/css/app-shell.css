@@ -5,14 +5,32 @@ html[data-theme='dark'] .pb-app-shell{--sd-panel:rgba(37,39,59,.71);--sd-shadow:
 .pb-app-shell *{box-sizing:border-box}
 .pb-app-shell .social-sidebar{position:sticky;top:0;align-self:start;height:100vh;min-height:100vh;padding:29px 16px 24px;display:flex;flex-direction:column;gap:36px;border-right:1px solid var(--glass-border);background:rgba(255,255,255,.42);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);z-index:20}
 html[data-theme='dark'] .pb-app-shell .social-sidebar{background:rgba(21,22,37,.68);border-color:var(--sd-stroke)}
-.pb-app-shell .pb-app-content{max-width:1320px!important;min-width:0;width:100%;margin:0 auto;display:block;padding:21px clamp(22px,3vw,48px) 56px}
-.pb-app-shell .pb-app-topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:23px;min-height:43px}
+.pb-app-shell .pb-app-content{max-width:1550px!important;min-width:0;width:100%;margin:0 auto;display:block;padding:26px clamp(28px,4vw,62px) 76px!important}
+.pb-app-shell .pb-app-topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:26px;min-height:43px}
 .pb-app-shell .pb-breadcrumbs{display:flex;align-items:center;flex-wrap:wrap;gap:9px;min-width:0;font-size:12px;line-height:1.5;font-weight:700;color:var(--sd-muted)}
 .pb-app-shell .pb-breadcrumbs a{display:inline!important;width:auto!important;height:auto!important;min-width:0!important;padding:0!important;margin:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;text-decoration:none;color:inherit;font:inherit;white-space:normal}
 .pb-app-shell .pb-breadcrumbs a:hover{color:#8871f0}
 .pb-app-shell .pb-breadcrumbs > span[aria-hidden]{opacity:.55}
-.pb-app-shell .pb-header-actions{display:flex;gap:11px;flex:none}
-.pb-app-shell .pb-header-actions a{position:relative;display:grid;place-items:center;width:36px;height:36px;border-radius:50%;text-decoration:none;color:var(--sd-ink);background:var(--sd-panel);border:1px solid var(--glass-border);font-size:19px}
+.pb-app-shell .pb-header-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex:none}
+/* Una sola fuente de estilos para los botones del encabezado autenticado. */
+.pb-app-shell .pb-header-actions > :is(a,button.pb-theme-header-toggle){
+  appearance:none;position:relative;display:grid;place-items:center;box-sizing:border-box;
+  flex:0 0 40px;width:40px;min-width:40px;height:40px;min-height:40px;
+  padding:0;margin:0;border:1px solid var(--glass-border);border-radius:50%;
+  background:var(--sd-panel);color:var(--sd-ink);font-size:0;line-height:1;
+  text-decoration:none;cursor:pointer;box-shadow:none;
+}
+.pb-app-shell .pb-header-actions > :is(a,button.pb-theme-header-toggle):hover{border-color:#9584f1;background:rgba(149,132,241,.14)}
+.pb-app-shell .pb-header-actions > :is(a,button.pb-theme-header-toggle):focus-visible{outline:3px solid #9584f1;outline-offset:3px}
+.pb-app-shell .pb-header-actions .pb-header-icon,
+.pb-app-shell .pb-header-actions .pb-theme-icon{
+  display:block;width:20px;height:20px;min-width:20px;max-width:20px;min-height:20px;max-height:20px;
+  fill:none;stroke:currentColor;stroke-width:1.8;transform:none;margin:0;padding:0;
+}
+/* Iconos de navegación de trazo uniforme en escritorio y móvil. */
+.pb-app-shell .social-side-nav a > .pb-nav-icon{display:block;width:20px;height:20px;min-width:20px;flex:none;stroke-width:1.85;color:currentColor}
+.pb-app-shell .social-side-nav a > .pb-nav-label{font-size:inherit;line-height:inherit;font-weight:inherit;text-align:left;width:auto}
+
 .pb-notification-dot{position:absolute;right:4px;top:3px;width:7px;height:7px;background:#9a85f9;border:1px solid var(--sd-panel);border-radius:50%}
 .pb-app-shell .pf-workspace{margin:0;width:100%;max-width:none}
 .pb-app-shell .pf-layout{max-width:1120px;margin:0 auto}

@@ -20,7 +20,6 @@
   const idealMapElement = document.querySelector("[data-ideal-map]");
   if (!window.L) {
     if (idealMapElement) {
-      idealMapElement.style.height = "min(55vh, 520px)";
       idealMapElement.textContent = "No pudimos cargar el mapa.";
     }
     return;
@@ -51,8 +50,6 @@
   if (idealMapElement && idealDataElement) {
     try {
       const ideal = JSON.parse(idealDataElement.textContent);
-      idealMapElement.style.height = "min(55vh, 520px)";
-      idealMapElement.style.minHeight = "280px";
       requestAnimationFrame(() => {
         let mapStep = "validating proposal data";
         try {
@@ -158,7 +155,15 @@
     );
   });
 
-  document.querySelector("[data-city-search]").addEventListener("click", async () => {
+  const citySearchButton = document.querySelector("[data-city-search]");
+  searchInput?.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !event.isComposing) {
+      event.preventDefault();
+      citySearchButton?.click();
+    }
+  });
+
+  citySearchButton?.addEventListener("click", async () => {
     const city = searchInput.value.trim();
     results.replaceChildren();
     if (!city) {

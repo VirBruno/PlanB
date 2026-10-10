@@ -1,0 +1,150 @@
+/* Plan B · Etapa 14 / página Mis planes. Estilos acotados a esta vista. */
+.pb-app-shell .pb-plans-wrap .pb-plan-overview {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:30px;
+}
+.pb-app-shell .pb-plan-overview-item {
+  min-width:0;display:grid;grid-template-columns:46px minmax(0,1fr);column-gap:15px;
+  align-items:center;padding:17px 20px;border:1px solid var(--glass-border);border-radius:19px;
+  background:var(--sd-panel);box-shadow:var(--sd-shadow);
+}
+.pb-app-shell .pb-plan-overview-item--active {background:linear-gradient(117deg,var(--pb-soft-mint),var(--pb-soft-highlight));}
+.pb-app-shell .pb-overview-symbol {
+  grid-row:span 2;display:grid;place-items:center;width:46px;height:46px;border-radius:14px;
+  background:var(--pb-soft-highlight);color:var(--pb-highlight);font-size:24px;
+}
+.pb-app-shell .pb-plan-overview-item > div {display:flex;gap:11px;align-items:center;min-width:0}
+.pb-app-shell .pb-plan-overview-item strong {font-size:30px;letter-spacing:-.055em;color:var(--text);line-height:1}
+.pb-app-shell .pb-plan-overview-item div > span {font-size:14px;font-weight:800;color:var(--text)}
+.pb-app-shell .pb-plan-overview-item small {grid-column:2;color:var(--muted);font-size:11px;line-height:1.5;margin-top:4px}
+.pb-app-shell .pb-plans-wrap .pb-plan-filter-toolbar {
+  display:flex;flex-direction:column;align-items:stretch;gap:12px;margin:0 0 28px;
+}
+.pb-app-shell .pb-plans-wrap .pb-plan-filter-toolbar[hidden] {display:none!important}
+.pb-app-shell .pb-plan-search {
+  display:flex;align-items:center;gap:10px;width:100%;min-height:48px;padding:0 16px;
+  border:1px solid var(--glass-border);border-radius:14px;background:var(--sd-panel);color:var(--muted);
+}
+.pb-app-shell .pb-plan-search:focus-within {outline:2px solid var(--pb-highlight);outline-offset:2px}
+.pb-app-shell .pb-plan-search svg {flex:none}
+.pb-app-shell .pb-plan-search input {
+  min-width:0;flex:1;min-height:46px;width:100%;border:0!important;outline:none!important;box-shadow:none!important;
+  background:transparent!important;color:var(--text);font:inherit;font-size:13px;padding:0!important;margin:0;
+}
+.pb-app-shell .pb-plan-search input::placeholder {color:var(--muted);opacity:.9}
+.pb-app-shell .pb-plan-filter-row {display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.pb-app-shell .pb-plan-sort-label {display:flex;align-items:center;gap:9px;color:var(--muted);font-size:12px;font-weight:700}
+.pb-app-shell .pb-plan-sort-label select {min-height:40px;max-width:100%;padding:8px 30px 8px 12px;border:1px solid var(--glass-border);border-radius:12px;background:var(--sd-panel);color:var(--text);font:inherit;font-size:12px;cursor:pointer}
+.pb-app-shell .pb-plan-filter-toolbar .pb-plan-filter-caption {margin:0;font-size:11px;color:var(--muted)}
+.pb-app-shell .pb-plans-wrap .pb-plan-state-section {margin:0 0 30px;min-width:0}
+.pb-app-shell .pb-plans-wrap .pb-plan-state-section[hidden] {display:none!important}
+.pb-app-shell .pb-plan-state-heading {margin:0 0 14px}
+.pb-app-shell .pb-plan-state-heading > div {display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.pb-app-shell .pb-plan-state-heading h3 {margin:0;color:var(--text);font-size:20px;letter-spacing:-.03em}
+.pb-app-shell .pb-plan-state-heading p {margin:6px 0 0 19px;color:var(--muted);font-size:12px;line-height:1.5}
+.pb-app-shell .pb-state-dot {width:9px;height:9px;flex:none;background:#67cdb0;border-radius:50%;box-shadow:0 0 0 4px rgba(102,205,178,.13)}
+.pb-app-shell .pb-state-dot--inactive {background:#9293a6;box-shadow:0 0 0 4px rgba(144,144,164,.13)}
+.pb-app-shell .pb-group-count {display:grid;place-items:center;min-width:22px;height:22px;padding:0 5px;border-radius:8px;color:var(--pb-highlight);background:var(--pb-soft-highlight);font-size:11px;font-weight:800}
+.pb-app-shell .pb-plans-wrap .pb-plan-grid {list-style:none;margin:0;padding:0}
+.pb-app-shell .pb-plan-state-section--inactive .pb-plan-card {background:var(--sd-panel);opacity:.9}
+.pb-app-shell .pb-plan-state-section--inactive .pb-plan-icon {background:var(--pb-soft-highlight);color:var(--pb-highlight)}
+.pb-app-shell .pb-plan-card-arrow {font-size:15px;font-weight:800}
+.pb-app-shell .pb-plan-filter-empty {text-align:center;margin:0 0 25px}
+.pb-app-shell .pb-plan-filter-empty strong {display:block;color:var(--text);font-size:15px}
+.pb-app-shell .pb-plan-filter-empty p {margin:8px 0 14px;font-size:12px}
+.pb-app-shell .pb-plan-filter-empty button {border:1px solid var(--glass-border);background:var(--pb-soft-highlight);color:var(--pb-highlight);border-radius:12px;padding:10px 15px;cursor:pointer;font:inherit;font-weight:750;font-size:12px;min-height:44px}
+.pb-app-shell .pb-plan-pagination {margin-top:15px}
+@media(max-width:700px) {
+  .pb-app-shell .pb-plans-wrap .pb-plan-overview {gap:10px;margin-bottom:23px}
+  .pb-app-shell .pb-plan-overview-item {grid-template-columns:1fr;gap:7px;padding:14px}
+  .pb-app-shell .pb-overview-symbol {display:none}
+  .pb-app-shell .pb-plan-overview-item > div {gap:8px}
+  .pb-app-shell .pb-plan-overview-item strong {font-size:27px}
+  .pb-app-shell .pb-plan-overview-item div > span {font-size:12px}
+  .pb-app-shell .pb-plan-overview-item small {grid-column:1;font-size:10px;margin:0}
+  .pb-app-shell .pb-plan-filter-row {align-items:stretch}
+  .pb-app-shell .pb-plan-filter-buttons {width:100%}
+  .pb-app-shell .pb-plan-filter-buttons button {flex:1;justify-content:center;padding:8px 6px;font-size:10px}
+  .pb-app-shell .pb-plan-sort-label {justify-content:space-between;width:100%}
+  .pb-app-shell .pb-plan-sort-label select {flex:1;max-width:195px}
+  .pb-app-shell .pb-plan-state-heading h3 {font-size:18px}
+  .pb-app-shell .pb-plan-state-heading p {margin-left:0}
+}
+@media(max-width:360px) {
+  .pb-app-shell .pb-plan-filter-buttons button {gap:4px;padding-inline:5px}
+  .pb-app-shell .pb-plan-overview-item {padding:11px}
+  .pb-app-shell .pb-plan-overview-item div > span {font-size:11px}
+}
+
+/* Etapa 14.1: recuperar los filtros tipo píldora de Plan B.
+   Estas reglas tienen alcance exclusivo en Mis planes y no alteran JS ni las tarjetas. */
+.pb-app-shell .pb-plans-wrap .pb-plan-filter-buttons {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.pb-app-shell .pb-plans-wrap .pb-plan-filter-buttons > button[data-plan-filter] {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  flex: 0 0 auto;
+  min-height: 40px;
+  margin: 0;
+  padding: 8px 13px;
+  border: 1px solid var(--glass-border, rgba(168, 152, 225, .23));
+  border-radius: 12px;
+  background: var(--sd-panel, #202237);
+  color: var(--muted, #b7b7cd);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.2;
+  letter-spacing: normal;
+  text-transform: none;
+  text-shadow: none;
+  box-shadow: none;
+  cursor: pointer;
+  transition: background .18s ease, border-color .18s ease, color .18s ease;
+}
+.pb-app-shell .pb-plans-wrap .pb-plan-filter-buttons > button[data-plan-filter]:hover {
+  border-color: rgba(152, 128, 246, .55);
+  color: var(--text, #f3f1ff);
+}
+.pb-app-shell .pb-plans-wrap .pb-plan-filter-buttons > button[data-plan-filter][aria-pressed='true'] {
+  background: var(--pb-soft-highlight, rgba(120, 92, 219, .20));
+  border-color: rgba(152, 128, 246, .58);
+  color: var(--text, #f3f1ff);
+}
+.pb-app-shell .pb-plans-wrap .pb-plan-filter-buttons > button[data-plan-filter]:focus-visible {
+  outline: 2px solid var(--pb-highlight, #9e85ff);
+  outline-offset: 3px;
+}
+.pb-app-shell .pb-plans-wrap .pb-plan-filter-buttons [data-plan-count] {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  min-width: 22px;
+  min-height: 21px;
+  padding: 1px 5px;
+  border-radius: 7px;
+  background: rgba(150, 130, 228, .16);
+  color: var(--pb-highlight, #ab92ff);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 700px) {
+  .pb-app-shell .pb-plans-wrap .pb-plan-filter-buttons { gap: 6px; }
+  .pb-app-shell .pb-plans-wrap .pb-plan-filter-buttons > button[data-plan-filter] {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 42px;
+    gap: 5px;
+    padding: 8px 6px;
+    font-size: 11px;
+  }
+}

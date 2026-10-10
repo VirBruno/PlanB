@@ -1,7 +1,7 @@
 {% extends 'components/authenticated_base.html' %}
 {% block title %}Planes no disponibles · Plan B{% endblock %}
 {% block workspace %}
-<section class="group-panel" aria-labelledby="unavailable-title">
+<section class="group-panel pb-sprint-panel pb-sprint-state" aria-labelledby="unavailable-title">
   <h1 id="unavailable-title">No pudimos cargar tus planes.</h1>
   <p class="panel-description">Esperá unos minutos y volvé a intentar.</p>
   <a class="button button--primary" href="{{ retry_url }}">Volver a intentar</a>

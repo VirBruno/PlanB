@@ -6,38 +6,64 @@
   <link rel="stylesheet" href="{% static 'leaflet.css' %}">
   <link rel="stylesheet" href="{% static 'users/css/proposals.css' %}">
 {% endblock %}
+{% block page_css %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'users/css/proposal-form-social.css' %}">
+{% endblock %}
 {% block extra_js %}
+  {{ block.super }}
   <script src="{% static 'leaflet.js' %}" defer></script>
   <script src="{% static 'users/js/proposals.js' %}" defer></script>
 {% endblock %}
+{% block breadcrumbs %}
+  <a href="{% url 'users:dashboard' %}">Mi espacio</a><span aria-hidden="true">/</span>
+  <a href="{% url 'plans:index' %}">Planes</a><span aria-hidden="true">/</span>
+  <a href="{% url 'plans:detail' plan.id %}">{{ plan.name }}</a><span aria-hidden="true">/</span>
+  <span aria-current="page">{% if is_edit %}Editar propuesta{% else %}Nueva propuesta{% endif %}</span>
+{% endblock %}
 {% block workspace %}
-<a class="back-link" href="{% url 'plans:detail' plan.id %}">← Volver al plan</a>
-<section class="group-panel proposal-form-panel" aria-labelledby="proposal-form-title">
-  <p class="eyebrow eyebrow--blue">UNA IDEA PARA EL GRUPO</p>
-  <h1 id="proposal-form-title">{% if is_edit %}Editar propuesta.{% else %}Proponé un plan.{% endif %}</h1>
-  <p class="panel-description">{{ plan.name }} · {{ group.name }}</p>
-  <form method="post" class="auth-form" data-submit-form data-proposal-form>
+<div class="pfs-workspace">
+  <div class="pfs-head">
+    <div>
+      <span class="pfs-kicker">TU IDEA, TU PLAN B</span>
+      <h1 id="proposal-form-title">{% if is_edit %}Editá tu propuesta{% else %}Creá tu propuesta{% endif %}</h1>
+      <p>Compartí una alternativa con tu grupo para que puedan organizarse.</p>
+      <div class="pfs-context"><span>{{ group.name }}</span><span aria-hidden="true">·</span><span>{{ plan.name }}</span></div>
+    </div>
+    <a class="pfs-return" href="{% url 'plans:detail' plan.id %}">← Volver al plan</a>
+  </div>
+  <form method="post" class="auth-form pfs-form" data-submit-form data-proposal-form aria-labelledby="proposal-form-title">
     {% csrf_token %}
     {% include 'components/form_errors.html' %}
-    {% for field in form %}
-      {% if field.name != 'position' and field.name != 'city' and field.name != 'budget_min' and field.name != 'budget_max' %}
-        {% include 'components/field.html' %}
-      {% endif %}
-    {% endfor %}
-    <fieldset class="proposal-budget" aria-describedby="budget-help">
-      <legend>Presupuesto</legend>
-      <p class="field-help" id="budget-help">Opcional. Indicá cuánto estás dispuesto a gastar; podés completar uno o ambos límites.</p>
-      <div class="proposal-budget-fields">
-        {% include 'components/field.html' with field=form.budget_min %}
-        {% include 'components/field.html' with field=form.budget_max %}
+    <section class="pfs-section" aria-labelledby="pfs-idea-heading">
+      <header class="pfs-section-head"><span class="pfs-step" aria-hidden="true">01</span><div><h2 id="pfs-idea-heading">Tu propuesta</h2><p>Contá qué les gustaría hacer.</p></div></header>
+      <div class="pfs-fields">
+        {% for field in form %}
+          {% if field.name == 'tittle' or field.name == 'description' or field.name == 'type' %}
+            {% include 'components/field.html' %}
+          {% endif %}
+        {% endfor %}
       </div>
-    </fieldset>
-    {{ form.position }}
-    <section class="location-picker" aria-labelledby="location-heading">
-      <div>
-        <h2 id="location-heading">Ubicación</h2>
-        <p>Buscá una ciudad o usá tu ubicación actual; después podés ajustar el punto en el mapa.</p>
+      <fieldset class="proposal-budget" aria-describedby="budget-help">
+        <legend>Presupuesto (opcional)</legend>
+        <p class="field-help" id="budget-help">Indicá cuánto estás dispuesto a gastar; podés completar uno o ambos límites.</p>
+        <div class="proposal-budget-fields">
+          {% include 'components/field.html' with field=form.budget_min %}
+          {% include 'components/field.html' with field=form.budget_max %}
+        </div>
+      </fieldset>
+    </section>
+    <section class="pfs-section" aria-labelledby="pfs-date-heading">
+      <header class="pfs-section-head"><span class="pfs-step" aria-hidden="true">02</span><div><h2 id="pfs-date-heading">¿Cuándo?</h2><p>Elegí una fecha y horario tentativos.</p></div></header>
+      <div class="pfs-fields pfs-date">
+        {% for field in form %}
+          {% if field.name == 'date_pick' %}{% include 'components/field.html' %}{% endif %}
+        {% endfor %}
       </div>
+    </section>
+    <section class="pfs-section location-picker" aria-labelledby="location-heading">
+      <header class="pfs-section-head"><span class="pfs-step" aria-hidden="true">03</span><div><h2 id="location-heading">¿Dónde?</h2><p>Buscá una ciudad o usá tu ubicación; luego elegí el punto exacto en el mapa.</p></div></header>
+      {{ form.position }}
       <div class="city-search-row">
         <div class="field{% if form.city.errors %} field--invalid{% endif %}">
           <label for="{{ form.city.id_for_label }}">{{ form.city.label }}</label>
@@ -47,19 +73,19 @@
         <button class="button button--quiet" type="button" data-city-search>Buscar ciudad</button>
       </div>
       <div class="location-actions">
-        <button class="button button--quiet" type="button" data-use-location>Usar mi ubicación</button>
+        <button class="button button--quiet" type="button" data-use-location>◎ Usar mi ubicación</button>
         <span class="location-status" data-location-status role="status" aria-live="polite"></span>
       </div>
       <ul class="city-results" data-city-results aria-label="Resultados de ciudades"></ul>
       <div class="proposal-map" data-proposal-map data-position-input="{{ form.position.id_for_label }}" data-initial-position="{{ form.position.value|default:''|escape }}" role="application" aria-label="Mapa para elegir la ubicación de la propuesta"></div>
       {% if form.position.errors %}<ul class="field-errors" role="alert">{% for error in form.position.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
-      <p class="field-help">La ubicación se guarda como punto geográfico en PostGIS.</p>
+      <p class="pfs-map-help">Hacé clic en el mapa para colocar el marcador o arrastralo para ajustarlo.</p>
     </section>
-    <div class="group-actions">
-      <button class="button button--primary" type="submit" data-loading-label="Guardando…"><span data-button-label>{% if is_edit %}Guardar cambios{% else %}Crear propuesta{% endif %}</span><span aria-hidden="true">→</span></button>
+    <footer class="pfs-actions">
       <a class="button button--quiet" href="{% url 'plans:detail' plan.id %}">Cancelar</a>
-    </div>
+      <button class="button button--primary" type="submit" data-loading-label="Guardando…"><span data-button-label>{% if is_edit %}Guardar cambios{% else %}Crear propuesta{% endif %}</span><span aria-hidden="true">→</span></button>
+    </footer>
     <p class="submit-status sr-only" role="status" aria-live="polite"></p>
   </form>
-</section>
+</div>
 {% endblock %}

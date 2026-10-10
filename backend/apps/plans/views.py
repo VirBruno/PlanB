@@ -179,7 +179,9 @@ def detail(request, plan_id):
     for proposal in proposals:
         proposal["can_manage"] = proposal["created_by"] == request.planb_user["id"]
         proposal["creator_username"] = usernames.get(proposal["created_by"], "Usuario")
-    show_ideal = request.GET.get("ideal") == "1" and group["role"] == "owner"
+    # El cálculo es de consulta: cualquier integrante con acceso al plan puede verlo.
+    # _plan_and_group/get_group ya valida la pertenencia mediante el JWT del usuario.
+    show_ideal = request.GET.get("ideal") == "1"
     return render(request, "plans/detail.html", {
         "plan": plan, "group": group, "can_manage": group["role"] == "owner",
         "can_create_proposal": not any(
@@ -199,8 +201,8 @@ def proposal_ideal(request, plan_id):
     plan_group = _proposal_plan(request, plan_id)
     if plan_group is None:
         return _unavailable(request)
-    _, group = plan_group
-    _require_group_admin(group)
+    # _proposal_plan verifica que la persona autenticada puede acceder al plan y
+    # a su grupo. No se requieren permisos de owner para este cálculo de lectura.
     return redirect(f"{reverse('plans:detail', args=[plan_id])}?ideal=1#proposal-ideal-card")
 
 

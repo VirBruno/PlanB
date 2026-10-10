@@ -19,25 +19,18 @@ html[data-theme='dark'] .group-social-hero,html[data-theme='dark'] .group-social
 @media(max-width:700px){.group-social-hero{padding:22px 18px;display:grid;gap:19px}.group-social-hero-main{gap:13px;align-items:flex-start}.group-social-avatar{width:52px;height:52px;flex-basis:52px;font-size:26px;border-radius:16px}.group-social-primary{width:100%}.group-social-columns,.group-social-right{grid-template-columns:1fr}.group-social-panel{padding:19px}.group-social-heading{align-items:flex-start}.group-social-plan-status{display:none}.group-social-tabs{gap:18px}.group-social-hero h1{font-size:28px}.group-social-meta{gap:5px}}
 @media(prefers-reduced-motion:reduce){.group-social-shell a{transition:none!important}}
 
-/* Etapa 5.1 — Breadcrumb: evitar que herede el estilo de iconos de la topbar. */
-.group-social-shell .social-topbar > span {
-  display: flex; align-items: center; flex-wrap: wrap; gap: 9px;
-  flex: 1 1 auto; min-width: 0; width: auto; line-height: 1.5;
+/* Etapa 12.3 — Espaciado estructural del detalle del grupo.
+   El contenedor define la separación real: no depende de márgenes
+   de los hijos ni de la posición en el flujo normal. */
+.pb-app-shell .group-social-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: 24px;
 }
-.group-social-shell .social-topbar > span > a {
-  display: inline; width: auto; height: auto; min-width: 0;
-  padding: 0; margin: 0; border: 0; border-radius: 0;
-  background: transparent; box-shadow: none; white-space: nowrap;
-  font: inherit; color: inherit; text-decoration: none;
+.pb-app-shell .group-social-shell > .group-social-hero,
+.pb-app-shell .group-social-shell > .group-social-tabs {
+  margin: 0;
 }
-.group-social-shell .social-topbar > span > a:hover {
-  color: #8871f0; text-decoration: underline;
-}
-.group-social-shell .social-topbar > span > span[aria-hidden="true"] {
-  padding: 0; opacity: .55;
-}
-.group-social-shell .social-topbar > div { flex: 0 0 auto; }
-@media(max-width:700px) {
-  .group-social-shell .social-topbar { gap: 12px; align-items: flex-start; }
-  .group-social-shell .social-topbar > span { gap: 6px; }
+@media (max-width: 700px) {
+  .pb-app-shell .group-social-shell { row-gap: 18px; }
 }

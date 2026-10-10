@@ -1,0 +1,34 @@
+/* Etapa 9 — estilos encapsulados para el formulario de propuestas. */
+.pfs-workspace{--pfs-surface:rgba(255,255,255,.72);--pfs-ink:#25243c;--pfs-muted:#70748b;--pfs-line:rgba(133,117,196,.2);--pfs-field:rgba(255,255,255,.85);max-width:1160px;margin:0 auto;padding:18px 12px 72px;color:var(--pfs-ink);font-family:"Plus Jakarta Sans",sans-serif}
+html[data-theme="dark"] .pfs-workspace{--pfs-surface:rgba(31,32,51,.78);--pfs-ink:#f5f3ff;--pfs-muted:#b9bbd0;--pfs-line:rgba(190,183,236,.18);--pfs-field:rgba(42,43,64,.87)}
+.pfs-workspace *{box-sizing:border-box}.pfs-head{display:flex;justify-content:space-between;align-items:center;gap:24px;margin:18px 0 30px}.pfs-kicker{font-size:11px;font-weight:800;letter-spacing:.14em;color:#9276ee}.pfs-head h1{margin:12px 0 8px;font-size:clamp(30px,4vw,45px);line-height:1.15;letter-spacing:-.045em;color:var(--pfs-ink)}.pfs-head p{margin:0;color:var(--pfs-muted);line-height:1.6}.pfs-context{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;color:#a08bef;font-size:12px;font-weight:700}.pfs-return{padding:11px 16px;border-radius:12px;text-decoration:none;border:1px solid var(--pfs-line);color:var(--pfs-ink);font-size:13px;white-space:nowrap;background:var(--pfs-surface)}
+.pfs-form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}.pfs-section{min-width:0;display:grid;align-content:start;gap:20px;padding:clamp(22px,3vw,32px);background:var(--pfs-surface);border:1px solid var(--pfs-line);border-radius:24px;box-shadow:0 16px 45px rgba(55,47,107,.08);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}.pfs-section:first-of-type{grid-column:1}.pfs-section:nth-of-type(2){grid-column:2}.pfs-section.location-picker{grid-column:1/-1}.pfs-section-head{display:flex;gap:14px;align-items:start}.pfs-step{display:grid;place-items:center;flex:none;width:42px;height:42px;border-radius:14px;background:linear-gradient(130deg,rgba(185,237,225,.65),rgba(193,177,255,.65));color:#5848ad;font-weight:800;font-size:13px}.pfs-section h2{font-size:21px;letter-spacing:-.03em;color:var(--pfs-ink);margin:0 0 5px}.pfs-section-head p{font-size:13px;line-height:1.55;color:var(--pfs-muted);margin:0}.pfs-fields{display:grid;gap:17px}.pfs-form .field{min-width:0;margin:0}.pfs-form .field label{display:block;margin-bottom:7px;color:var(--pfs-ink);font-size:13px;font-weight:700}.pfs-form .field input:not([type=hidden]),.pfs-form .field select,.pfs-form .field textarea{width:100%;max-width:100%;min-height:48px;height:auto;font:inherit;font-size:14px;line-height:1.5;padding:12px 14px;border-radius:12px;border:1px solid var(--pfs-line);color:var(--pfs-ink);background:var(--pfs-field);outline:none}.pfs-form .field textarea{min-height:102px;resize:vertical}.pfs-form .field input:focus-visible,.pfs-form .field select:focus-visible,.pfs-form .field textarea:focus-visible{border-color:#9277f5;box-shadow:0 0 0 3px rgba(145,118,240,.14)}.pfs-form .field-help{font-size:11px;color:var(--pfs-muted)}.pfs-form .field-errors{color:#e46683;font-size:12px}.pfs-form .field--invalid input{border-color:#e46683}
+.pfs-form .location-picker>div:first-child p{font-size:13px;color:var(--pfs-muted)}.pfs-form .city-search-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end}.pfs-form .button{min-height:45px;border-radius:12px;padding:10px 17px;font-size:13px;font-weight:700;text-decoration:none;cursor:pointer}.pfs-form .button--quiet{background:var(--pfs-field);border:1px solid var(--pfs-line);color:var(--pfs-ink)}.pfs-form .button--primary{border:0;color:white;background:linear-gradient(110deg,#6651ed,#9678ed);box-shadow:0 12px 24px rgba(104,80,215,.19)}.pfs-form .city-results button{border:1px solid var(--pfs-line);border-radius:10px;background:var(--pfs-field);color:var(--pfs-ink)}.pfs-form .city-results button:hover{background:rgba(150,126,235,.12)}.pfs-form .location-status{color:var(--pfs-muted)}.pfs-form .proposal-map{height:clamp(290px,36vw,420px);min-height:290px;border:1px solid var(--pfs-line);border-radius:16px;overflow:hidden}.pfs-map-help{margin:0;color:var(--pfs-muted);font-size:12px}.pfs-actions{display:flex;gap:12px;justify-content:flex-end;align-items:center;grid-column:1/-1;padding:8px 2px 0}.pfs-actions .button--primary{min-width:180px}.pfs-form>.submit-status{grid-column:1/-1}
+
+/* Presupuestos: integrado en la primera sección, sin estilos generales globales. */
+.pfs-form .proposal-budget{min-width:0;margin:0;padding:18px 0 0;border:0;border-top:1px solid var(--pfs-line)}
+.pfs-form .proposal-budget legend{padding:0 0 2px;color:var(--pfs-ink);font-size:14px;font-weight:800}
+.pfs-form .proposal-budget .field-help{display:block;margin:7px 0 0;color:var(--pfs-muted);font-size:12px;line-height:1.55}
+.pfs-form .proposal-budget-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:15px}
+.pfs-form .proposal-budget .field{min-width:0}
+.pfs-form .proposal-budget input[type=number]{font-variant-numeric:tabular-nums}
+@media(max-width:580px){.pfs-form .proposal-budget-fields{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:900px){.pfs-form{grid-template-columns:1fr}.pfs-section:first-of-type,.pfs-section:nth-of-type(2),.pfs-section.location-picker{grid-column:1}.pfs-workspace{padding:12px 4px 60px}}
+@media(max-width:580px){.pfs-head{align-items:flex-start;flex-direction:column;gap:15px}.pfs-section{border-radius:19px;padding:20px 16px}.pfs-form .city-search-row{grid-template-columns:1fr}.pfs-form .city-search-row .button{justify-self:start}.pfs-actions{flex-direction:column-reverse;align-items:stretch}.pfs-actions .button{width:100%;text-align:center}.pfs-form .proposal-map{height:290px}}
+@media(prefers-reduced-motion:reduce){.pfs-workspace *{scroll-behavior:auto}}
+
+/* Etapa 12.1 — Encabezado de propuestas compacto en escritorio.
+   El layout global ya separa la barra superior: evitamos sumar padding y
+   otro margen antes del título. Se limita a esta página y no al dashboard. */
+@media (min-width: 701px) {
+  .pb-app-shell .pb-app-content:has(> .pfs-workspace) > .pb-app-topbar {
+    margin-bottom: 12px !important;
+  }
+  .pb-app-shell .pb-app-content > .pfs-workspace {
+    padding-top: 0;
+  }
+  .pb-app-shell .pb-app-content .pfs-head {
+    margin-top: 0;
+    margin-bottom: 24px;
+  }
+}
