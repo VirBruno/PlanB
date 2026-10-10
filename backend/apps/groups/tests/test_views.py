@@ -117,8 +117,8 @@ class GroupViewsTests(TestCase):
             def handle_starttag(self, tag, attrs):
                 if tag == 'section':
                     classes = dict(attrs).get('class', '').split()
-                    if 'plans-section' in classes:
-                        self.plans_inside_panel = any('group-panel' in parent for parent in self.sections)
+                    if 'group-social-date' in classes:
+                        self.plans_inside_panel = any('group-social-plans' in parent for parent in self.sections)
                     self.sections.append(classes)
 
             def handle_endtag(self, tag):
@@ -128,7 +128,7 @@ class GroupViewsTests(TestCase):
         parser = PanelParser()
         parser.feed(content)
         self.assertTrue(parser.plans_inside_panel)
-        self.assertContains(response, 'aria-label="Crear plan"')
+        self.assertContains(response, 'class="group-social-plan-card"')
         self.assertContains(response, f'href="/grupos/{GROUP_ID}/planes/nuevo/"')
         self.assertEqual(len(response.context["plans_by_date"]), 2)
         self.assertEqual(list_plans.call_count, 2)
@@ -143,13 +143,10 @@ class GroupViewsTests(TestCase):
             "role": "owner", "role_label": "Owner", "created_at": None,
         }
         response = self.client.get(self.detail_url)
-        self.assertContains(response, "Este grupo todavía no tiene planes.")
-        self.assertContains(response, "Crear plan")
-        self.assertNotContains(response, 'aria-label="Crear plan"')
-        self.assertEqual(
-            response.content.count(f'href="/grupos/{GROUP_ID}/planes/nuevo/"'.encode()),
-            1,
-        )
+        self.assertContains(response, "Su primer plan empieza acá")
+        self.assertContains(response, "Crear el primer plan")
+        self.assertContains(response, f'href="/grupos/{GROUP_ID}/planes/nuevo/"')
+        self.assertContains(response, 'id="administracion-grupo"')
 
     @patch("apps.groups.views.plan_service.list_plans", return_value={"items": [], "page": 1, "has_next": False})
     @patch("apps.groups.views.group_service.get_group")
@@ -159,9 +156,10 @@ class GroupViewsTests(TestCase):
             "role": "member", "role_label": "Miembro", "created_at": None,
         }
         response = self.client.get(self.detail_url)
-        self.assertContains(response, "Este grupo todavía no tiene planes.")
-        self.assertContains(response, "Crear plan")
-        self.assertNotContains(response, 'href="/planes/"')
+        self.assertContains(response, "Su primer plan empieza acá")
+        self.assertContains(response, "Crear el primer plan")
+        self.assertContains(response, f'href="/grupos/{GROUP_ID}/planes/nuevo/"')
+        self.assertNotContains(response, 'id="administracion-grupo"')
 
     @patch("apps.groups.views.group_service.create_group")
     def test_csrf_rejection_does_not_create(self, create):

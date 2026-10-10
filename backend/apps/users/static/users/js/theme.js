@@ -9,7 +9,7 @@
     var dark = root.dataset.theme === 'dark';
     button.setAttribute('aria-label', dark ? 'Activar modo claro' : 'Activar modo oscuro');
     button.setAttribute('aria-pressed', dark ? 'true' : 'false');
-    if (!compact) button.textContent = dark ? '☀ Modo claro' : '☾ Modo oscuro';
+    button.textContent = compact ? (dark ? '☀' : '☾') : (dark ? '☀ Modo claro' : '☾ Modo oscuro');
     button.title = dark ? 'Activar modo claro' : 'Activar modo oscuro';
   }
   button.addEventListener('click', function () {

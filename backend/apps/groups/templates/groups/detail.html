@@ -1,10 +1,10 @@
 {% extends 'components/authenticated_base.html' %}
 {% load static %}
 {% block title %}{% if group %}{{ group.name }}{% else %}Tu grupo{% endif %} · Plan B{% endblock %}
-{% block page_css %}<link rel="stylesheet" href="{% static 'users/css/group-social.css' %}">{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'users/css/group-social.css' %}?v=12.3">{% endblock %}
 {% block breadcrumbs %}
   <a href="{% url 'users:dashboard' %}">Mi espacio</a><span aria-hidden="true">/</span>
-  <a href="{% url 'users:dashboard' %}#mis-grupos">Mis grupos</a><span aria-hidden="true">/</span>
+  <a href="{% url 'groups:index' %}">Mis grupos</a><span aria-hidden="true">/</span>
   <span aria-current="page">{% if group %}{{ group.name }}{% else %}Detalle de grupo{% endif %}</span>
 {% endblock %}
 {% block workspace %}

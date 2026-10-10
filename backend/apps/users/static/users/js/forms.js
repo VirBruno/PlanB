@@ -41,3 +41,11 @@ document.querySelectorAll("[data-submit-form]").forEach((form) => {
 });
 
 document.querySelector("[data-error-summary]")?.focus();
+
+// Confirmación explícita antes de borrar una propuesta.
+document.querySelectorAll("form[data-confirm-delete]").forEach((form) => {
+  form.addEventListener("submit", (event) => {
+    const message = form.dataset.confirmDelete || "¿Confirmás esta eliminación?";
+    if (!window.confirm(message)) event.preventDefault();
+  });
+});

@@ -1,0 +1,231 @@
+/* Plan B · Etapa 13: lenguaje visual final del espacio autenticado.
+   Capa acotada a la aplicación; no modifica auth, permisos, rutas ni Leaflet.
+   Evitar reglas globales de body, inputs y SVG fuera de .pb-app-shell. */
+.pb-app-shell {
+  --pb-radius-card: 20px;
+  --pb-radius-control: 12px;
+  --pb-space-block: clamp(22px, 2.4vw, 32px);
+  --pb-card-outline: var(--glass-border);
+  --pb-card-bg: var(--sd-panel);
+  --pb-highlight: #8068ed;
+  --pb-soft-highlight: rgba(136, 113, 239, .11);
+  --pb-soft-mint: rgba(110, 214, 185, .14);
+}
+html[data-theme='dark'] .pb-app-shell {
+  --pb-highlight: #b09cff;
+  --pb-soft-highlight: rgba(150, 123, 246, .14);
+  --pb-soft-mint: rgba(113, 212, 187, .11);
+}
+
+/* Encabezado común: espacio consistente, sin cascadas de márgenes acumulados. */
+.pb-app-shell .pb-app-topbar { margin-bottom: 25px; }
+.pb-app-shell .pb-breadcrumbs { max-width: calc(100% - 150px); }
+.pb-app-shell .pb-header-actions > :is(a,button.pb-theme-header-toggle) {
+  transition: border-color .18s ease, background-color .18s ease, transform .18s ease;
+}
+.pb-app-shell .pb-header-actions > :is(a,button.pb-theme-header-toggle):active {transform: scale(.95)}
+
+/* Botones: misma altura, foco visible y movimiento sobrio. */
+.pb-app-shell :is(.social-cta,.pb-soft-action,.group-social-primary,.pb-groups-heading .social-cta,.pfs-actions .button,.proposal-ideal-action .button) {
+  min-height: 44px;
+  border-radius: var(--pb-radius-control);
+}
+.pb-app-shell :is(.pb-groups-card,.pb-groups-new,.pb-plan-card,.social-group-card,.social-add-group,.social-mini-actions a,.group-social-plan-card) {
+  transition: border-color .18s ease, background-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+.pb-app-shell :is(.pb-groups-card,.pb-plan-card,.social-group-card,.social-mini-actions a,.group-social-plan-card):hover {
+  border-color: rgba(147, 122, 240, .55);
+  box-shadow: 0 15px 38px rgba(52, 43, 109, .12);
+}
+html[data-theme='dark'] .pb-app-shell :is(.pb-groups-card,.pb-plan-card,.social-group-card,.social-mini-actions a,.group-social-plan-card):hover {
+  box-shadow: 0 15px 38px rgba(0, 0, 0, .2);
+}
+.pb-app-shell :is(a,button,summary,input,textarea,select):focus-visible {
+  outline: 3px solid #9b86f5;
+  outline-offset: 3px;
+}
+.pb-app-shell :is(.social-group-card,.pb-groups-card,.pb-plan-card,.group-social-plan-card) strong { overflow-wrap: anywhere; }
+
+/* Inicio: las acciones son los protagonistas; el tutorial se consulta si hace falta. */
+.pb-app-shell.social-dashboard-v2 .social-hero { margin-bottom: 20px; }
+.pb-app-shell .social-mini-actions { margin: 0 0 28px; }
+.pb-app-shell .social-mini-actions a {
+  grid-template-columns: 45px minmax(0,1fr) auto;
+  grid-template-rows: auto auto;
+  column-gap: 13px;
+  min-height: 82px;
+  padding: 15px 17px;
+  align-content: center;
+  border-radius: 18px;
+}
+.pb-app-shell .social-mini-actions a > .pb-quick-icon {
+  grid-row: 1 / span 2;
+  grid-column: 1;
+  width: 44px;
+  height: 44px;
+  font-size: inherit;
+}
+.pb-app-shell .social-mini-actions .pb-quick-icon svg {width:22px;height:22px;stroke-width:1.8}
+.pb-app-shell .social-mini-actions a > strong { grid-row:1; grid-column:2; }
+.pb-app-shell .social-mini-actions a > small { grid-row:2;grid-column:2; }
+.pb-app-shell .social-mini-actions a > .pb-quick-arrow {
+  grid-row: 1 / span 2;
+  grid-column: 3;
+  width: auto;
+  height: auto;
+  background: transparent;
+  font-size: 15px;
+  color: var(--pb-highlight);
+  align-self: center;
+  padding-left: 5px;
+}
+.pb-app-shell .social-groups-section {margin: 0 0 28px;}
+.pb-app-shell.social-dashboard-v2 .social-section-heading {margin-bottom:17px;}
+.pb-app-shell.social-dashboard-v2 .social-group-card,
+.pb-app-shell.social-dashboard-v2 .social-add-group {min-height:145px;}
+.pb-app-shell.social-dashboard-v2 .social-section-heading .social-text-link {align-self:end;}
+.pb-app-shell .pb-onboarding {min-width:0;margin:0;}
+.pb-app-shell .pb-onboarding > summary {
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:16px 19px;border:1px solid var(--pb-card-outline);
+  border-radius:18px;background:var(--pb-card-bg);color:var(--text);
+  cursor:pointer;list-style:none;
+}
+.pb-app-shell .pb-onboarding > summary::-webkit-details-marker {display:none}
+.pb-app-shell .pb-onboarding-label {display:grid;grid-template-columns:34px minmax(0,1fr);gap:2px 13px;align-items:center;min-width:0}
+.pb-app-shell .pb-onboarding-label > span {grid-row:1/span 2;display:grid;place-items:center;width:34px;height:34px;color:var(--pb-highlight);background:var(--pb-soft-highlight);border-radius:11px;font-size:24px}
+.pb-app-shell .pb-onboarding-label strong {font-size:13px;line-height:1.3}
+.pb-app-shell .pb-onboarding-label small {font-size:11px;color:var(--sd-muted);line-height:1.5}
+.pb-app-shell .pb-onboarding-chevron {flex:none;font-size:22px;color:var(--pb-highlight);transition:transform .18s}
+.pb-app-shell .pb-onboarding[open] .pb-onboarding-chevron {transform:rotate(180deg)}
+.pb-app-shell .pb-onboarding .social-next {margin:10px 0 0;border-radius:18px;box-shadow:none}
+
+/* Grupos: escala y alturas coherentes en dashboard y listado completo. */
+.pb-app-shell .pb-groups-index,
+.pb-app-shell .pb-plans-wrap,
+.pb-app-shell .pb-profile-wrap { padding-top: 4px; }
+.pb-app-shell .pb-groups-heading {margin:10px 0 28px}
+.pb-app-shell .pb-groups-card,
+.pb-app-shell .pb-groups-new { min-height:178px; border-radius:var(--pb-radius-card); }
+.pb-app-shell .pb-groups-info > span {font-size:12px;line-height:1.55}
+.pb-app-shell .pb-groups-grid {gap:16px}
+.pb-app-shell .group-social-shell {row-gap:24px}
+.pb-app-shell .group-social-shell > .group-social-tabs {padding-inline: 3px}
+.pb-app-shell :is(#planes-grupo,#integrantes-grupo,#administracion-grupo) {scroll-margin-top: 28px}
+.pb-app-shell .group-social-plan-card {border-radius:14px}
+
+/* Mis planes: estados legibles, filtros no invasivos y tarjetas equilibradas. */
+.pb-app-shell .pb-plans-heading {margin-bottom:22px}
+.pb-app-shell .pb-plan-summary {margin-bottom:25px;padding:19px 23px;}
+.pb-app-shell .pb-plan-summary .pb-summary-icon {border-radius:14px}
+.pb-app-shell .pb-plan-grid {gap:15px}
+.pb-app-shell .pb-plan-card {min-height:132px;border-radius:var(--pb-radius-card);padding:20px;}
+.pb-app-shell .pb-plan-info strong {font-size:16px;line-height:1.35}
+.pb-app-shell .pb-plan-info > span {display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pb-app-shell .pb-plan-state.is-active {color:#207b62;background:rgba(95,201,160,.17)}
+html[data-theme='dark'] .pb-app-shell .pb-plan-state.is-active {color:#89e2bf}
+.pb-app-shell .pb-plan-filter-toolbar {
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  flex-wrap:wrap;margin:0 0 20px;
+}
+.pb-app-shell .pb-plan-filter-toolbar[hidden],
+.pb-app-shell .pb-plan-filter-empty[hidden],
+.pb-app-shell .pb-plan-grid > li[hidden] {display:none!important}
+.pb-app-shell .pb-plan-filter-buttons {display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.pb-app-shell .pb-plan-filter-buttons button {
+  display:inline-flex;align-items:center;gap:9px;min-height:40px;
+  padding:8px 13px;border-radius:12px;border:1px solid var(--glass-border);
+  background:var(--pb-card-bg);color:var(--muted);
+  font:inherit;font-size:12px;font-weight:750;cursor:pointer;
+}
+.pb-app-shell .pb-plan-filter-buttons button[aria-pressed='true'] {
+  background:var(--pb-soft-highlight);border-color:rgba(152,128,246,.58);color:var(--text)
+}
+.pb-app-shell .pb-plan-filter-buttons [data-plan-count] {
+  display:grid;place-items:center;min-width:22px;height:21px;padding:0 5px;
+  border-radius:7px;background:rgba(150,130,228,.16);color:var(--pb-highlight);
+  font-size:11px;font-variant-numeric:tabular-nums;
+}
+.pb-app-shell .pb-plan-filter-caption {font-size:11px;color:var(--muted)}
+.pb-app-shell .pb-plan-filter-empty {margin:0 0 18px;padding:22px;border-radius:15px;border:1px dashed var(--glass-border);color:var(--muted);background:var(--pb-card-bg);font-size:13px}
+
+/* Detalle del plan: el cálculo ideal conserva su propia jerarquía. */
+.pb-app-shell .pb-plan-detail .pb-proposals-heading {margin-bottom:22px}
+.pb-app-shell .pb-plan-detail .pb-proposals-grid {gap:18px}
+.pb-app-shell .pb-plan-detail .pb-proposal-card {border-radius:20px;gap:14px}
+.pb-app-shell .pb-plan-detail .proposal-meta {gap:7px 16px}
+.pb-app-shell .pb-plan-detail .proposal-meta > div {flex-wrap:wrap}
+.pb-app-shell .pb-plan-detail .proposal-meta dd {font-variant-numeric:tabular-nums}
+.pb-app-shell .pb-plan-detail .proposal-map-link > span {font-size:12px}
+.pb-app-shell .pb-plan-detail .proposal-map-preview {border-radius:14px}
+.pb-app-shell .pb-plan-detail .proposal-ideal-action {border-radius:17px;background:var(--pb-soft-highlight)}
+.pb-app-shell .proposal-ideal-dialog {overflow:auto;overscroll-behavior:contain}
+.pb-app-shell .proposal-ideal {overflow:auto;}
+.pb-app-shell .proposal-ideal-budget strong {font-variant-numeric:tabular-nums}
+
+/* Propuesta: cabecera compacta sin apretar los formularios. */
+.pb-app-shell .pfs-workspace {padding-top:0}
+.pb-app-shell .pfs-head {margin:0 0 25px}
+.pb-app-shell .pfs-form {gap:18px}
+.pb-app-shell .pfs-section {border-radius:22px;box-shadow:var(--sd-shadow);gap:17px}
+.pb-app-shell .pfs-form .proposal-budget {padding-top:18px}
+.pb-app-shell .pfs-form .proposal-budget-fields {gap:12px}
+.pb-app-shell .pfs-form .proposal-map {border-radius:15px}
+.pb-app-shell .pfs-form .field-help {line-height:1.55}
+.pb-app-shell .pfs-actions {padding-top:2px}
+
+/* Notificaciones y perfil comparten el espaciado de las otras secciones. */
+.pb-app-shell .pb-notifications {margin-top:6px}
+.pb-app-shell .pb-notifications__card {border-radius:21px}
+.pb-app-shell .pb-notifications__actions .button {min-height:42px}
+.pb-app-shell .pb-profile-card {border-radius:22px}
+.pb-app-shell .pb-profile-banner {padding-block:26px}
+
+/* Tablet: lectura fluida sin comprimir menús ni botones. */
+@media (min-width:701px) and (max-width:1100px) {
+  .pb-app-shell.social-dashboard-v2 .social-group-grid {grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pb-app-shell .pb-plan-grid {grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pb-app-shell .pb-plan-card {padding:17px;gap:13px}
+  .pb-app-shell .pb-plan-filter-caption {display:none}
+  .pb-app-shell .pb-plan-detail .pb-proposals-grid {grid-template-columns:1fr}
+}
+/* Celular: tap targets cómodos, contenido visible por encima de barra fija. */
+@media (max-width:700px) {
+  .pb-app-shell .pb-app-topbar {margin-bottom:20px}
+  .pb-app-shell .pb-breadcrumbs {max-width:calc(100% - 128px)}
+  .pb-app-shell.social-dashboard-v2 .social-hero {margin-bottom:16px}
+  .pb-app-shell .social-mini-actions {margin-bottom:22px}
+  .pb-app-shell .social-groups-section {margin-bottom:22px}
+  .pb-app-shell .social-mini-actions a {min-height:74px;padding:12px;grid-template-columns:40px minmax(0,1fr) auto;column-gap:11px}
+  .pb-app-shell .social-mini-actions a>.pb-quick-icon {width:39px;height:39px}
+  .pb-app-shell .social-mini-actions a>.pb-quick-arrow {width:auto;height:auto;font-size:14px}
+  .pb-app-shell.social-dashboard-v2 .social-group-card,
+  .pb-app-shell.social-dashboard-v2 .social-add-group {min-height:135px}
+  .pb-app-shell.social-dashboard-v2 .social-section-heading .social-text-link {align-self:flex-start}
+  .pb-app-shell .pb-onboarding > summary {padding:13px 14px}
+  .pb-app-shell .pb-groups-heading {margin:4px 0 22px}
+  .pb-app-shell .pb-groups-grid {gap:12px}
+  .pb-app-shell .pb-groups-card,.pb-app-shell .pb-groups-new {min-height:145px;padding:17px;border-radius:18px}
+  .pb-app-shell .group-social-shell {row-gap:18px}
+  .pb-app-shell .pb-plans-heading {margin-bottom:18px}
+  .pb-app-shell .pb-plan-summary {margin-bottom:22px;padding:16px}
+  .pb-app-shell .pb-plan-grid {grid-template-columns:minmax(0,1fr)}
+  .pb-app-shell .pb-plan-card {min-height:124px;padding:17px}
+  .pb-app-shell .pb-plan-filter-toolbar {margin-bottom:16px}
+  .pb-app-shell .pb-plan-filter-buttons {gap:6px}
+  .pb-app-shell .pb-plan-filter-buttons button {min-height:42px;padding:8px 11px;font-size:11px}
+  .pb-app-shell .pb-plan-filter-caption {display:none}
+  .pb-app-shell .pb-plan-detail .pb-proposals-grid {gap:15px}
+  .pb-app-shell .pb-plan-detail .proposal-ideal-action {padding:15px}
+  .pb-app-shell .pfs-head {margin-bottom:20px}
+  .pb-app-shell .pfs-section {gap:16px}
+  .pb-app-shell .pb-notifications {margin-bottom:calc(95px + env(safe-area-inset-bottom))}
+  .pb-app-shell .pfs-actions {padding-bottom:15px}
+}
+@media (max-width:390px) {
+  .pb-app-shell .pb-plan-filter-buttons button {gap:5px;padding-inline:9px}
+  .pb-app-shell .social-mini-actions a {grid-template-columns:36px minmax(0,1fr) auto}
+}
+@media (prefers-reduced-motion:reduce) {
+  .pb-app-shell :is(.pb-onboarding-chevron,.pb-groups-card,.pb-plan-card,.social-group-card,.social-mini-actions a,.group-social-plan-card) {transition:none;transform:none}
+}

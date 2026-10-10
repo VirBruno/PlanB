@@ -1,8 +1,8 @@
 {% extends 'components/authenticated_base.html' %}
 {% block title %}Eliminar grupo · Plan B{% endblock %}
 {% block workspace %}
-<a class="back-link" href="{% url 'groups:detail' group.id %}">← Volver al grupo</a>
-<section class="group-panel group-panel--danger" data-group-surface style="--group-surface: group-{{ group.id }};" aria-labelledby="group-title">
+<a class="back-link pb-sprint-back" href="{% url 'groups:detail' group.id %}">← Volver al grupo</a>
+<section class="group-panel group-panel--danger pb-sprint-panel pb-sprint-danger" data-group-surface style="--group-surface: group-{{ group.id }};" aria-labelledby="group-title">
   <p class="eyebrow eyebrow--blue">ANTES DE CONTINUAR</p>
   <h1 id="group-title">¿Eliminar este grupo?</h1>
   <p class="panel-description">Vas a eliminar <strong>{{ group.name }}</strong> y todas sus membresías. Esta acción es permanente y no se puede deshacer.</p>

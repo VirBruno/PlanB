@@ -42,6 +42,22 @@ class PlanViewsTests(TestCase):
         self.assertNotContains(response, 'href="/planes/nuevo/"')
         list_plans.assert_called_once_with("private-jwt", page=1)
 
+    @patch("apps.plans.views.plan_service.list_plans")
+    def test_index_separates_active_and_inactive_plans_without_duplication(self, list_plans):
+        active = plan_row(name="Juntada activa", status=True)
+        inactive = plan_row(name="Viaje pendiente", status=False)
+        inactive["id"] = "6e0e6647-32d8-454f-b2f2-847f2b20ef34"
+        list_plans.return_value = {"items": [active, inactive], "page": 1}
+        response = self.client.get("/planes/")
+        self.assertContains(response, 'data-plan-section="active"')
+        self.assertContains(response, 'data-plan-section="inactive"')
+        self.assertContains(response, 'data-plan-search')
+        self.assertContains(response, 'data-plan-sort')
+        self.assertContains(response, 'data-plan-state="active"', count=1)
+        self.assertContains(response, 'data-plan-state="inactive"', count=1)
+        self.assertContains(response, "Juntada activa", count=1)
+        self.assertContains(response, "Viaje pendiente", count=1)
+
     @patch("apps.plans.views.plan_service.create_plan", return_value=PLAN_ID)
     @patch("apps.plans.views.group_service.get_group")
     def test_group_owner_can_create_a_group_plan(self, get_group, create):
@@ -161,10 +177,19 @@ class PlanViewsTests(TestCase):
 
     @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
     @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row())
-    def test_member_cannot_request_proposal_ideal(self, get_plan, get_group):
-        self.assertEqual(
-            self.client.post(f"/planes/{PLAN_ID}/propuestas/ideal/").status_code, 403,
+    def test_member_can_request_proposal_ideal(self, get_plan, get_group):
+        response = self.client.post(f"/planes/{PLAN_ID}/propuestas/ideal/")
+        self.assertRedirects(
+            response, f"/planes/{PLAN_ID}/?ideal=1#proposal-ideal-card",
+            fetch_redirect_response=False,
         )
+
+    @patch("apps.plans.views.group_service.get_group")
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row())
+    def test_outsider_cannot_calculate_proposal_ideal(self, get_plan, get_group):
+        from apps.groups.services.exceptions import GroupNotFound
+        get_group.side_effect = GroupNotFound()
+        self.assertEqual(self.client.post(f"/planes/{PLAN_ID}/propuestas/ideal/").status_code, 404)
 
     def test_proposal_ideal_summary_calculates_radius_center_and_budget(self):
         from apps.plans.views import _proposal_ideal_summary
@@ -239,7 +264,7 @@ class PlanViewsTests(TestCase):
         self.assertContains(response, "data-lat=\"-34.7\"")
         self.assertContains(response, "/static/leaflet.js")
         self.assertNotContains(response, f"/planes/{PLAN_ID}/propuestas/nueva/")
-        self.assertNotContains(response, f"/planes/{PLAN_ID}/propuestas/ideal/")
+        self.assertContains(response, f"/planes/{PLAN_ID}/propuestas/ideal/")
         self.assertContains(response, "Ya compartiste tu propuesta para este plan.")
         self.assertEqual(
             response.headers["Referrer-Policy"], "strict-origin-when-cross-origin",
@@ -250,9 +275,9 @@ class PlanViewsTests(TestCase):
          "description": "", "date_pick": None, "latitude": -34.6, "longitude": -58.4,
          "budget_min": Decimal("100"), "budget_max": Decimal("200")},
     ])
-    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "owner"})
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
     @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row())
-    def test_admin_sees_ideal_proposal_card_and_map_after_calculation(self, get_plan, get_group, list_proposals):
+    def test_member_sees_ideal_proposal_card_and_map_after_calculation(self, get_plan, get_group, list_proposals):
         response = self.client.get(f"/planes/{PLAN_ID}/?ideal=1")
         self.assertContains(response, "Propuesta ideal")
         self.assertContains(response, "Presupuesto ideal")

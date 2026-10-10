@@ -1,21 +1,73 @@
 {% extends 'components/authenticated_base.html' %}
 {% load static %}
 {% block title %}Mis planes · Plan B{% endblock %}
+{% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'users/css/plans-experience.css' %}?v=14.1">{% endblock %}
+{% block extra_js %}{{ block.super }}<script src="{% static 'users/js/plan-filters.js' %}?v=14" defer></script>{% endblock %}
 {% block workspace %}
 <div class="pb-plans-wrap">
-  <header class="pb-page-heading pb-plans-heading"><div><span class="pb-overline">ORGANIZÁ TUS IDEAS</span><h1>Mis planes</h1><p>Todos los planes de tus grupos, reunidos en un solo lugar.</p></div><a class="pb-soft-action" href="{% url 'users:dashboard' %}#mis-grupos">Ver mis grupos ↗</a></header>
-  <div class="pb-plan-summary"><span class="pb-summary-icon" aria-hidden="true">✦</span><div><strong>Todo comienza con una buena idea</strong><p>Elegí un plan para ver sus propuestas o entrá a un grupo para crear uno nuevo.</p></div></div>
-  <section class="pb-plans-section" aria-labelledby="plans-title"><div class="pb-section-label"><h2 id="plans-title">Planes de tus grupos</h2><span class="pb-section-label-line"></span></div>
+  <header class="pb-page-heading pb-plans-heading">
+    <div><span class="pb-overline">ORGANIZÁ TUS IDEAS</span><h1>Mis planes</h1><p>Encontrá tus planes en curso y retomá las ideas del grupo.</p></div>
+    <a class="pb-soft-action" href="{% url 'groups:index' %}">Ver mis grupos ↗</a>
+  </header>
   {% if plans_page.items %}
-  <ul class="pb-plan-grid">{% for plan in plans_page.items %}
-    <li><a class="pb-plan-card" href="{% url 'plans:detail' plan.id %}"><span class="pb-plan-icon" aria-hidden="true">✧</span><span class="pb-plan-info"><strong>{{ plan.name }}</strong><span>{% if plan.description %}{{ plan.description|truncatechars:110 }}{% else %}Todavía sin descripción.{% endif %}</span><small>Creado el {{ plan.created_at|date:"d/m/Y" }}</small></span><span class="pb-plan-card-end"><span class="pb-plan-state {% if plan.status %}is-active{% endif %}">{% if plan.status %}Activo{% else %}Inactivo{% endif %}</span><span aria-hidden="true">↗</span></span></a></li>
-  {% endfor %}</ul>
+  <section class="pb-plan-overview" aria-label="Resumen de planes de esta página">
+    <div class="pb-plan-overview-item pb-plan-overview-item--active"><span class="pb-overview-symbol" aria-hidden="true">✦</span><div><strong data-plan-overview-count="active">–</strong><span>En curso</span></div><small>Ideas abiertas en esta página</small></div>
+    <div class="pb-plan-overview-item"><span class="pb-overview-symbol" aria-hidden="true">↗</span><div><strong data-plan-overview-count="inactive">–</strong><span>Inactivos</span></div><small>Planes que no están activos</small></div>
+  </section>
+  <section class="pb-plans-section" aria-labelledby="plans-title">
+    <div class="pb-section-label"><h2 id="plans-title">Planes de tus grupos</h2><span class="pb-section-label-line"></span></div>
+    <div class="pb-plan-filter-toolbar" data-plan-filters hidden>
+      <label class="pb-plan-search" for="pb-plan-search"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10.8" cy="10.8" r="7"/><path d="m16 16 5 5"/></svg><input type="search" id="pb-plan-search" data-plan-search placeholder="Buscar un plan de esta página" autocomplete="off"></label>
+      <div class="pb-plan-filter-row">
+        <div class="pb-plan-filter-buttons" role="group" aria-label="Filtrar planes de esta página">
+          <button type="button" data-plan-filter="all" aria-pressed="true">Todos <span data-plan-count="all"></span></button>
+          <button type="button" data-plan-filter="active" aria-pressed="false">En curso <span data-plan-count="active"></span></button>
+          <button type="button" data-plan-filter="inactive" aria-pressed="false">Inactivos <span data-plan-count="inactive"></span></button>
+        </div>
+        <label class="pb-plan-sort-label">Ordenar
+          <select data-plan-sort aria-label="Ordenar los planes de esta página">
+            <option value="recent">Más recientes</option>
+            <option value="oldest">Más antiguos</option>
+            <option value="name">Nombre A–Z</option>
+          </select>
+        </label>
+      </div>
+      <p class="pb-plan-filter-caption">La búsqueda, los filtros y el orden se aplican a los planes de esta página.</p>
+    </div>
+    <div class="pb-plan-filter-empty" data-plan-filter-empty hidden>
+      <strong>No encontramos planes con esos filtros.</strong>
+      <p>Probá otra búsqueda o volvé a ver todos los planes.</p>
+      <button type="button" data-plan-reset>Limpiar filtros</button>
+    </div>
+    <span class="sr-only" data-plan-filter-announcement role="status" aria-live="polite"></span>
+    <section class="pb-plan-state-section" data-plan-section="active" aria-labelledby="pb-active-title">
+      <div class="pb-plan-state-heading"><div><span class="pb-state-dot" aria-hidden="true"></span><h3 id="pb-active-title">En curso</h3><span class="pb-group-count" data-plan-visible-count="active"></span></div><p>Ideas y actividades que el grupo todavía está organizando.</p></div>
+      <ul class="pb-plan-grid" data-plan-list="active">
+      {% for plan in plans_page.items %}{% if plan.status %}
+        <li data-plan-state="active" data-plan-created="{{ plan.created_at|date:'c' }}">
+          <a class="pb-plan-card" href="{% url 'plans:detail' plan.id %}"><span class="pb-plan-icon" aria-hidden="true">✧</span><span class="pb-plan-info"><strong>{{ plan.name }}</strong><span>{% if plan.description %}{{ plan.description|truncatechars:110 }}{% else %}Todavía sin descripción.{% endif %}</span><small>Creado el {{ plan.created_at|date:"d/m/Y" }}</small></span><span class="pb-plan-card-end"><span class="pb-plan-state is-active">Activo</span><span class="pb-plan-card-arrow" aria-hidden="true">↗</span></span></a>
+        </li>
+      {% endif %}{% endfor %}
+      </ul>
+    </section>
+    <section class="pb-plan-state-section pb-plan-state-section--inactive" data-plan-section="inactive" aria-labelledby="pb-inactive-title">
+      <div class="pb-plan-state-heading"><div><span class="pb-state-dot pb-state-dot--inactive" aria-hidden="true"></span><h3 id="pb-inactive-title">Inactivos</h3><span class="pb-group-count" data-plan-visible-count="inactive"></span></div><p>Planes que actualmente no están activos.</p></div>
+      <ul class="pb-plan-grid" data-plan-list="inactive">
+      {% for plan in plans_page.items %}{% if not plan.status %}
+        <li data-plan-state="inactive" data-plan-created="{{ plan.created_at|date:'c' }}">
+          <a class="pb-plan-card" href="{% url 'plans:detail' plan.id %}"><span class="pb-plan-icon pb-plan-icon--inactive" aria-hidden="true">✧</span><span class="pb-plan-info"><strong>{{ plan.name }}</strong><span>{% if plan.description %}{{ plan.description|truncatechars:110 }}{% else %}Todavía sin descripción.{% endif %}</span><small>Creado el {{ plan.created_at|date:"d/m/Y" }}</small></span><span class="pb-plan-card-end"><span class="pb-plan-state">Inactivo</span><span class="pb-plan-card-arrow" aria-hidden="true">↗</span></span></a>
+        </li>
+      {% endif %}{% endfor %}
+      </ul>
+    </section>
+  </section>
   {% elif plans_page.page > 1 %}
     <div class="pb-empty-plans"><h3>No hay más planes en esta página.</h3><a href="{% url 'plans:index' %}">Volver a la primera página</a></div>
   {% else %}
-    <div class="pb-empty-plans"><span aria-hidden="true">✳</span><h3>Todavía no hay planes en tus grupos.</h3><p>Entrá a uno de tus grupos para organizar la primera actividad.</p><a class="pb-soft-action" href="{% url 'users:dashboard' %}#mis-grupos">Ir a mis grupos ↗</a></div>
+    <div class="pb-empty-plans"><span aria-hidden="true">✳</span><h3>Todavía no hay planes en tus grupos.</h3><p>Entrá a uno de tus grupos para organizar la primera actividad.</p><a class="pb-soft-action" href="{% url 'groups:index' %}">Ir a mis grupos ↗</a></div>
   {% endif %}
-  {% if plans_page.previous_page or plans_page.next_page %}<nav class="group-pagination social-pagination" aria-label="Páginas de planes">{% if plans_page.previous_page %}<a class="button button--quiet" href="?page={{ plans_page.previous_page }}">← Anterior</a>{% endif %}<span>Página {{ plans_page.page }}</span>{% if plans_page.next_page %}<a class="button button--quiet" href="?page={{ plans_page.next_page }}">Siguiente →</a>{% endif %}</nav>{% endif %}
-  </section>
+  {% if plans_page.previous_page or plans_page.next_page %}
+  <nav class="group-pagination social-pagination pb-plan-pagination" aria-label="Páginas de planes">{% if plans_page.previous_page %}<a class="button button--quiet" href="?page={{ plans_page.previous_page }}">← Anterior</a>{% endif %}<span>Página {{ plans_page.page }}</span>{% if plans_page.next_page %}<a class="button button--quiet" href="?page={{ plans_page.next_page }}">Siguiente →</a>{% endif %}</nav>
+  {% endif %}
 </div>
 {% endblock %}

@@ -71,99 +71,30 @@
  .pb-app-shell *, .pb-app-shell *::before,.pb-app-shell *::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 }
 
-/* Etapa 11.3 — Un solo icono SVG visible en el selector.
-   Sin clase theme-toggle: evita los estilos globales del botón flotante.
-   El botón solo cambia de icono según data-theme; theme.js sigue funcionando. */
+/* Etapa 11.1: selector de tema en el encabezado, nunca flotando sobre el contenido. */
 .pb-app-shell .pb-header-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  flex-shrink: 0;
-  gap: 10px;
+ display:flex; align-items:center; justify-content:flex-end; flex-shrink:0; gap:8px;
 }
-.pb-app-shell .pb-header-actions > :is(a, button.pb-theme-header-toggle) {
-  appearance: none;
-  position: relative;
-  display: grid;
-  place-items: center;
-  box-sizing: border-box;
-  flex: 0 0 40px;
-  width: 40px;
-  min-width: 40px;
-  height: 40px;
-  min-height: 40px;
-  margin: 0;
-  padding: 0;
-  border: 1px solid var(--glass-border);
-  border-radius: 50%;
-  background: var(--sd-panel);
-  color: var(--sd-ink);
-  font-size: 0;
-  line-height: 1;
-  text-decoration: none;
-  cursor: pointer;
-  box-shadow: none;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+.pb-app-shell .pb-header-actions > :is(a, .pb-theme-header-toggle.theme-toggle) {
+ position:relative; display:grid; place-items:center; width:40px; height:40px; min-width:40px;
+ margin:0; padding:0; border-radius:50%; border:1px solid var(--glass-border);
+ background:var(--sd-panel); color:var(--sd-ink); box-shadow:none;
+ font:inherit; font-size:19px; line-height:1; text-decoration:none;
+ -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
 }
-.pb-app-shell .pb-header-actions > :is(a, button.pb-theme-header-toggle):hover {
-  border-color: #9584f1;
-  background: rgba(149,132,241,.14);
+.pb-app-shell .pb-theme-header-toggle.theme-toggle {
+ position:relative; bottom:auto; right:auto; z-index:auto; cursor:pointer;
 }
-.pb-app-shell .pb-header-actions > :is(a, button.pb-theme-header-toggle):focus-visible {
-  outline: 3px solid #9584f1;
-  outline-offset: 3px;
+.pb-app-shell .pb-header-actions > :is(a, .pb-theme-header-toggle.theme-toggle):hover {
+ border-color:#9584f1; background:rgba(149,132,241,.14);
 }
-/* Nunca mezclar pseudo-iconos con los SVG reales. */
-.pb-app-shell .pb-header-actions button.pb-theme-header-toggle::before,
-.pb-app-shell .pb-header-actions button.pb-theme-header-toggle::after {
-  content: none !important;
-  display: none !important;
-}
-.pb-app-shell .pb-header-actions .pb-header-icon,
-.pb-app-shell .pb-header-actions button.pb-theme-header-toggle .pb-theme-icon {
-  display: block;
-  width: 20px;
-  height: 20px;
-  max-width: 20px;
-  max-height: 20px;
-  flex: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  margin: 0;
-  padding: 0;
-  transform: none;
-}
-.pb-app-shell .pb-header-actions button.pb-theme-header-toggle .pb-theme-sun { display: none; }
-html[data-theme="dark"] .pb-app-shell .pb-header-actions button.pb-theme-header-toggle .pb-theme-moon { display: none; }
-html[data-theme="dark"] .pb-app-shell .pb-header-actions button.pb-theme-header-toggle .pb-theme-sun { display: block; }
-
-/* Iconos de navegación uniformes. */
-.pb-app-shell .social-side-nav a > .pb-nav-icon {
-  display: block;
-  width: 20px;
-  height: 20px;
-  min-width: 20px;
-  flex: none;
-  stroke-width: 1.85;
-  color: currentColor;
-}
-.pb-app-shell .social-side-nav a > .pb-nav-label {
-  font-size: inherit !important;
-  line-height: inherit !important;
-  font-weight: inherit;
-  text-align: left !important;
-  width: auto !important;
+.pb-app-shell .pb-header-actions > :is(a, .pb-theme-header-toggle.theme-toggle):focus-visible {
+ outline:3px solid #9584f1; outline-offset:3px;
 }
 @media(max-width:700px) {
-  .pb-app-shell .pb-header-actions { gap: 6px; }
-  .pb-app-shell .pb-app-topbar { align-items: center; }
-  .pb-app-shell .social-side-nav a > .pb-nav-label {
-    font-size: 10px !important;
-    line-height: 1.2 !important;
-    text-align: center !important;
-  }
-}
-@media(max-width:390px) {
-  .pb-app-shell .social-side-nav a > .pb-nav-label { font-size: 9px !important; }
+ .pb-app-shell .pb-header-actions {gap:6px;}
+ .pb-app-shell .pb-header-actions > :is(a, .pb-theme-header-toggle.theme-toggle) {
+  width:40px; height:40px; min-width:40px;
+ }
+ .pb-app-shell .pb-app-topbar {align-items:center;}
 }

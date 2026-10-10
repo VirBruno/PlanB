@@ -1,8 +1,8 @@
 {% extends 'components/authenticated_base.html' %}
 {% block title %}Invitar integrante · Plan B{% endblock %}
 {% block workspace %}
-<a class="back-link" href="{% url 'groups:detail' group.id %}">← {{ group.name }}</a>
-<section class="group-panel" aria-labelledby="invite-title">
+<a class="back-link pb-sprint-back" href="{% url 'groups:detail' group.id %}">← {{ group.name }}</a>
+<section class="group-panel pb-sprint-panel pb-sprint-invite" aria-labelledby="invite-title">
   <p class="eyebrow eyebrow--blue">HAY LUGAR PARA UNO MÁS</p>
   <h1 id="invite-title">Invitar integrante</h1>
   <p class="panel-description">Buscá a alguien por su username completo. Podrá aceptar o rechazar tu invitación.</p>

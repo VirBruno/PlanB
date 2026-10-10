@@ -104,7 +104,7 @@ class InvitationNavigationTests(TestCase):
             response = post(f'/notificaciones/invitaciones/{second}/aceptar/', {'role': 'owner', 'user_id': USER_ID})
             self.assertContains(response, 'Invitación aceptada')
             self.assertContains(response, 'Invitación rechazada')
-            self.assertNotContains(response, 'class="notification-badge"')
+            self.assertNotContains(response, 'class="pb-notification-dot"')
             self.assertContains(browser.get('/dashboard/'), 'Futboleros')
             detail = browser.get(f'/grupos/{GROUP_ID}/')
             self.assertContains(detail, 'Bruno')

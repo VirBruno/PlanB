@@ -1,8 +1,8 @@
 {% extends 'components/authenticated_base.html' %}
 {% block title %}Eliminar plan · Plan B{% endblock %}
 {% block workspace %}
-<a class="back-link" href="{% url 'plans:detail' plan.id %}">← Volver al plan</a>
-<section class="group-panel" aria-labelledby="delete-title">
+<a class="back-link pb-sprint-back" href="{% url 'plans:detail' plan.id %}">← Volver al plan</a>
+<section class="group-panel pb-sprint-panel pb-sprint-danger" aria-labelledby="delete-title">
   <p class="eyebrow eyebrow--blue">CONFIRMAR CAMBIO</p>
   <h1 id="delete-title">¿Eliminar “{{ plan.name }}”?</h1>
   <p class="panel-description">Esta acción no se puede deshacer.</p>

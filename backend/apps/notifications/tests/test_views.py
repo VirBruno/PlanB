@@ -199,12 +199,12 @@ class InvitationViewsTests(TestCase):
     def test_badge_counts_only_unread(self):
         response = self.client.get('/notificaciones/')
         self.assertContains(response, 'Notificaciones: 2 sin leer')
-        self.assertContains(response, 'class="notification-badge"')
+        self.assertContains(response, 'class="pb-notification-dot"')
         self.badge.assert_called_once_with('private-jwt')
 
     def test_zero_unread_hides_badge(self):
         self.badge.return_value = 0
-        self.assertNotContains(self.client.get('/notificaciones/'), 'class="notification-badge"')
+        self.assertNotContains(self.client.get('/notificaciones/'), 'class="pb-notification-dot"')
 
     def test_badge_outage_keeps_page_and_reports_unavailable_count(self):
         self.badge.side_effect = InvitationUnavailable()

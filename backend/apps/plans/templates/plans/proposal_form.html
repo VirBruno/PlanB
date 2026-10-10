@@ -44,14 +44,14 @@
           {% endif %}
         {% endfor %}
       </div>
-        <fieldset class="proposal-budget" aria-describedby="budget-help">
-          <legend>Presupuesto (opcional)</legend>
-          <p class="field-help" id="budget-help">Indicá cuánto estás dispuesto a gastar; podés completar uno o ambos límites.</p>
-          <div class="proposal-budget-fields">
-            {% include 'components/field.html' with field=form.budget_min %}
-            {% include 'components/field.html' with field=form.budget_max %}
-          </div>
-        </fieldset>
+      <fieldset class="proposal-budget" aria-describedby="budget-help">
+        <legend>Presupuesto (opcional)</legend>
+        <p class="field-help" id="budget-help">Indicá cuánto estás dispuesto a gastar; podés completar uno o ambos límites.</p>
+        <div class="proposal-budget-fields">
+          {% include 'components/field.html' with field=form.budget_min %}
+          {% include 'components/field.html' with field=form.budget_max %}
+        </div>
+      </fieldset>
     </section>
     <section class="pfs-section" aria-labelledby="pfs-date-heading">
       <header class="pfs-section-head"><span class="pfs-step" aria-hidden="true">02</span><div><h2 id="pfs-date-heading">¿Cuándo?</h2><p>Elegí una fecha y horario tentativos.</p></div></header>

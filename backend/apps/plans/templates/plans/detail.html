@@ -44,12 +44,14 @@
       {% if can_create_proposal %}<a class="button button--primary" href="{% url 'plans:proposal_create' plan.id %}">Nueva propuesta <span aria-hidden="true">+</span></a>{% endif %}
     </div>
     {% if proposals %}
-    {% if can_manage %}
     <form class="proposal-ideal-action" method="post" action="{% url 'plans:proposal_ideal' plan.id %}">
       {% csrf_token %}
-      <button class="button button--primary" type="submit" data-calculate-ideal>Calcular propuesta ideal</button>
+      <div class="pb-ideal-action-copy">
+        <span class="pb-ideal-action-symbol" aria-hidden="true">✧</span>
+        <div><strong>Un punto de encuentro</strong><p>Encontrá una ubicación intermedia y un presupuesto de referencia para el grupo.</p></div>
+      </div>
+      <button class="button button--primary" type="submit" data-calculate-ideal>Calcular propuesta ideal <span aria-hidden="true">→</span></button>
     </form>
-    {% endif %}
     {% if ideal_summary %}
     <dialog class="proposal-ideal-dialog" id="proposal-ideal-card" data-ideal-dialog aria-labelledby="proposal-ideal-title">
       <section class="proposal-ideal">
@@ -88,7 +90,7 @@
           {% if proposal.can_manage %}
           <div class="proposal-actions">
             <a class="button button--quiet" href="{% url 'plans:proposal_edit' plan.id proposal.id %}">Editar</a>
-            <form method="post" action="{% url 'plans:proposal_delete' plan.id proposal.id %}">
+            <form method="post" action="{% url 'plans:proposal_delete' plan.id proposal.id %}" data-confirm-delete="¿Eliminar esta propuesta? Esta acción no se puede deshacer.">
               {% csrf_token %}
               <button class="button button--danger-quiet" type="submit">Eliminar</button>
             </form>
@@ -99,7 +101,7 @@
         <dl class="proposal-meta">
           {% if proposal.date_pick %}<div><dt>Fecha</dt><dd>{{ proposal.date_pick|date:"d/m/Y H:i" }}</dd></div>{% endif %}
           {% if proposal.budget_min != None or proposal.budget_max != None %}
-          <div><dt>Presupuesto</dt><dd>{% if proposal.budget_min != None and proposal.budget_max != None %}{{ proposal.budget_min|floatformat:2 }} – {{ proposal.budget_max|floatformat:2 }}{% elif proposal.budget_min != None %}Desde {{ proposal.budget_min|floatformat:2 }}{% else %}Hasta {{ proposal.budget_max|floatformat:2 }}{% endif %}</dd></div>
+          <div class="proposal-budget-range"><dt>Presupuesto</dt><dd>{% if proposal.budget_min != None and proposal.budget_max != None %}{{ proposal.budget_min|floatformat:2 }} – {{ proposal.budget_max|floatformat:2 }}{% elif proposal.budget_min != None %}Desde {{ proposal.budget_min|floatformat:2 }}{% else %}Hasta {{ proposal.budget_max|floatformat:2 }}{% endif %}</dd></div>
           {% endif %}
         </dl>
         <div class="proposal-location pb-proposal-card-location">

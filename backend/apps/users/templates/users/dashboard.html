@@ -12,12 +12,12 @@
     <a class="social-cta" href="{% url 'groups:create' %}"><span aria-hidden="true">＋</span> Crear grupo</a>
   </section>
   <section class="social-mini-actions" aria-label="Accesos rápidos">
-    <a href="{% url 'groups:index' %}"><span aria-hidden="true">♧</span><strong>Mis grupos</strong><small>Tu gente, en un lugar</small></a>
-    <a href="{% url 'notifications:index' %}"><span aria-hidden="true">✉</span><strong>Invitaciones</strong><small>Revisá novedades</small></a>
+    <a href="{% url 'groups:index' %}"><span class="pb-quick-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2M17 5a3 3 0 0 1 0 6M18 14a5 5 0 0 1 3 5v1"/></svg></span><strong>Mis grupos</strong><small>Tu gente, en un lugar</small><span class="pb-quick-arrow" aria-hidden="true">↗</span></a>
+    <a href="{% url 'notifications:index' %}"><span class="pb-quick-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></span><strong>Notificaciones</strong><small>Invitaciones y novedades</small><span class="pb-quick-arrow" aria-hidden="true">↗</span></a>
   </section>
 
   <section class="social-groups-section" id="mis-grupos" aria-labelledby="groups-title">
-    <div class="social-section-heading"><div><span class="social-section-caption">TU COMUNIDAD</span><h2 id="groups-title">Mis grupos <span class="social-heading-spark" aria-hidden="true">✳</span></h2><p>Un lugar para cada grupo de personas con las que compartís planes.</p></div><a class="social-text-link" href="{% url 'groups:create' %}">Crear otro grupo <span aria-hidden="true">↗</span></a></div>
+    <div class="social-section-heading"><div><span class="social-section-caption">TU COMUNIDAD</span><h2 id="groups-title">Mis grupos <span class="social-heading-spark" aria-hidden="true">✳</span></h2><p>Un lugar para cada grupo de personas con las que compartís planes.</p></div><a class="social-text-link" href="{% url 'groups:index' %}">Ver todos mis grupos <span aria-hidden="true">↗</span></a></div>
     {% if groups_unavailable %}
       <div class="notice notice--error" role="alert"><p>No pudimos cargar tus grupos. Esperá unos minutos y volvé a intentar.</p><p><a href="{% url 'users:dashboard' %}">Volver a intentar</a></p></div>
     {% elif groups_page.items %}
@@ -47,8 +47,11 @@
     {% endif %}
   </section>
 
-  <section class="social-next" id="mis-planes" aria-label="Cómo organizar un plan">
-    <div><span class="social-section-caption">ASÍ EMPIEZA TODO</span><h2>Menos mensajes.<br>Más momentos juntos.</h2><p>Creá un grupo, reuní a tus amigos y organizá planes desde un mismo lugar.</p></div>
-    <ol class="social-steps"><li><span>01</span><div><strong>Creá tu grupo</strong><small>Elegí un nombre para tu grupo.</small></div></li><li><span>02</span><div><strong>Sumá a tus amigos</strong><small>Compartí una invitación.</small></div></li><li><span>03</span><div><strong>Organizá un plan</strong><small>Proponé actividades desde el grupo.</small></div></li></ol>
-  </section>
+  <details class="pb-onboarding" {% if not groups_page.items %}open{% endif %}>
+    <summary><span class="pb-onboarding-label"><span aria-hidden="true">✧</span><strong>¿Cómo funciona Plan B?</strong><small>Tres pasos para organizar un plan con tu gente</small></span><span class="pb-onboarding-chevron" aria-hidden="true">⌄</span></summary>
+    <section class="social-next" id="mis-planes" aria-label="Cómo organizar un plan">
+      <div><span class="social-section-caption">ASÍ EMPIEZA TODO</span><h2>Menos mensajes.<br>Más momentos juntos.</h2><p>Creá un grupo, reuní a tus amigos y organizá planes desde un mismo lugar.</p></div>
+      <ol class="social-steps"><li><span>01</span><div><strong>Creá tu grupo</strong><small>Elegí un nombre para tu grupo.</small></div></li><li><span>02</span><div><strong>Sumá a tus amigos</strong><small>Compartí una invitación.</small></div></li><li><span>03</span><div><strong>Organizá un plan</strong><small>Proponé actividades desde el grupo.</small></div></li></ol>
+    </section>
+  </details>
 {% endblock %}
