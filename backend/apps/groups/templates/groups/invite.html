@@ -1,12 +1,28 @@
 {% extends 'components/authenticated_base.html' %}
+{% load static %}
 {% block title %}Invitar integrante · Plan B{% endblock %}
 {% block workspace %}
 <a class="back-link" href="{% url 'groups:detail' group.id %}">← {{ group.name }}</a>
 <section class="group-panel" aria-labelledby="invite-title">
   <p class="eyebrow eyebrow--blue">HAY LUGAR PARA UNO MÁS</p>
   <h1 id="invite-title">Invitar integrante</h1>
-  <p class="panel-description">Buscá a alguien por su username completo. Podrá aceptar o rechazar tu invitación.</p>
+  <p class="panel-description">Buscá a alguien por su username o compartí un enlace de invitación.</p>
   {% if error_message %}<p class="notice notice--error" role="alert">{{ error_message }}</p>{% endif %}
+  <form method="post" class="invitation-search">{% csrf_token %}<button class="button button--primary" type="submit" name="action" value="create_link">Generar enlace válido por 7 días</button></form>
+  {% if invite_link %}
+    <div class="notice invite-link-notice">
+      <div class="field">
+        <label for="invite-link">Enlace de invitación</label>
+        <input id="invite-link" class="invite-link-input" type="url" value="{{ invite_link }}" readonly data-invite-link>
+      </div>
+      <div class="invite-link-actions">
+        <button class="button button--primary" type="button" data-copy-invite>Copiar enlace</button>
+        <button class="button button--quiet" type="button" data-share-invite hidden>Compartir</button>
+      </div>
+      <p class="invite-link-feedback" data-invite-feedback aria-live="polite" role="status"></p>
+      <p>Vence el {{ invite_link_expiry|date:"d/m/Y H:i" }}. Al generar otro, este enlace dejará de funcionar.</p>
+    </div>
+  {% endif %}
   {% include 'components/form_errors.html' with form=invite_form %}
   <form method="get" class="invitation-search">
     {% include 'components/form_errors.html' with form=search_form %}
@@ -24,4 +40,5 @@
   {% endif %}
   {% if pending_invitations %}<h2>Invitaciones pendientes</h2><ul class="people-list">{% for person in pending_invitations %}<li><span class="person-avatar" aria-hidden="true">{{ person.initials }}</span><span class="person-name">{{ person.username }}</span><span class="person-role">Pendiente</span></li>{% endfor %}</ul>{% endif %}
 </section>
+<script src="{% static 'users/js/group-invite.js' %}" defer></script>
 {% endblock %}

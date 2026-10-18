@@ -106,15 +106,26 @@ def invite(request, group_id):
         return _management_unavailable(request, group_id)
     token = session_service.get_access_token(request)
     search_form = InviteSearchForm(request.GET if 'username' in request.GET else None)
-    invite_form = InviteForm(request.POST if request.method == 'POST' else None)
+    invite_form = InviteForm(
+        request.POST if request.method == 'POST' and request.POST.get('action') != 'create_link' else None,
+    )
     candidates, pending, status = [], [], 200
     error_message = None
+    invite_link = None
+    invite_link_expiry = None
     try:
+        if request.method == 'POST' and request.POST.get('action') == 'create_link':
+            created_link = invitation_service.create_invite_link(token, group_id)
+            invite_link = request.build_absolute_uri(reverse(
+                'groups:join_by_link', args=[created_link['token']],
+            ))
+            invite_link_expiry = created_link['expires_at']
         if request.method == 'POST' and invite_form.is_valid():
             invitation_service.create_invitation(token, group_id, invite_form.cleaned_data['invited_user_id'])
             messages.success(request, 'La invitación se envió. La persona podrá responder desde sus notificaciones.')
             return redirect('groups:detail', group_id=group_id)
-        pending = invitation_service.list_pending(token, group_id)
+        if request.method != 'POST' or request.POST.get('action') != 'create_link':
+            pending = invitation_service.list_pending(token, group_id)
         if search_form.is_bound and search_form.is_valid():
             candidates = invitation_service.search_invitees(token, group_id, search_form.cleaned_data['username'])
             pending_users = {item['invited_user_id'] for item in pending}
@@ -130,8 +141,32 @@ def invite(request, group_id):
     return render(request, 'groups/invite.html', {
         'group': group, 'search_form': search_form, 'invite_form': invite_form,
         'candidates': candidates, 'pending_invitations': pending,
-        'error_message': error_message, 'planb_user': request.planb_user,
+        'error_message': error_message, 'invite_link': invite_link,
+        'invite_link_expiry': invite_link_expiry, 'planb_user': request.planb_user,
     }, status=status)
+
+
+@private_page
+@require_http_methods(['GET', 'POST'])
+@supabase_login_required
+@sensitive_variables()
+def join_by_link(request, token):
+    access_token = session_service.get_access_token(request)
+    try:
+        group = invitation_service.preview_invite_link(access_token, token)
+        if request.method == 'POST':
+            group_id = invitation_service.join_by_invite_link(access_token, token)
+            messages.success(request, f'Ya sos parte de {group["name"]}.')
+            return redirect('groups:detail', group_id=group_id)
+    except InvitationNotFound:
+        raise Http404('El enlace no existe, venció o fue revocado.') from None
+    except InvitationUnavailable:
+        return render(request, 'groups/join_link.html', {
+            'unavailable': True, 'planb_user': request.planb_user,
+        }, status=503)
+    return render(request, 'groups/join_link.html', {
+        'group': group, 'planb_user': request.planb_user,
+    })
 
 def _owned_group(request, group_id):
     group = group_service.get_group(session_service.get_access_token(request), group_id)
