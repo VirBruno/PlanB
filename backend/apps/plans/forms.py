@@ -3,6 +3,8 @@ import math
 from decimal import Decimal
 
 from django import forms
+from django.utils import timezone
+from .services.plan_weather_service import PROVINCES, ARGENTINA_TZ
 
 
 class PlanForm(forms.Form):
@@ -19,8 +21,42 @@ class PlanForm(forms.Form):
         choices=(("true", "Activo"), ("false", "Inactivo")),
     )
 
+    plan_date = forms.DateField(
+        label="Día del plan", required=False,
+        widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+    )
+    plan_time = forms.TimeField(
+        label="Horario", required=False, input_formats=("%H:%M",),
+        widget=forms.TimeInput(attrs={"type": "time", "step": "60"}, format="%H:%M"),
+    )
+    weather_province = forms.ChoiceField(
+        label="Provincia", required=False,
+        choices=[("", "Elegí una provincia"), *PROVINCES.items()],
+    )
+    weather_city_id = forms.IntegerField(
+        required=False, min_value=1, max_value=2**31 - 1,
+        widget=forms.HiddenInput(),
+    )
+
     def clean_status(self):
         return self.cleaned_data["status"] == "true"
+
+    def clean(self):
+        cleaned = super().clean()
+        fields = ("plan_date", "plan_time", "weather_province", "weather_city_id")
+        # Los planes existentes pueden no tener estos datos; si se elige alguno,
+        # deben estar todos completos para evitar una ubicación/fecha ambigua.
+        if any(cleaned.get(field) is not None and cleaned.get(field) != "" for field in fields):
+            for field in fields:
+                if not cleaned.get(field):
+                    self.add_error(field, "Completá la fecha, hora, provincia y localidad del plan.")
+            if not self.errors:
+                from datetime import datetime
+                naive = datetime.combine(cleaned["plan_date"], cleaned["plan_time"])
+                cleaned["scheduled_at"] = timezone.make_aware(naive, ARGENTINA_TZ)
+        else:
+            cleaned["scheduled_at"] = None
+        return cleaned
 
 
 class ProposalForm(forms.Form):

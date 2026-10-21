@@ -1,9 +1,10 @@
 import json
 from decimal import Decimal, ROUND_HALF_UP
+from datetime import date, time
 
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -18,9 +19,11 @@ from apps.users.services.exceptions import ServiceUnavailable
 from .forms import PlanForm
 from .forms import ProposalForm
 from .services import plan_service
-from .services.exceptions import InvalidPlan, PlanNotFound, PlanUnavailable
+from .services.exceptions import InvalidPlan, PlanNotFound, PlanUnavailable, PlanningSchemaUnavailable
 from .services import proposal_service
 from .services import election_service
+from .services import weather_service
+from .services import plan_weather_service
 from .services.proposal_exceptions import (
     ElectionFlexibilityUnavailable, ElectionSchemaUnavailable, InvalidProposal,
     ProposalAlreadyExists, ProposalNotFound, ProposalUnavailable,
@@ -118,6 +121,72 @@ def group_index(request, group_id):
     return redirect("groups:detail", group_id=group_id)
 
 
+
+def _plan_weather_data(form):
+    """Datos opcionales del plan; la ubicación se valida contra la API geográfica."""
+    scheduled_at = form.cleaned_data["scheduled_at"]
+    if scheduled_at is None:
+        return {"scheduled_at": None, "weather_province": None,
+                "weather_city_id": None, "weather_city_name": None}
+    province = form.cleaned_data["weather_province"]
+    city_id = form.cleaned_data["weather_city_id"]
+    city = plan_weather_service.resolve_city(province, city_id)
+    return {"scheduled_at": scheduled_at, "weather_province": province,
+            "weather_city_id": city_id, "weather_city_name": city["name"]}
+
+
+def _group_weather_access(request, group_id):
+    """Sólo miembros autenticados del grupo pueden consultar la geocodificación."""
+    token = session_service.get_access_token(request)
+    return group_service.get_group(token, group_id)
+
+
+@private_page
+@require_http_methods(["GET"])
+@supabase_login_required
+@sensitive_variables()
+def group_weather_cities(request, group_id):
+    try:
+        _group_weather_access(request, group_id)
+    except GroupNotFound:
+        raise Http404("No encontramos ese grupo.") from None
+    except (GroupUnavailable, InvalidGroup):
+        return JsonResponse({"status": "unavailable", "message": "No pudimos consultar el grupo."}, status=503)
+    try:
+        cities = plan_weather_service.search_cities(request.GET.get("provincia", ""), request.GET.get("q", ""))
+    except ValueError as error:
+        return JsonResponse({"status": "invalid", "message": str(error)}, status=400)
+    except weather_service.WeatherUnavailable:
+        return JsonResponse({"status": "unavailable", "message": "No pudimos buscar localidades."}, status=503)
+    return JsonResponse({"status": "ok", "cities": cities})
+
+
+@private_page
+@require_http_methods(["GET"])
+@supabase_login_required
+@sensitive_variables()
+def group_weather_at(request, group_id):
+    try:
+        _group_weather_access(request, group_id)
+    except GroupNotFound:
+        raise Http404("No encontramos ese grupo.") from None
+    except (GroupUnavailable, InvalidGroup):
+        return JsonResponse({"status": "unavailable", "message": "No pudimos consultar el grupo."}, status=503)
+    try:
+        city_id = int(request.GET.get("localidad_id", ""))
+        chosen_date = date.fromisoformat(request.GET.get("fecha", ""))
+        chosen_time = time.fromisoformat(request.GET.get("hora", ""))
+        if chosen_time.tzinfo is not None or chosen_time.second or chosen_time.microsecond:
+            raise ValueError
+        result = plan_weather_service.forecast_for_datetime(
+            request.GET.get("provincia", ""), city_id, chosen_date, chosen_time)
+    except (ValueError, TypeError):
+        return JsonResponse({"status": "invalid", "message": "Elegí provincia, localidad, fecha y horario válidos."}, status=400)
+    except weather_service.WeatherUnavailable:
+        return JsonResponse({"status": "unavailable", "message": "No pudimos consultar el pronóstico."}, status=503)
+    return JsonResponse(result)
+
+
 @private_page
 @require_http_methods(["GET", "POST"])
 @supabase_login_required
@@ -134,12 +203,20 @@ def create(request, group_id):
     status_code = 200
     if request.method == "POST" and form.is_valid():
         try:
+            planning = _plan_weather_data(form)
             plan_id = plan_service.create_plan(
                 token, created_by=request.planb_user["id"], group_id=str(group_id),
                 name=form.cleaned_data["name"],
                 description=form.cleaned_data["description"],
                 status=form.cleaned_data["status"],
+                **(planning if planning["scheduled_at"] is not None else {}),
             )
+        except ValueError as error:
+            form.add_error("weather_city_id", str(error))
+        except weather_service.WeatherUnavailable:
+            form.add_error("weather_city_id", "No pudimos validar la localidad. Intentá nuevamente.")
+        except PlanningSchemaUnavailable as error:
+            form.add_error(None, str(error))
         except InvalidPlan as error:
             form.add_error(None, str(error))
         except PlanUnavailable:
@@ -207,6 +284,8 @@ def detail(request, plan_id):
     # El cálculo es de consulta: cualquier integrante con acceso al plan puede verlo.
     # _plan_and_group/get_group ya valida la pertenencia mediante el JWT del usuario.
     show_ideal = request.GET.get("ideal") == "1"
+    scheduled_local = (timezone.localtime(plan["scheduled_at"], weather_service.ARGENTINA_TZ)
+                       if plan.get("scheduled_at") else None)
     return render(request, "plans/detail.html", {
         "plan": plan, "group": group, "can_manage": group["role"] == "owner",
         "election_method": election_method,
@@ -220,8 +299,88 @@ def detail(request, plan_id):
         "voted_proposal_id": voted_proposal_id,
         "ideal_summary": _proposal_ideal_summary(proposals) if show_ideal else None,
         "show_ideal_popup": show_ideal and election_method in (None, "ideal"),
+        "scheduled_local": scheduled_local,
+        "scheduled_date_iso": scheduled_local.strftime("%Y-%m-%d") if scheduled_local else "",
+        "scheduled_hour": scheduled_local.strftime("%H:%M") if scheduled_local else "",
+        "scheduled_display": scheduled_local.strftime("%d/%m/%Y · %H:%M") if scheduled_local else "",
+        "plan_province_name": plan_weather_service.PROVINCES.get(plan.get("weather_province"), ""),
         "planb_user": request.planb_user,
     })
+
+
+@private_page
+@require_http_methods(["GET"])
+@supabase_login_required
+@sensitive_variables()
+def proposal_weather(request, plan_id, proposal_id):
+    """Clima de una propuesta verificada dentro del plan/grupo del usuario."""
+    token = session_service.get_access_token(request)
+    try:
+        plan = plan_service.get_plan(token, plan_id)
+        if not plan["group_id"]:
+            raise PlanNotFound()
+        # El acceso al grupo se comprueba con el JWT de la sesión, igual que en detail.
+        group_service.get_group(token, plan["group_id"])
+        proposals = proposal_service.list_proposals(token, plan_id)
+    except (PlanNotFound, GroupNotFound):
+        raise Http404("No encontramos ese plan.") from None
+    except (GroupUnavailable, InvalidGroup, PlanUnavailable, ProposalUnavailable):
+        return JsonResponse({"status": "unavailable", "message": "No pudimos consultar este plan."}, status=503)
+
+    proposal = next((item for item in proposals if item["id"] == proposal_id), None)
+    if proposal is None:
+        raise Http404("No encontramos esa propuesta.")
+    try:
+        result = weather_service.forecast_for_proposal(proposal)
+    except weather_service.WeatherUnavailable:
+        return JsonResponse({"status": "unavailable", "message": "No pudimos consultar el pronóstico ahora."}, status=503)
+    response = JsonResponse(result)
+    return response
+
+
+@private_page
+@require_http_methods(["GET"])
+@supabase_login_required
+@sensitive_variables()
+def plan_weather_cities(request, plan_id):
+    """Búsqueda geográfica privada: solo para miembros con acceso al plan."""
+    try:
+        _plan_and_group(request, plan_id)
+    except (PlanNotFound, GroupNotFound):
+        raise Http404("No encontramos ese plan.") from None
+    except (GroupUnavailable, InvalidGroup, PlanUnavailable):
+        return JsonResponse({"status": "unavailable", "message": "No pudimos consultar este plan."}, status=503)
+    try:
+        cities = plan_weather_service.search_cities(
+            request.GET.get("provincia", ""), request.GET.get("q", ""),
+        )
+    except ValueError as error:
+        return JsonResponse({"status": "invalid", "message": str(error)}, status=400)
+    except weather_service.WeatherUnavailable:
+        return JsonResponse({"status": "unavailable", "message": "No pudimos buscar localidades en este momento."}, status=503)
+    return JsonResponse({"status": "ok", "cities": cities})
+
+
+@private_page
+@require_http_methods(["GET"])
+@supabase_login_required
+@sensitive_variables()
+def plan_weather_forecast(request, plan_id):
+    """Pronóstico de una localidad de Argentina, validada por la API geográfica."""
+    try:
+        _plan_and_group(request, plan_id)
+    except (PlanNotFound, GroupNotFound):
+        raise Http404("No encontramos ese plan.") from None
+    except (GroupUnavailable, InvalidGroup, PlanUnavailable):
+        return JsonResponse({"status": "unavailable", "message": "No pudimos consultar este plan."}, status=503)
+    try:
+        city_id = int(request.GET.get("localidad_id", ""))
+        result = plan_weather_service.forecast_for_city(request.GET.get("provincia", ""), city_id)
+    except (ValueError, TypeError):
+        return JsonResponse({"status": "invalid", "message": "Seleccioná una localidad válida de la provincia elegida."}, status=400)
+    except weather_service.WeatherUnavailable:
+        return JsonResponse({"status": "unavailable", "message": "No pudimos consultar el pronóstico. Intentá nuevamente."}, status=503)
+    return JsonResponse(result)
 
 
 @private_page
@@ -518,17 +677,31 @@ def edit(request, plan_id):
         initial={
             "name": plan["name"], "description": plan["description"],
             "status": "true" if plan["status"] else "false",
+            "plan_date": (timezone.localtime(plan["scheduled_at"], weather_service.ARGENTINA_TZ).date()
+                          if plan.get("scheduled_at") else None),
+            "plan_time": (timezone.localtime(plan["scheduled_at"], weather_service.ARGENTINA_TZ).time().replace(tzinfo=None)
+                          if plan.get("scheduled_at") else None),
+            "weather_province": plan.get("weather_province"),
+            "weather_city_id": plan.get("weather_city_id"),
         },
     )
     status_code = 200
     if request.method == "POST" and form.is_valid():
         try:
+            planning = _plan_weather_data(form)
             plan_service.update_plan(
                 token, plan_id=plan_id,
                 name=form.cleaned_data["name"],
                 description=form.cleaned_data["description"],
                 status=form.cleaned_data["status"],
+                **({"update_planning": True, **planning} if (plan.get("planning_schema") or planning["scheduled_at"]) else {}),
             )
+        except ValueError as error:
+            form.add_error("weather_city_id", str(error))
+        except weather_service.WeatherUnavailable:
+            form.add_error("weather_city_id", "No pudimos validar la localidad. Intentá nuevamente.")
+        except PlanningSchemaUnavailable as error:
+            form.add_error(None, str(error))
         except PlanNotFound:
             raise Http404("No encontramos ese plan.") from None
         except GroupNotFound:
@@ -543,6 +716,7 @@ def edit(request, plan_id):
             return redirect("plans:detail", plan_id=plan_id)
     return render(request, "plans/form.html", {
         "form": form, "plan": plan, "group": group, "is_edit": True,
+        "selected_city_name": plan.get("weather_city_name", "") if plan else "",
         "planb_user": request.planb_user,
     }, status=status_code)
 

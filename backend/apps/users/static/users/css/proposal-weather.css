@@ -1,0 +1,16 @@
+/* Pronóstico de propuestas — Etapa 1. No altera los mapas ni las tarjetas existentes. */
+.pb-plan-detail .pb-weather{border:1px solid var(--glass-border);border-radius:15px;background:rgba(143,130,211,.075);padding:14px 16px;display:grid;gap:10px;min-width:0}
+.pb-plan-detail .pb-weather-heading{display:flex;align-items:center;gap:8px;color:var(--text);font-size:13px}
+.pb-plan-detail .pb-weather-heading>span{color:#9882f8;font-size:21px;line-height:1}
+.pb-plan-detail .pb-weather-status{margin:0;color:var(--muted);font-size:12px;line-height:1.55}
+.pb-plan-detail .pb-weather-details{display:grid;gap:8px}
+.pb-plan-detail .pb-weather-details[hidden]{display:none}
+.pb-plan-detail .pb-weather-primary{display:flex;align-items:center;gap:12px}
+.pb-plan-detail .pb-weather-primary>div{display:grid;gap:2px;min-width:0}
+.pb-plan-detail .pb-weather-primary strong{font-size:14px;color:var(--text)}
+.pb-plan-detail .pb-weather-primary span:not(.pb-weather-symbol){font-size:13px;color:var(--muted)}
+.pb-plan-detail .pb-weather-symbol{display:grid;place-items:center;width:43px;height:43px;flex:none;border-radius:14px;background:rgba(155,137,247,.17);font-size:24px}
+.pb-plan-detail .pb-weather-metrics{display:flex;flex-wrap:wrap;gap:8px}
+.pb-plan-detail .pb-weather-metrics>span{padding:7px 10px;border:1px solid var(--glass-border);border-radius:9px;color:var(--text);font-size:12px}
+.pb-plan-detail .pb-weather-source{font-size:11px;font-weight:700;color:var(--blue)}
+.pb-plan-detail .pb-weather-details small{font-size:11px;line-height:1.45;color:var(--muted)}
