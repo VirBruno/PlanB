@@ -1,12 +1,13 @@
 from unittest.mock import patch
 from decimal import Decimal
+from uuid import UUID
 
 from django.test import TestCase
 
 from apps.plans.tests.test_services import GROUP_ID, PLAN_ID, USER_ID, plan_row, proposal_row
 from apps.plans.services.exceptions import PlanUnavailable
 from apps.plans.services.proposal_exceptions import (
-    ProposalAlreadyExists, ProposalUnavailable,
+    ElectionSchemaUnavailable, ProposalAlreadyExists, ProposalUnavailable,
 )
 
 
@@ -184,6 +185,154 @@ class PlanViewsTests(TestCase):
             fetch_redirect_response=False,
         )
 
+    @patch("apps.plans.views.election_service.set_method", return_value="votes")
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "owner"})
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row())
+    def test_group_owner_can_choose_an_election_method(self, get_plan, get_group, set_method):
+        response = self.client.post(
+            f"/planes/{PLAN_ID}/propuestas/metodo/", {"method": "votes"},
+        )
+        self.assertRedirects(
+            response, f"/planes/{PLAN_ID}/#proposal-election",
+            fetch_redirect_response=False,
+        )
+        set_method.assert_called_once_with(
+            "private-jwt", plan_id=UUID(PLAN_ID), method="votes",
+        )
+
+    @patch("apps.plans.views.election_service.set_method", side_effect=ElectionSchemaUnavailable())
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "owner"})
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row())
+    def test_unmigrated_vote_mode_redirects_with_an_explanation(self, get_plan, get_group, set_method):
+        response = self.client.post(
+            f"/planes/{PLAN_ID}/propuestas/metodo/", {"method": "votes"},
+        )
+        self.assertRedirects(
+            response, f"/planes/{PLAN_ID}/#proposal-election",
+            fetch_redirect_response=False,
+        )
+
+    @patch("apps.plans.views.election_service.set_method", return_value="ideal")
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "owner"})
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row())
+    def test_choosing_ideal_method_opens_its_result_directly(self, get_plan, get_group, set_method):
+        response = self.client.post(
+            f"/planes/{PLAN_ID}/propuestas/metodo/", {"method": "ideal"},
+        )
+        self.assertRedirects(
+            response, f"/planes/{PLAN_ID}/?ideal=1#proposal-ideal-card",
+            fetch_redirect_response=False,
+        )
+
+    @patch("apps.plans.views.election_service.set_method", side_effect=ProposalUnavailable())
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "owner"})
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row())
+    def test_ideal_method_still_opens_popup_when_method_storage_is_unavailable(self, get_plan, get_group, set_method):
+        response = self.client.post(
+            f"/planes/{PLAN_ID}/propuestas/metodo/", {"method": "ideal"},
+        )
+        self.assertRedirects(
+            response, f"/planes/{PLAN_ID}/?ideal=1#proposal-ideal-card",
+            fetch_redirect_response=False,
+        )
+
+    @patch("apps.plans.views.proposal_service.list_proposals", return_value=[
+        {"id": 47, "created_by": USER_ID, "tittle": "Merienda", "type": "juntada",
+         "description": "", "date_pick": None, "latitude": -34.6, "longitude": -58.4,
+         "budget_min": None, "budget_max": None, "votes": 0, "Score": 0},
+    ])
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row())
+    def test_ideal_popup_renders_without_a_persisted_election_method(self, get_plan, get_group, list_proposals):
+        response = self.client.get(f"/planes/{PLAN_ID}/?ideal=1")
+        self.assertContains(response, "data-ideal-dialog")
+        self.assertContains(response, "proposal-ideal-data")
+
+    @patch("apps.plans.views.proposal_service.list_proposals", return_value=[
+        {"id": 47, "created_by": USER_ID, "tittle": "Merienda", "type": "juntada",
+         "description": "", "date_pick": None, "latitude": -34.6, "longitude": -58.4,
+         "votes": 0, "Score": 0},
+    ])
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "owner"})
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row())
+    def test_group_owner_sees_three_choices_in_the_method_button(self, get_plan, get_group, list_proposals):
+        response = self.client.get(f"/planes/{PLAN_ID}/")
+        self.assertContains(response, '<summary data-method-picker>Elija su Método de elección</summary>')
+        self.assertContains(response, 'value="ideal"')
+        self.assertContains(response, 'value="votes"')
+        self.assertContains(response, 'value="combat"')
+
+    @patch("apps.plans.views.election_service.set_method")
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row())
+    def test_member_cannot_change_the_group_election_method(self, get_plan, get_group, set_method):
+        response = self.client.post(
+            f"/planes/{PLAN_ID}/propuestas/metodo/", {"method": "combat"},
+        )
+        self.assertEqual(response.status_code, 403)
+        set_method.assert_not_called()
+
+    @patch("apps.plans.views.election_service.cast_vote", return_value=1)
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row())
+    def test_member_can_cast_a_vote_for_a_proposal(self, get_plan, get_group, cast_vote):
+        response = self.client.post(f"/planes/{PLAN_ID}/propuestas/47/votar/")
+        self.assertRedirects(
+            response, f"/planes/{PLAN_ID}/#proposals-title",
+            fetch_redirect_response=False,
+        )
+        cast_vote.assert_called_once_with(
+            "private-jwt", plan_id=UUID(PLAN_ID), proposal_id=47,
+        )
+
+    @patch("apps.plans.views.election_service.remove_vote", return_value=47)
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row())
+    def test_member_can_remove_their_vote(self, get_plan, get_group, remove_vote):
+        response = self.client.post(f"/planes/{PLAN_ID}/propuestas/voto/eliminar/")
+        self.assertRedirects(
+            response, f"/planes/{PLAN_ID}/#proposals-title",
+            fetch_redirect_response=False,
+        )
+        remove_vote.assert_called_once_with("private-jwt", plan_id=UUID(PLAN_ID))
+
+    @patch("apps.plans.views.election_service.cast_vote", side_effect=ElectionSchemaUnavailable())
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row())
+    def test_vote_without_migration_returns_to_proposals_instead_of_503(self, get_plan, get_group, cast_vote):
+        response = self.client.post(f"/planes/{PLAN_ID}/propuestas/47/votar/")
+        self.assertRedirects(
+            response, f"/planes/{PLAN_ID}/#proposals-title",
+            fetch_redirect_response=False,
+        )
+
+    @patch("apps.plans.views.election_service.save_score", return_value=14)
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row(election_method="combat"))
+    def test_member_can_save_a_combat_score(self, get_plan, get_group, save_score):
+        response = self.client.post(
+            f"/planes/{PLAN_ID}/propuestas/47/score/", {"score": "14"},
+        )
+        self.assertRedirects(
+            response, f"/planes/{PLAN_ID}/#proposal-combat",
+            fetch_redirect_response=False,
+        )
+        save_score.assert_called_once_with(
+            "private-jwt", plan_id=UUID(PLAN_ID), proposal_id=47, score=14,
+        )
+
+    @patch("apps.plans.views.election_service.save_score", side_effect=ElectionSchemaUnavailable())
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row())
+    def test_combat_score_without_migration_returns_instead_of_503(self, get_plan, get_group, save_score):
+        response = self.client.post(
+            f"/planes/{PLAN_ID}/propuestas/47/score/", {"score": "14"},
+        )
+        self.assertRedirects(
+            response, f"/planes/{PLAN_ID}/#proposal-combat",
+            fetch_redirect_response=False,
+        )
+
     @patch("apps.plans.views.group_service.get_group")
     @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row())
     def test_outsider_cannot_calculate_proposal_ideal(self, get_plan, get_group):
@@ -253,7 +402,7 @@ class PlanViewsTests(TestCase):
          "date_pick": None, "latitude": -34.7, "longitude": -58.4},
     ])
     @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
-    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row())
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row(election_method="ideal"))
     def test_member_sees_others_proposals_but_cannot_create_a_second(self, get_plan, get_group, list_proposals):
         response = self.client.get(f"/planes/{PLAN_ID}/")
         self.assertContains(response, "Propuesta de otra persona")
@@ -264,20 +413,22 @@ class PlanViewsTests(TestCase):
         self.assertContains(response, "data-lat=\"-34.7\"")
         self.assertContains(response, "/static/leaflet.js")
         self.assertNotContains(response, f"/planes/{PLAN_ID}/propuestas/nueva/")
-        self.assertContains(response, f"/planes/{PLAN_ID}/propuestas/ideal/")
+        self.assertNotContains(response, "Calcular propuesta ideal")
+        self.assertContains(response, "Ver cálculo de ubicación y presupuesto")
         self.assertContains(response, "Ya compartiste tu propuesta para este plan.")
         self.assertEqual(
             response.headers["Referrer-Policy"], "strict-origin-when-cross-origin",
         )
 
+    @patch("apps.plans.views.election_service.voted_proposal", return_value=None)
     @patch("apps.plans.views.proposal_service.list_proposals", return_value=[
         {"id": 47, "created_by": USER_ID, "tittle": "Merienda", "type": "juntada",
          "description": "", "date_pick": None, "latitude": -34.6, "longitude": -58.4,
-         "budget_min": Decimal("100"), "budget_max": Decimal("200")},
+         "budget_min": Decimal("100"), "budget_max": Decimal("200"), "votes": 0, "Score": 0},
     ])
     @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
-    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row())
-    def test_member_sees_ideal_proposal_card_and_map_after_calculation(self, get_plan, get_group, list_proposals):
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row(election_method="ideal"))
+    def test_member_sees_ideal_proposal_card_and_map_after_calculation(self, get_plan, get_group, list_proposals, voted_proposal):
         response = self.client.get(f"/planes/{PLAN_ID}/?ideal=1")
         self.assertContains(response, "Propuesta ideal")
         self.assertContains(response, "Presupuesto ideal")
@@ -286,8 +437,65 @@ class PlanViewsTests(TestCase):
         self.assertContains(response, 'aria-label="Cerrar propuesta ideal"')
         self.assertContains(response, "data-ideal-map")
         self.assertContains(response, "proposal-ideal-data")
-        self.assertContains(response, "/static/users/js/proposals.js?v=9")
-        self.assertContains(response, "/static/users/css/proposals.css?v=3")
+        self.assertContains(response, "/static/users/js/proposals.js?v=11")
+        self.assertContains(response, "/static/users/css/proposals.css?v=5")
+
+    @patch("apps.plans.views.proposal_service.list_proposals", return_value=[
+        {"id": 47, "created_by": USER_ID, "tittle": "Mi propuesta", "type": "juntada",
+         "description": "", "date_pick": None, "latitude": -34.6, "longitude": -58.4,
+         "votes": 4, "Score": 0},
+        {"id": 48, "created_by": "e0c9b706-c892-4f13-8432-86ce10caf447",
+         "tittle": "Otra propuesta", "type": "salida", "description": "",
+         "date_pick": None, "latitude": -34.7, "longitude": -58.3,
+         "votes": 2, "Score": 0},
+    ])
+    @patch("apps.plans.views.election_service.voted_proposal", return_value=None)
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row(election_method="votes"))
+    def test_voting_mode_shows_one_vote_action_and_current_standings(self, get_plan, get_group, voted_proposal, list_proposals):
+        response = self.client.get(f"/planes/{PLAN_ID}/")
+        self.assertContains(response, "Votación")
+        self.assertContains(response, "Propuesta campeona: <strong>Mi propuesta</strong>")
+        self.assertContains(response, "Votar", count=2)
+        self.assertContains(response, "4 voto")
+        self.assertNotContains(response, "Calcular propuesta ideal")
+
+    @patch("apps.plans.views.proposal_service.list_proposals", return_value=[
+        {"id": 47, "created_by": USER_ID, "tittle": "Mi propuesta", "type": "juntada",
+         "description": "", "date_pick": None, "latitude": -34.6, "longitude": -58.4,
+         "votes": 4, "Score": 0},
+        {"id": 48, "created_by": "e0c9b706-c892-4f13-8432-86ce10caf447",
+         "tittle": "Otra propuesta", "type": "salida", "description": "",
+         "date_pick": None, "latitude": -34.7, "longitude": -58.3,
+         "votes": 2, "Score": 0},
+    ])
+    @patch("apps.plans.views.election_service.voted_proposal", return_value=47)
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row(election_method="votes"))
+    def test_voted_member_can_change_or_remove_their_vote(self, get_plan, get_group, voted_proposal, list_proposals):
+        response = self.client.get(f"/planes/{PLAN_ID}/")
+        self.assertContains(response, "Tu voto")
+        self.assertContains(response, "Voto actual")
+        self.assertContains(response, "Quitar voto")
+        self.assertContains(response, "Votar", count=1)
+
+    @patch("apps.plans.views.proposal_service.list_proposals", return_value=[
+        {"id": 47, "created_by": USER_ID, "tittle": "Mi propuesta", "type": "juntada",
+         "description": "", "date_pick": None, "latitude": -34.6, "longitude": -58.4,
+         "votes": 0, "Score": 12},
+        {"id": 48, "created_by": "e0c9b706-c892-4f13-8432-86ce10caf447",
+         "tittle": "Otra propuesta", "type": "salida", "description": "",
+         "date_pick": None, "latitude": -34.7, "longitude": -58.3,
+         "votes": 0, "Score": 6},
+    ])
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row(election_method="combat"))
+    def test_combat_mode_shows_game_and_leaderboard(self, get_plan, get_group, list_proposals):
+        response = self.client.get(f"/planes/{PLAN_ID}/")
+        self.assertContains(response, "data-combat-game")
+        self.assertContains(response, "12 pts")
+        self.assertContains(response, "Propuesta campeona: <strong>Mi propuesta</strong>")
+        self.assertContains(response, "/static/users/js/proposal-combat.js")
 
     @patch("apps.plans.views.proposal_service.create_proposal", return_value=47)
     @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})

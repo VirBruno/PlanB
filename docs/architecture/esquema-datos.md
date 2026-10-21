@@ -259,3 +259,22 @@ RLS y el índice único por `(plan_id, created_by)` se preservan. Django usa
 `Decimal`, valida hasta dos decimales y diez dígitos enteros y transmite strings
 decimales a Data API sin convertirlos a float. Un input vacío se persiste como NULL.
 Ver [despliegue y pruebas](../testing/planes.md#presupuesto-opcional).
+
+## Métodos de elección de propuestas
+
+`202610100001_proposal_election_methods.sql` agrega `plans.election_method`
+(`ideal`, `votes`, `combat`) y normaliza `proposals.votes` y `proposals."Score"`
+como enteros no negativos. `proposal_votes` conserva la identidad del votante y
+su clave primaria `(plan_id, voter_id)` limita a un voto por persona y plan.
+La migración `202610100002_flexible_proposal_elections.sql` permite cambiar el
+método aunque ya existan resultados, reemplazar el voto por otra propuesta y
+eliminar el voto propio; los conteos se actualizan dentro de los RPCs.
+
+La selección del método, la emisión del voto, la consulta del voto propio y el
+guardado del puntaje se realizan sólo mediante RPCs autenticados. Los integrantes
+no reciben permisos directos para escribir las métricas ni leer el registro de
+votos. El owner del grupo selecciona el método y puede cambiarlo cuando quiera.
+En Combate, cada persona sólo puede actualizar el
+puntaje máximo de su propia propuesta. El score proviene de una partida ejecutada
+en el navegador y no tiene validación anti-trampas del lado servidor.
+Ver [métodos de elección y pruebas](../testing/planes.md#métodos-de-elección).

@@ -9,9 +9,11 @@ from django.test import SimpleTestCase
 
 from apps.plans.services import plan_service
 from apps.plans.services.exceptions import PlanNotFound, PlanUnavailable
+from apps.plans.services import election_service
 from apps.plans.services import proposal_service
 from apps.plans.services.proposal_exceptions import (
-    InvalidProposal, ProposalAlreadyExists, ProposalNotFound, ProposalUnavailable,
+    ElectionFlexibilityUnavailable, ElectionSchemaUnavailable, InvalidProposal,
+    ProposalAlreadyExists, ProposalNotFound, ProposalUnavailable,
 )
 from apps.users.services import clients
 from apps.users.services.exceptions import SessionExpired
@@ -79,6 +81,30 @@ class PlanSDKTests(SimpleTestCase):
         self.assertEqual(request.url.params["order"], "created_at.desc,id.desc")
         self.assertEqual(request.url.params["offset"], "12")
         self.assertEqual(request.url.params["group_id"], "eq." + GROUP_ID)
+
+    def test_get_plan_reads_the_shared_election_method(self):
+        self.responses = [(200, [plan_row(election_method="combat")])]
+        plan = plan_service.get_plan("user-jwt", PLAN_ID)
+        self.assertEqual(plan["election_method"], "combat")
+        self.assertIn("election_method", self.requests[0].url.params["select"])
+
+    def test_plan_reads_fall_back_only_when_election_method_column_is_missing(self):
+        missing_column = {
+            "code": "42703", "message": "column plans.election_method does not exist",
+            "details": None, "hint": None,
+        }
+        self.responses = [
+            (400, missing_column), (200, [plan_row()]),
+            (400, missing_column), (200, [plan_row()]),
+        ]
+        page = plan_service.list_plans("user-jwt", group_id=GROUP_ID)
+        plan = plan_service.get_plan("user-jwt", PLAN_ID)
+        self.assertIsNone(page["items"][0]["election_method"])
+        self.assertIsNone(plan["election_method"])
+        self.assertIn("election_method", self.requests[0].url.params["select"])
+        self.assertNotIn("election_method", self.requests[1].url.params["select"])
+        self.assertIn("election_method", self.requests[2].url.params["select"])
+        self.assertNotIn("election_method", self.requests[3].url.params["select"])
 
     def test_create_sets_actor_and_only_submits_plan_fields(self):
         self.responses = [(201, [{"id": PLAN_ID}])]
@@ -154,17 +180,90 @@ class PlanSDKTests(SimpleTestCase):
             "budget_min": None, "budget_max": None,
         })
 
+    def test_election_method_and_vote_use_authenticated_rpcs(self):
+        self.responses = [(200, "votes"), (200, None), (200, 1)]
+        self.assertEqual(election_service.set_method(
+            "user-jwt", plan_id=PLAN_ID, method="votes",
+        ), "votes")
+        self.assertIsNone(election_service.voted_proposal("user-jwt", plan_id=PLAN_ID))
+        self.assertEqual(election_service.cast_vote(
+            "user-jwt", plan_id=PLAN_ID, proposal_id=47,
+        ), 1)
+        self.assertEqual(
+            [request.url.path for request in self.requests],
+            [
+                "/rest/v1/rpc/set_proposal_election_method",
+                "/rest/v1/rpc/proposal_vote_for_user",
+                "/rest/v1/rpc/cast_proposal_vote",
+            ],
+        )
+        self.assertEqual(json.loads(self.requests[2].content), {
+            "p_plan_id": PLAN_ID, "p_proposal_id": 47,
+        })
+
+    def test_remove_vote_uses_the_authenticated_rpc(self):
+        self.responses = [(200, 47), (200, None)]
+        self.assertEqual(election_service.remove_vote("user-jwt", plan_id=PLAN_ID), 47)
+        self.assertIsNone(election_service.remove_vote("user-jwt", plan_id=PLAN_ID))
+        self.assertEqual(
+            [request.url.path for request in self.requests],
+            ["/rest/v1/rpc/remove_proposal_vote"] * 2,
+        )
+        self.assertEqual(json.loads(self.requests[0].content), {"p_plan_id": PLAN_ID})
+
+    def test_legacy_vote_conflict_requests_the_flexible_migration(self):
+        self.responses = [(400, {
+            "code": "P0001", "message": "Vote already cast",
+            "details": None, "hint": None,
+        })]
+        with self.assertRaises(ElectionFlexibilityUnavailable):
+            election_service.cast_vote("user-jwt", plan_id=PLAN_ID, proposal_id=47)
+        with self.assertRaises(InvalidProposal):
+            election_service.save_score(
+                "user-jwt", plan_id=PLAN_ID, proposal_id=47, score=-1,
+            )
+        self.assertEqual(len(self.requests), 1)
+
+    def test_legacy_method_lock_requests_the_flexible_migration(self):
+        self.responses = [(400, {
+            "code": "22023", "message": "Election already has results",
+            "details": None, "hint": None,
+        })]
+        with self.assertRaises(ElectionFlexibilityUnavailable):
+            election_service.set_method("user-jwt", plan_id=PLAN_ID, method="combat")
+
+    def test_missing_election_rpc_has_a_specific_schema_error(self):
+        self.responses = [(404, {
+            "code": "PGRST202", "message": "Could not find set_proposal_election_method",
+            "details": None, "hint": None,
+        })]
+        with self.assertRaises(ElectionSchemaUnavailable):
+            election_service.set_method("user-jwt", plan_id=PLAN_ID, method="votes")
+
+    def test_save_score_uses_authenticated_rpc_and_validates_response(self):
+        self.responses = [(200, 14)]
+        self.assertEqual(election_service.save_score(
+            "user-jwt", plan_id=PLAN_ID, proposal_id=47, score=14,
+        ), 14)
+        self.assertEqual(self.requests[0].url.path, "/rest/v1/rpc/save_proposal_score")
+        self.assertEqual(json.loads(self.requests[0].content), {
+            "p_plan_id": PLAN_ID, "p_proposal_id": 47, "p_score": 14,
+        })
+
     def test_list_proposals_validates_geojson_and_plan_scope(self):
         self.responses = [(200, [{
             "id": 47, "created_at": "2026-10-06T12:00:00Z",
             "tittle": "Merienda", "description": None, "date_pick": None,
             "created_by": USER_ID, "plan_id": PLAN_ID,
             "type": "juntada", "posicion": POINT,
-            "budget_min": None, "budget_max": None,
+            "budget_min": None, "budget_max": None, "votes": 3, "Score": 9,
         }])]
         proposals = proposal_service.list_proposals("user-jwt", PLAN_ID)
         self.assertEqual(proposals[0]["posicion"], POINT)
+        self.assertEqual(proposals[0]["votes"], 3)
+        self.assertEqual(proposals[0]["Score"], 9)
         self.assertEqual(self.requests[0].url.params["plan_id"], "eq." + PLAN_ID)
+        self.assertIn('"Score"', self.requests[0].url.params["select"])
         self.responses = [(200, [{
             "id": 47, "created_at": "2026-10-06T12:00:00Z",
             "tittle": "Merienda", "description": None, "date_pick": None,
