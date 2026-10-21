@@ -235,10 +235,13 @@ Django no aplica estas migraciones automáticamente. Consultar
 
 El owner puede invitar usuarios registrados por username exacto. El destinatario
 acepta o rechaza desde Notificaciones; al aceptar, el grupo aparece en su dashboard
-y puede leer y crear planes. La campana muestra las notificaciones sin leer al
+y puede leer y crear planes. El owner también puede generar un enlace compartible,
+válido por 7 días; generar otro revoca el anterior. Quien lo use debe iniciar sesión
+y confirmar su ingreso. La campana muestra las notificaciones sin leer al
 cargar cada página. Aplicar manualmente, en orden,
 `supabase/migrations/202610080001_group_invitations.sql` y
-`supabase/migrations/202610080002_member_plan_creation.sql`, después de las
+`supabase/migrations/202610080002_member_plan_creation.sql`, luego
+`supabase/migrations/202610180001_group_invite_links.sql`, después de las
 migraciones anteriores. Ver [SQL exacto, permisos y prueba manual](docs/testing/invitaciones.md).
 
 ## Propuestas geográficas existentes

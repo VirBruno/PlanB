@@ -6,6 +6,7 @@ app_name = "groups"
 urlpatterns = [
     path("", views.index, name="index"),
     path("nuevo/", views.create, name="create"),
+    path("enlace/<str:token>/", views.join_by_link, name="join_by_link"),
     path("<uuid:group_id>/invitar/", views.invite, name="invite"),
     path("<uuid:group_id>/editar/", views.edit, name="edit"),
     path("<uuid:group_id>/eliminar/confirmar/", views.delete_confirmation, name="delete_confirmation"),

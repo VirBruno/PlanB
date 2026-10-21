@@ -193,6 +193,50 @@ class GroupViewsTests(TestCase):
     def test_detail_is_read_only(self):
         self.assertEqual(self.client.post(self.detail_url).status_code, 405)
 
+    @patch("apps.groups.views.invitation_service.list_pending", return_value=[])
+    @patch("apps.groups.views.invitation_service.create_invite_link")
+    @patch("apps.groups.views.group_service.get_group")
+    def test_owner_can_generate_and_share_invite_link(self, get_group, create_link, pending):
+        get_group.return_value = {
+            "id": GROUP_ID, "name": "Escapadas", "role": "owner",
+            "role_label": "Owner", "created_at": None,
+        }
+        create_link.return_value = {
+            "token": "a" * 43, "expires_at": datetime(2026, 10, 25, tzinfo=timezone.utc),
+        }
+        response = self.client.post(f"/grupos/{GROUP_ID}/invitar/", {"action": "create_link"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, f"/grupos/enlace/{'a' * 43}/")
+        self.assertContains(response, "Copiar enlace")
+        self.assertContains(response, "data-share-invite")
+        self.assertContains(response, "users/js/group-invite.js")
+        self.assertNotContains(response, "Este campo es obligatorio")
+        create_link.assert_called_once()
+        self.assertEqual(create_link.call_args.args[0], "private-jwt")
+        self.assertEqual(str(create_link.call_args.args[1]), GROUP_ID)
+        pending.assert_not_called()
+
+    @patch("apps.groups.views.invitation_service.preview_invite_link", return_value={
+        "id": GROUP_ID, "name": "Escapadas", "expires_at": datetime(2026, 10, 25, tzinfo=timezone.utc),
+    })
+    def test_link_preview_requires_confirmation_before_join(self, preview):
+        token = "a" * 43
+        response = self.client.get(f"/grupos/enlace/{token}/")
+        self.assertContains(response, "Escapadas")
+        self.assertContains(response, "Unirme al grupo")
+        preview.assert_called_once_with("private-jwt", token)
+
+    @patch("apps.groups.views.invitation_service.join_by_invite_link", return_value=GROUP_ID)
+    @patch("apps.groups.views.invitation_service.preview_invite_link", return_value={
+        "id": GROUP_ID, "name": "Escapadas", "expires_at": datetime(2026, 10, 25, tzinfo=timezone.utc),
+    })
+    def test_link_post_joins_and_redirects_to_group(self, preview, join):
+        token = "a" * 43
+        response = self.client.post(f"/grupos/enlace/{token}/", {})
+        self.assertRedirects(response, self.detail_url, fetch_redirect_response=False)
+        preview.assert_called_once_with("private-jwt", token)
+        join.assert_called_once_with("private-jwt", token)
+
     @patch("apps.users.views.group_service.list_groups")
     def test_dashboard_lists_memberships_and_creation_action(self, groups):
         groups.return_value = {"items": [{"id": GROUP_ID, "name": "Grupo ajeno", "description": ""}], "page": 1}

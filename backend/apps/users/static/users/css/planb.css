@@ -196,6 +196,12 @@ input:focus-visible { outline-offset: 2px; }
 
 /* Grupos: componentes del mismo espacio autenticado. */
 .group-panel { max-width: 680px; margin: 26px auto 0; padding: 32px; border: 1px solid var(--line); border-radius: 18px; background: var(--white); }
+.invite-link-notice { display: grid; gap: 12px; margin: 18px 0 24px; }
+.invite-link-notice .field label { margin-bottom: 7px; }
+.invite-link-notice .invite-link-input { height: auto; min-height: 46px; }
+.invite-link-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.invite-link-feedback:empty { display: none; }
+.invite-link-feedback { color: var(--blue); font-weight: 650; }
 .group-panel h1 { font-size: clamp(28px, 3.2vw, 40px); margin: 0; letter-spacing: -1px; overflow-wrap: anywhere; }
 .back-link { display: inline-block; font-size: 14px; }
 .group-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }

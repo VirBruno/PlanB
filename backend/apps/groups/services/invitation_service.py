@@ -1,4 +1,7 @@
 """Invitaciones remotas: publishable key + JWT, RPCs sin identidad del cliente."""
+import hashlib
+import re
+import secrets
 from uuid import UUID
 
 from django.utils.dateparse import parse_datetime
@@ -134,3 +137,49 @@ def reject_invitation(access_token, invitation_id):
     if result != invitation_id:
         raise InvitationUnavailable()
     return result
+
+
+def _invite_link_hash(token):
+    if not isinstance(token, str) or not re.fullmatch(r'[A-Za-z0-9_-]{43}', token):
+        raise InvitationNotFound()
+    return hashlib.sha256(token.encode('ascii')).hexdigest()
+
+
+@sensitive_variables()
+def create_invite_link(access_token, group_id):
+    token = secrets.token_urlsafe(32)
+    expiry = rpc(access_token, 'create_group_invite_link', {
+        'p_group_id': canonical_id(group_id),
+        'p_token_hash': hashlib.sha256(token.encode('ascii')).hexdigest(),
+    })
+    expires_at = parse_datetime(expiry) if isinstance(expiry, str) else None
+    if expires_at is None:
+        raise InvitationUnavailable()
+    return {'token': token, 'expires_at': expires_at}
+
+
+@sensitive_variables()
+def preview_invite_link(access_token, token):
+    rows = rpc(access_token, 'get_group_from_invite_link', {
+        'p_token_hash': _invite_link_hash(token),
+    }, read=True)
+    try:
+        if not isinstance(rows, list) or len(rows) != 1:
+            raise ValueError
+        row = rows[0]
+        result = {
+            'id': str(UUID(row['group_id'])), 'name': row['group_name'],
+            'expires_at': parse_datetime(row['expires_at']),
+        }
+        if not isinstance(result['name'], str) or result['expires_at'] is None:
+            raise ValueError
+        return result
+    except Exception:
+        raise InvitationUnavailable() from None
+
+
+@sensitive_variables()
+def join_by_invite_link(access_token, token):
+    return _result_id(rpc(access_token, 'join_group_by_invite_link', {
+        'p_token_hash': _invite_link_hash(token),
+    }))

@@ -19,6 +19,12 @@ a la invitación. Una FK compuesta verifica que notificación e invitación tien
 el mismo destinatario. `payload` no guarda estado de negocio. El tipo permite
 futuras extensiones, pero sólo `group_invitation` se genera en esta entrega.
 
+`group_invite_links` conserva hashes SHA-256 de tokens aleatorios; el token en
+claro sólo se muestra al owner al generarlo. Un enlace vence a los 7 días y crear
+otro revoca el anterior. Sólo un usuario autenticado puede consultar el nombre
+del grupo desde el enlace y confirmar la unión; el canje asigna `role='member'`.
+Las tablas no conceden DML directo y los enlaces se eliminan al borrar el grupo.
+
 | Operación | Owner actual | Member | Destinatario sin membresía | Outsider/anon |
 | --- | --- | --- | --- | --- |
 | Buscar username e invitar | Sí | No | No | No |
@@ -33,8 +39,9 @@ Para un outsider autenticado, sus propias notificaciones siempre son accesibles;
 ser outsider de un grupo no habilita lectura de ese grupo. Un anónimo no recibe
 grants de lectura ni ejecución.
 
-RLS nuevo: `invitations_select_recipient_or_owner` y `notifications_select_own`.
-Las tablas nuevas sólo conceden SELECT a `authenticated`; no conceden DML directo.
+RLS nuevo: `invitations_select_recipient_or_owner` y `notifications_select_own`;
+`group_invite_links` tiene RLS activo sin policies ni grants directos. Invitaciones
+y notificaciones sólo conceden SELECT a `authenticated`; ninguna tabla concede DML.
 `profiles` y `group_members` mantienen sus políticas de lectura propia. La búsqueda
 es exacta, requiere el username completo válido y usa `username_normalized`;
 devuelve únicamente id/username. El estado pendiente se consulta por separado.
@@ -51,6 +58,9 @@ RPCs nuevas, con `SECURITY DEFINER`, `search_path=''`, objetos cualificados,
 - `reject_group_invitation(p_invitation_id uuid)`.
 - `list_notifications(p_page integer default 1)`.
 - `mark_notification_read(p_notification_id uuid)`.
+- `create_group_invite_link(p_group_id uuid, p_token_hash text)`.
+- `get_group_from_invite_link(p_token_hash text)`.
+- `join_group_by_invite_link(p_token_hash text)`.
 
 Las escrituras no aceptan actor ni role. Aceptar/rechazar recibe sólo el id de
 invitación y revalida destinatario/estado en PostgreSQL. Aceptar bloquea primero
@@ -76,18 +86,21 @@ No ejecutar `manage.py migrate` para estas entidades.
    incluido `BEGIN`/`COMMIT`. Debe finalizar sin errores.
 3. Abrir otra consulta y copiar/ejecutar **todo**
    `supabase/migrations/202610080002_member_plan_creation.sql`.
-4. Verificar tablas y políticas con esta consulta de sólo lectura:
+4. Abrir otra consulta y copiar/ejecutar **todo**
+   `supabase/migrations/202610180001_group_invite_links.sql`.
+5. Verificar tablas y políticas con esta consulta de sólo lectura:
 
    ```sql
-   SELECT to_regclass('public.group_invitations'), to_regclass('public.notifications');
+      SELECT to_regclass('public.group_invitations'), to_regclass('public.notifications'),
+         to_regclass('public.group_invite_links');
    SELECT tablename, policyname, cmd, roles
    FROM pg_policies
    WHERE schemaname = 'public'
-     AND tablename IN ('group_invitations', 'notifications', 'plans')
+   AND tablename IN ('group_invitations', 'notifications', 'group_invite_links', 'plans')
    ORDER BY tablename, policyname;
    ```
 
-   Deben existir ambas tablas y las políticas nuevas; plans debe conservar
+   Deben existir las tres tablas de invitaciones y las políticas nuevas; plans debe conservar
    `plans_select_group_members`, `plans_update_group_owner`,
    `plans_delete_group_owner`, junto a `plans_insert_group_member`.
 5. Mantener `planb_private`/`django_internal` fuera de los esquemas expuestos.
@@ -99,6 +112,9 @@ instancia local o proyecto de pruebas autorizado, después de aplicar las
 migraciones. Crea fixtures de Auth, simula JWTs y fallos de triggers y termina
 con `ROLLBACK`. **No ejecutarlo en el compartido.** Lo mismo aplica a los scripts
 de regresión SQL; `supabase/tests/plans.sql` ya refleja la nueva regla de creación.
+El flujo de enlaces se comprueba aparte con `supabase/tests/group_invite_links.sql`,
+que prueba preview autenticado, canje idempotente, revocación al regenerar y
+denegación a `anon`; también termina con `ROLLBACK`.
 
 ## Prueba manual con dos usuarios registrados
 
@@ -126,6 +142,11 @@ de regresión SQL; `supabase/tests/plans.sql` ya refleja la nueva regla de creac
    búsqueda ni creación de planes. No ve notificaciones ni invitaciones ajenas.
 10. Probar teclado (Tab, Enter), foco visible, viewport móvil y reducción de
     movimiento. Las acciones POST requieren CSRF y no hay dependencias nuevas.
+11. Como owner, generar un enlace. Abrirlo en una sesión del tercer usuario:
+   debe mostrar el grupo sin agregarlo todavía; confirmar **Unirme al grupo**
+   lo agrega como member. Generar otro enlace y comprobar que el anterior da 404;
+   dejar vencer uno permite verificar el mismo rechazo por expiración. Los dos
+   enlaces generados no deben confundirse: sólo el último está activo.
 
 Visitar Notificaciones es una lectura GET: no modifica `read_at`. **Marcar como
 leída** lo modifica mediante POST sin responder la invitación; aceptar/rechazar

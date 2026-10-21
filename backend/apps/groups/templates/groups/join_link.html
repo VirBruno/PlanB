@@ -1,0 +1,15 @@
+{% extends 'components/authenticated_base.html' %}
+{% block title %}Unirse al grupo · Plan B{% endblock %}
+{% block workspace %}
+<section class="group-panel" aria-labelledby="join-title">
+  {% if unavailable %}
+    <h1 id="join-title">No pudimos validar el enlace</h1>
+    <p class="panel-description">Probá de nuevo en unos minutos.</p>
+  {% else %}
+    <p class="eyebrow eyebrow--blue">INVITACIÓN A UN GRUPO</p>
+    <h1 id="join-title">{{ group.name }}</h1>
+    <p class="panel-description">¿Querés unirte a este grupo?</p>
+    <form method="post">{% csrf_token %}<button class="button button--primary" type="submit">Unirme al grupo</button></form>
+  {% endif %}
+</section>
+{% endblock %}
