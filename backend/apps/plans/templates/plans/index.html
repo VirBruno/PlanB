@@ -1,8 +1,8 @@
 {% extends 'components/authenticated_base.html' %}
 {% load static %}
 {% block title %}Mis planes · Plan B{% endblock %}
-{% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'users/css/plans-experience.css' %}?v=14.1">{% endblock %}
-{% block extra_js %}{{ block.super }}<script src="{% static 'users/js/plan-filters.js' %}?v=14" defer></script>{% endblock %}
+{% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'users/css/plans-experience.css' %}?v=14.1"><link rel="stylesheet" href="{% static 'users/css/plan-meet-cards.css' %}?v=5">{% endblock %}
+{% block extra_js %}{{ block.super }}<script src="{% static 'users/js/plan-filters.js' %}?v=5" defer></script>{% endblock %}
 {% block workspace %}
 <div class="pb-plans-wrap">
   <header class="pb-page-heading pb-plans-heading">
@@ -27,6 +27,7 @@
         <label class="pb-plan-sort-label">Ordenar
           <select data-plan-sort aria-label="Ordenar los planes de esta página">
             <option value="recent">Más recientes</option>
+            <option value="upcoming">Próximos encuentros</option>
             <option value="oldest">Más antiguos</option>
             <option value="name">Nombre A–Z</option>
           </select>
@@ -44,8 +45,8 @@
       <div class="pb-plan-state-heading"><div><span class="pb-state-dot" aria-hidden="true"></span><h3 id="pb-active-title">En curso</h3><span class="pb-group-count" data-plan-visible-count="active"></span></div><p>Ideas y actividades que el grupo todavía está organizando.</p></div>
       <ul class="pb-plan-grid" data-plan-list="active">
       {% for plan in plans_page.items %}{% if plan.status %}
-        <li data-plan-state="active" data-plan-created="{{ plan.created_at|date:'c' }}">
-          <a class="pb-plan-card" href="{% url 'plans:detail' plan.id %}"><span class="pb-plan-icon" aria-hidden="true">✧</span><span class="pb-plan-info"><strong>{{ plan.name }}</strong><span>{% if plan.description %}{{ plan.description|truncatechars:110 }}{% else %}Todavía sin descripción.{% endif %}</span><small>Creado el {{ plan.created_at|date:"d/m/Y" }}</small></span><span class="pb-plan-card-end"><span class="pb-plan-state is-active">Activo</span><span class="pb-plan-card-arrow" aria-hidden="true">↗</span></span></a>
+        <li data-plan-state="active" data-plan-created="{{ plan.created_at|date:'c' }}" data-plan-scheduled="{{ plan.scheduled_at|date:'c' }}">
+          <a class="pb-plan-card" href="{% url 'plans:detail' plan.id %}"><span class="pb-plan-icon" aria-hidden="true">✧</span><span class="pb-plan-info"><strong>{{ plan.name }}</strong><span>{% if plan.description %}{{ plan.description|truncatechars:110 }}{% else %}Todavía sin descripción.{% endif %}</span>{% if plan.scheduled_at %}<span class="pb-plan-meet" aria-label="Fecha y localidad del encuentro"><span class="pb-plan-meet-chip"><span aria-hidden="true">📅</span> {{ plan.scheduled_at|date:"d/m/Y" }} · {{ plan.scheduled_at|date:"H:i" }} hs</span>{% if plan.weather_city_name %}<span class="pb-plan-meet-chip"><span aria-hidden="true">📍</span> {{ plan.weather_city_name }}</span>{% endif %}</span>{% endif %}<small>Creado el {{ plan.created_at|date:"d/m/Y" }}</small></span><span class="pb-plan-card-end"><span class="pb-plan-state is-active">Activo</span><span class="pb-plan-card-arrow" aria-hidden="true">↗</span></span></a>
         </li>
       {% endif %}{% endfor %}
       </ul>
@@ -54,8 +55,8 @@
       <div class="pb-plan-state-heading"><div><span class="pb-state-dot pb-state-dot--inactive" aria-hidden="true"></span><h3 id="pb-inactive-title">Inactivos</h3><span class="pb-group-count" data-plan-visible-count="inactive"></span></div><p>Planes que actualmente no están activos.</p></div>
       <ul class="pb-plan-grid" data-plan-list="inactive">
       {% for plan in plans_page.items %}{% if not plan.status %}
-        <li data-plan-state="inactive" data-plan-created="{{ plan.created_at|date:'c' }}">
-          <a class="pb-plan-card" href="{% url 'plans:detail' plan.id %}"><span class="pb-plan-icon pb-plan-icon--inactive" aria-hidden="true">✧</span><span class="pb-plan-info"><strong>{{ plan.name }}</strong><span>{% if plan.description %}{{ plan.description|truncatechars:110 }}{% else %}Todavía sin descripción.{% endif %}</span><small>Creado el {{ plan.created_at|date:"d/m/Y" }}</small></span><span class="pb-plan-card-end"><span class="pb-plan-state">Inactivo</span><span class="pb-plan-card-arrow" aria-hidden="true">↗</span></span></a>
+        <li data-plan-state="inactive" data-plan-created="{{ plan.created_at|date:'c' }}" data-plan-scheduled="{{ plan.scheduled_at|date:'c' }}">
+          <a class="pb-plan-card" href="{% url 'plans:detail' plan.id %}"><span class="pb-plan-icon pb-plan-icon--inactive" aria-hidden="true">✧</span><span class="pb-plan-info"><strong>{{ plan.name }}</strong><span>{% if plan.description %}{{ plan.description|truncatechars:110 }}{% else %}Todavía sin descripción.{% endif %}</span>{% if plan.scheduled_at %}<span class="pb-plan-meet" aria-label="Fecha y localidad del encuentro"><span class="pb-plan-meet-chip"><span aria-hidden="true">📅</span> {{ plan.scheduled_at|date:"d/m/Y" }} · {{ plan.scheduled_at|date:"H:i" }} hs</span>{% if plan.weather_city_name %}<span class="pb-plan-meet-chip"><span aria-hidden="true">📍</span> {{ plan.weather_city_name }}</span>{% endif %}</span>{% endif %}<small>Creado el {{ plan.created_at|date:"d/m/Y" }}</small></span><span class="pb-plan-card-end"><span class="pb-plan-state">Inactivo</span><span class="pb-plan-card-arrow" aria-hidden="true">↗</span></span></a>
         </li>
       {% endif %}{% endfor %}
       </ul>

@@ -135,6 +135,27 @@ class GroupViewsTests(TestCase):
         self.assertEqual(list_plans.call_args_list[0].kwargs, {"page": 1, "group_id": GROUP_ID})
         self.assertEqual(list_plans.call_args_list[1].kwargs, {"page": 2, "group_id": GROUP_ID})
 
+    @patch("apps.groups.views.plan_service.list_plans")
+    @patch("apps.groups.views.group_service.get_group")
+    def test_group_cards_show_scheduled_date_and_city(self, get_group, list_plans):
+        from zoneinfo import ZoneInfo
+        get_group.return_value = {
+            "id": GROUP_ID, "name": "Amigos", "description": "", "role": "member",
+            "role_label": "Miembro", "created_at": None,
+        }
+        list_plans.return_value = {"items": [
+            {"id": GROUP_ID, "name": "Mates al parque", "description": "",
+             "status": True, "created_at": datetime(2026, 10, 21, tzinfo=timezone.utc),
+             "scheduled_at": datetime(2026, 10, 25, 15, 30,
+                                      tzinfo=ZoneInfo("America/Argentina/Buenos_Aires")),
+             "weather_city_name": "La Plata"},
+        ], "next_page": None}
+        response = self.client.get(self.detail_url)
+        self.assertContains(response, "Mates al parque")
+        self.assertContains(response, "La Plata")
+        self.assertContains(response, "25/10/2026")
+        self.assertContains(response, "15:30 hs")
+
     @patch("apps.groups.views.plan_service.list_plans", return_value={"items": [], "page": 1, "has_next": False})
     @patch("apps.groups.views.group_service.get_group")
     def test_empty_group_shows_text_create_action_only_to_owner(self, get, list_plans):

@@ -24,6 +24,7 @@
     item,
     originalIndex,
     created: Date.parse(item.dataset.planCreated || '') || 0,
+    scheduled: Date.parse(item.dataset.planScheduled || ''),
     title: (item.querySelector('.pb-plan-info strong')?.textContent || '').trim(),
     content: normalize(item.querySelector('.pb-plan-info')?.textContent || '')
   }));
@@ -54,6 +55,17 @@
       const list = section.querySelector('[data-plan-list]');
       const stateEntries = entries.filter(entry => entry.item.dataset.planState === state);
       stateEntries.sort((a, b) => {
+        if (ordering === 'upcoming') {
+          const now = Date.now();
+          const bucket = e => !Number.isFinite(e.scheduled) ? 2 : (e.scheduled >= now ? 0 : 1);
+          const aBucket = bucket(a);
+          const bBucket = bucket(b);
+          if (aBucket !== bBucket) return aBucket - bBucket;
+          // Próximos primero; los ya pasados después; sin fecha al final.
+          if (aBucket === 0) return a.scheduled - b.scheduled || b.created - a.created;
+          if (aBucket === 1) return b.scheduled - a.scheduled || b.created - a.created;
+          return b.created - a.created || a.originalIndex - b.originalIndex;
+        }
         if (ordering === 'name') return a.title.localeCompare(b.title, 'es', { sensitivity: 'base' }) || a.originalIndex - b.originalIndex;
         if (ordering === 'oldest') return a.created - b.created || a.originalIndex - b.originalIndex;
         return b.created - a.created || a.originalIndex - b.originalIndex;

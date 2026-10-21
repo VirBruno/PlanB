@@ -59,6 +59,23 @@ class PlanViewsTests(TestCase):
         self.assertContains(response, "Juntada activa", count=1)
         self.assertContains(response, "Viaje pendiente", count=1)
 
+    @patch("apps.plans.views.plan_service.list_plans")
+    def test_index_shows_scheduled_meeting_without_weather_api_calls(self, list_plans):
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+        scheduled = plan_row(name="Mates al parque", scheduled_at=datetime(
+            2026, 10, 25, 15, 30, tzinfo=ZoneInfo("America/Argentina/Buenos_Aires")
+        ), weather_city_name="La Plata")
+        list_plans.return_value = {"items": [scheduled, plan_row()], "page": 1}
+        response = self.client.get("/planes/")
+        self.assertContains(response, "Mates al parque")
+        self.assertContains(response, "La Plata", count=1)
+        self.assertContains(response, "25/10/2026")
+        self.assertContains(response, "15:30 hs")
+        self.assertContains(response, 'value="upcoming"')
+        self.assertContains(response, 'data-plan-scheduled=', count=2)
+        self.assertNotContains(response, 'data-plan-scheduled="None"')
+
     @patch("apps.plans.views.plan_service.create_plan", return_value=PLAN_ID)
     @patch("apps.plans.views.group_service.get_group")
     def test_group_owner_can_create_a_group_plan(self, get_group, create):
