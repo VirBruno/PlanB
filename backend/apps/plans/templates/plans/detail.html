@@ -10,6 +10,7 @@
   {% if proposals %}
   <link rel="stylesheet" href="{% static 'leaflet.css' %}">
   {% endif %}
+  <link rel="stylesheet" href="{% static 'users/css/plan-detail-weather-focus.css' %}?v=6">
 {% endblock %}
 {% block extra_js %}
   <script src="{% static 'users/js/plan-weather-planner.js' %}?v=1" defer></script>
@@ -42,11 +43,6 @@
     {% endif %}
   </div>
   {% if plan.description %}<p class="group-description">{{ plan.description|linebreaksbr }}</p>{% endif %}
-  <dl class="group-meta">
-    <div><dt>Estado</dt><dd>{% if plan.status %}Activo{% else %}Inactivo{% endif %}</dd></div>
-    <div><dt>Creado el</dt><dd>{{ plan.created_at|date:"d/m/Y" }}</dd></div>
-    <div><dt>Grupo</dt><dd><a href="{% url 'groups:detail' group.id %}">{{ group.name }}</a></dd></div>
-  </dl>
   {% if plan.scheduled_at %}
   <section class="pb-schedule-summary" data-plan-schedule-summary
            data-weather-url="{% url 'plans:group_weather_at' group.id %}"
@@ -71,6 +67,18 @@
     </div>
     <p class="pb-schedule-footnote">Pronóstico de <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a>. Puede cambiar a medida que se acerca la fecha.</p>
   </section>
+  {% endif %}
+  <dl class="group-meta">
+    <div><dt>Estado</dt><dd>{% if plan.status %}Activo{% else %}Inactivo{% endif %}</dd></div>
+    <div><dt>Creado el</dt><dd>{{ plan.created_at|date:"d/m/Y" }}</dd></div>
+    <div><dt>Grupo</dt><dd><a href="{% url 'groups:detail' group.id %}">{{ group.name }}</a></dd></div>
+  </dl>
+  {% if plan.scheduled_at %}
+  <details class="pb-weather-compare" data-weather-compare>
+    <summary class="pb-weather-compare-toggle">
+      <span class="pb-weather-compare-main"><span class="pb-weather-compare-icon" aria-hidden="true">☀</span> ¿Querés comparar otro día o lugar?</span>
+      <span class="pb-weather-compare-hint">Explorar alternativas <span aria-hidden="true">⌄</span></span>
+    </summary>
   {% endif %}
   <section class="pb-climate-planner" data-plan-weather
            data-cities-url="{% url 'plans:plan_weather_cities' plan.id %}"
@@ -132,9 +140,12 @@
       </div>
       <div class="pb-climate-days" data-weather-days aria-label="Comparación de días"></div>
       <div class="pb-climate-selected" data-weather-selected aria-live="polite"></div>
-      <p class="pb-climate-note">Los datos son orientativos y pueden cambiar. El clima todavía no se guarda como destino o fecha definitiva del plan. <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Clima: Open-Meteo</a> · <a href="https://www.geonames.org/" target="_blank" rel="noopener noreferrer">Localidades: GeoNames</a>.</p>
+      <p class="pb-climate-note">Los datos son orientativos y pueden cambiar. Comparar alternativas no modifica la fecha ni el lugar guardados en el plan. <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Clima: Open-Meteo</a> · <a href="https://www.geonames.org/" target="_blank" rel="noopener noreferrer">Localidades: GeoNames</a>.</p>
     </div>
   </section>
+  {% if plan.scheduled_at %}
+  </details>
+  {% endif %}
   <section class="proposals-section pb-plan-proposals" aria-labelledby="proposals-title">
     <div class="section-heading pb-proposals-heading">
       <div><p class="pb-proposals-kicker">IDEAS DEL GRUPO</p><h2 id="proposals-title">Propuestas <span class="pb-proposals-count">{{ proposals|length }}</span></h2><p class="pb-proposals-subtitle">Explorá las alternativas que compartieron los integrantes.</p></div>
