@@ -22,6 +22,7 @@ from .services import plan_service
 from .services.exceptions import InvalidPlan, PlanNotFound, PlanUnavailable, PlanningSchemaUnavailable
 from .services import proposal_service
 from .services import election_service
+from .services import plan_confirmation_service
 from .services import weather_service
 from .services import plan_weather_service
 from .services.proposal_exceptions import (
@@ -281,6 +282,17 @@ def detail(request, plan_id):
             len(leaderboard) == 1 or leaderboard[0][score_key] > leaderboard[1][score_key]
         ):
             champion_id = leaderboard[0]["id"]
+    confirmed_proposal = next(
+        (proposal for proposal in proposals if proposal["id"] == plan.get("selected_proposal_id")),
+        None,
+    )
+    for proposal in proposals:
+        proposal["is_confirmed"] = proposal is confirmed_proposal
+        proposal["can_confirm"] = (
+            group["role"] == "owner" and plan.get("decision_schema", True) and not plan.get("selected_proposal_id")
+            and proposal["date_pick"] is not None
+            and (election_method not in ("votes", "combat") or proposal["id"] == champion_id)
+        )
     # El cálculo es de consulta: cualquier integrante con acceso al plan puede verlo.
     # _plan_and_group/get_group ya valida la pertenencia mediante el JWT del usuario.
     show_ideal = request.GET.get("ideal") == "1"
@@ -289,6 +301,8 @@ def detail(request, plan_id):
     return render(request, "plans/detail.html", {
         "plan": plan, "group": group, "can_manage": group["role"] == "owner",
         "election_method": election_method,
+        "confirmed_proposal": confirmed_proposal,
+        "decision_schema": plan.get("decision_schema", False),
         "can_create_proposal": not any(
             proposal["created_by"] == request.planb_user["id"] for proposal in proposals
         ),
@@ -533,6 +547,8 @@ def _proposal_form(request, *, plan_id, proposal=None):
     if plan_group is None:
         return _unavailable(request)
     plan, group = plan_group
+    if plan.get("selected_proposal_id"):
+        raise PermissionDenied("Reabrí la decisión antes de modificar propuestas.")
     initial = {}
     if proposal:
         initial = {
@@ -636,8 +652,11 @@ def proposal_edit(request, plan_id, proposal_id):
 @supabase_login_required
 @sensitive_variables()
 def proposal_delete(request, plan_id, proposal_id):
-    if _proposal_plan(request, plan_id) is None:
+    plan_group = _proposal_plan(request, plan_id)
+    if plan_group is None:
         return _unavailable(request)
+    if plan_group[0].get("selected_proposal_id"):
+        raise PermissionDenied("Reabrí la decisión antes de eliminar propuestas.")
     try:
         proposal = proposal_service.get_proposal(
             session_service.get_access_token(request),
@@ -685,16 +704,21 @@ def edit(request, plan_id):
             "weather_city_id": plan.get("weather_city_id"),
         },
     )
+    if plan.get("selected_proposal_id"):
+        for field in ("plan_date", "plan_time", "weather_province", "weather_city_id"):
+            form.fields[field].disabled = True
+            form.initial[field] = None
     status_code = 200
     if request.method == "POST" and form.is_valid():
         try:
-            planning = _plan_weather_data(form)
+            planning = _plan_weather_data(form) if not plan.get("selected_proposal_id") else {}
             plan_service.update_plan(
                 token, plan_id=plan_id,
                 name=form.cleaned_data["name"],
                 description=form.cleaned_data["description"],
                 status=form.cleaned_data["status"],
-                **({"update_planning": True, **planning} if (plan.get("planning_schema") or planning["scheduled_at"]) else {}),
+                **({"update_planning": True, **planning} if not plan.get("selected_proposal_id")
+                   and (plan.get("planning_schema") or planning.get("scheduled_at")) else {}),
             )
         except ValueError as error:
             form.add_error("weather_city_id", str(error))
@@ -717,6 +741,7 @@ def edit(request, plan_id):
     return render(request, "plans/form.html", {
         "form": form, "plan": plan, "group": group, "is_edit": True,
         "selected_city_name": plan.get("weather_city_name", "") if plan else "",
+        "confirmed_plan": bool(plan.get("selected_proposal_id")),
         "planb_user": request.planb_user,
     }, status=status_code)
 
@@ -764,3 +789,51 @@ def delete(request, plan_id):
         )
     messages.success(request, "El plan se eliminó.")
     return redirect("groups:detail", group_id=group["id"])
+
+
+@private_page
+@require_POST
+@supabase_login_required
+@sensitive_variables()
+def confirm_plan_proposal(request, plan_id, proposal_id):
+    plan_group = _proposal_plan(request, plan_id)
+    if plan_group is None:
+        return _unavailable(request)
+    plan, group = plan_group
+    _require_group_admin(group)
+    if plan.get("selected_proposal_id"):
+        messages.error(request, "El encuentro ya está confirmado. Reabrilo antes de cambiarlo.")
+        return redirect("plans:detail", plan_id=plan_id)
+    try:
+        plan_confirmation_service.confirm(
+            session_service.get_access_token(request), plan_id=plan_id,
+            proposal_id=proposal_id,
+        )
+    except InvalidPlan as error:
+        messages.error(request, str(error))
+    except PlanUnavailable:
+        return _unavailable(request)
+    else:
+        messages.success(request, "¡Encuentro confirmado! Fecha y ubicación elegidas desde la propuesta.")
+    return redirect("plans:detail", plan_id=plan_id)
+
+
+@private_page
+@require_POST
+@supabase_login_required
+@sensitive_variables()
+def reopen_plan_decision(request, plan_id):
+    plan_group = _proposal_plan(request, plan_id)
+    if plan_group is None:
+        return _unavailable(request)
+    _, group = plan_group
+    _require_group_admin(group)
+    try:
+        plan_confirmation_service.reopen(session_service.get_access_token(request), plan_id=plan_id)
+    except InvalidPlan as error:
+        messages.error(request, str(error))
+    except PlanUnavailable:
+        return _unavailable(request)
+    else:
+        messages.success(request, "El plan volvió a recibir propuestas; ya no tiene encuentro confirmado.")
+    return redirect("plans:detail", plan_id=plan_id)

@@ -4,6 +4,7 @@
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'users/css/proposals.css' %}?v=5">
   <link rel="stylesheet" href="{% static 'users/css/plan-detail-social.css' %}">
+  <link rel="stylesheet" href="{% static 'users/css/plan-decisions.css' %}?v=8">
   <link rel="stylesheet" href="{% static 'users/css/proposal-weather.css' %}?v=1">
   <link rel="stylesheet" href="{% static 'users/css/plan-weather-planner.css' %}?v=1">
   <link rel="stylesheet" href="{% static 'users/css/plan-schedule.css' %}?v=1">
@@ -43,7 +44,7 @@
     {% endif %}
   </div>
   {% if plan.description %}<p class="group-description">{{ plan.description|linebreaksbr }}</p>{% endif %}
-  {% if plan.scheduled_at %}
+  {% if plan.scheduled_at and not plan.selected_proposal_id %}
   <section class="pb-schedule-summary" data-plan-schedule-summary
            data-weather-url="{% url 'plans:group_weather_at' group.id %}"
            data-province="{{ plan.weather_province }}"
@@ -51,7 +52,7 @@
            data-date="{{ scheduled_date_iso }}"
            data-time="{{ scheduled_hour }}"
            aria-label="Fecha y clima del plan">
-    <span class="pb-schedule-eyebrow">YA ESTÁ ORGANIZADO</span>
+    <span class="pb-schedule-eyebrow">PREFERENCIA TENTATIVA</span>
     <h2>📅 Fecha y destino del plan</h2>
     <div class="pb-schedule-summary-meta">
       <span>🕒 {{ scheduled_display }} hs.</span>
@@ -146,10 +147,28 @@
   {% if plan.scheduled_at %}
   </details>
   {% endif %}
+  {# ETAPA8_DECISION_PLAN: decisión explícita, independiente del comparador. #}
+  <section class="pb-decision-panel" aria-labelledby="pb-decision-title">
+    {% if plan.selected_proposal_id and confirmed_proposal %}
+      <div class="pb-decision-badge">✓ ENCUENTRO CONFIRMADO</div>
+      <h2 id="pb-decision-title">{{ confirmed_proposal.tittle }}</h2>
+      <p>Esta es la alternativa elegida por el grupo. La fecha y el lugar definitivos provienen de esta propuesta.</p>
+      <div class="pb-decision-meta">
+        <span>📅 {{ confirmed_proposal.date_pick|date:"d/m/Y H:i" }}</span>
+        <a href="https://www.openstreetmap.org/?mlat={{ confirmed_proposal.latitude|unlocalize }}&amp;mlon={{ confirmed_proposal.longitude|unlocalize }}#map=16/{{ confirmed_proposal.latitude|unlocalize }}/{{ confirmed_proposal.longitude|unlocalize }}" target="_blank" rel="noopener noreferrer">📍 Ver ubicación confirmada ↗</a>
+      </div>
+      {% if can_manage %}<form method="post" action="{% url 'plans:reopen_plan_decision' plan.id %}" data-confirm-delete="¿Reabrir el plan? La fecha definitiva se quitará y se podrán volver a evaluar las propuestas.">{% csrf_token %}<button type="submit" class="button button--quiet">Reabrir decisión</button></form>{% endif %}
+    {% else %}
+      <div class="pb-decision-badge pb-decision-badge--pending">⌛ EN ORGANIZACIÓN</div>
+      <h2 id="pb-decision-title">Todavía no hay encuentro confirmado</h2>
+      <p>Las fechas y ubicaciones son alternativas. Cuando el grupo decida, el administrador podrá confirmar una propuesta.</p>
+      {% if plan.scheduled_at %}<p class="pb-decision-note">La fecha y localidad del plan son una <strong>preferencia tentativa</strong>, no una decisión del grupo.</p>{% endif %}
+    {% endif %}
+  </section>
   <section class="proposals-section pb-plan-proposals" aria-labelledby="proposals-title">
     <div class="section-heading pb-proposals-heading">
-      <div><p class="pb-proposals-kicker">IDEAS DEL GRUPO</p><h2 id="proposals-title">Propuestas <span class="pb-proposals-count">{{ proposals|length }}</span></h2><p class="pb-proposals-subtitle">Explorá las alternativas que compartieron los integrantes.</p></div>
-      {% if can_create_proposal %}<a class="button button--primary" href="{% url 'plans:proposal_create' plan.id %}">Nueva propuesta <span aria-hidden="true">+</span></a>{% endif %}
+      <div><p class="pb-proposals-kicker">IDEAS DEL GRUPO</p><h2 id="proposals-title">Propuestas <span class="pb-proposals-count">{{ proposals|length }}</span></h2><p class="pb-proposals-subtitle">{% if plan.selected_proposal_id %}El encuentro está confirmado; reabrí la decisión para cambiar alternativas.{% else %}Explorá las alternativas que compartieron los integrantes.{% endif %}</p></div>
+      {% if can_create_proposal and not plan.selected_proposal_id %}<a class="button button--primary" href="{% url 'plans:proposal_create' plan.id %}">Nueva propuesta <span aria-hidden="true">+</span></a>{% endif %}
     </div>
     {% if proposals %}
     <section class="proposal-election" id="proposal-election" aria-labelledby="proposal-election-title">
@@ -160,7 +179,7 @@
         </div>
         {% if election_method %}<span class="proposal-method-active">{% if election_method == 'ideal' %}Punto de encuentro{% elif election_method == 'votes' %}Votación{% else %}Combate{% endif %}</span>{% else %}<span class="proposal-method-active">Sin elegir</span>{% endif %}
       </div>
-      {% if can_manage %}
+      {% if can_manage and not plan.selected_proposal_id %}
       <details class="proposal-method-picker" {% if not election_method %}open{% endif %}>
         <summary data-method-picker>Elija su Método de elección</summary>
         <form method="post" action="{% url 'plans:proposal_election_method' plan.id %}">
@@ -232,7 +251,7 @@
         {% endfor %}
       </ol>
       {% if election_method == 'combat' %}
-      {% if my_proposal %}
+      {% if my_proposal and not plan.selected_proposal_id %}
       <div class="proposal-combat-game" data-combat-game>
         <div class="proposal-combat-copy"><span>Tu propuesta</span><strong>{{ my_proposal.tittle }}</strong><span>Mejor puntaje: {{ my_proposal.Score }}</span></div>
         <canvas class="proposal-combat-canvas" width="720" height="320" data-combat-canvas role="img" aria-label="Juego de vuelo: evitá los obstáculos para sumar puntos"></canvas>
@@ -258,7 +277,7 @@
             <h3>{{ proposal.tittle }}</h3>
             <p class="proposal-author">Propuesta por <strong>{{ proposal.creator_username }}</strong></p>
           </div>
-          {% if proposal.can_manage %}
+          {% if proposal.can_manage and not plan.selected_proposal_id %}
           <div class="proposal-actions">
             <a class="button button--quiet" href="{% url 'plans:proposal_edit' plan.id proposal.id %}">Editar</a>
             <form method="post" action="{% url 'plans:proposal_delete' plan.id proposal.id %}" data-confirm-delete="¿Eliminar esta propuesta? Esta acción no se puede deshacer.">
@@ -268,8 +287,14 @@
           </div>
           {% endif %}
         </div>
+        {% if proposal.is_confirmed %}<p class="pb-proposal-confirmed">✓ Elegida para el encuentro</p>{% endif %}
+        {% if proposal.can_confirm %}
+        <form method="post" action="{% url 'plans:confirm_plan_proposal' plan.id proposal.id %}" class="pb-confirm-form" data-confirm-delete="¿Confirmar esta propuesta como encuentro definitivo?">
+          {% csrf_token %}<button class="button button--primary" type="submit">✓ Confirmar este encuentro</button>
+        </form>
+        {% endif %}
         {% if proposal.description %}<p>{{ proposal.description|linebreaksbr }}</p>{% endif %}
-        {% if election_method == 'votes' %}
+        {% if election_method == 'votes' and not plan.selected_proposal_id %}
         <div class="proposal-election-score"><strong>{{ proposal.votes }} voto{{ proposal.votes|pluralize }}</strong>{% if proposal.id == champion_id %}<span class="proposal-champion-badge">Campeona</span>{% endif %}
           {% if proposal.id == voted_proposal_id %}
           <span class="proposal-voted-label">Tu voto</span>
@@ -311,7 +336,7 @@
       {% endfor %}
     </ul>
     {% else %}
-    <div class="pb-proposals-empty"><span aria-hidden="true">✧</span><h3>¡El primer plan empieza con una idea!</h3><p>Todavía no hay propuestas para este plan.</p>{% if can_create_proposal %}<a class="button button--primary" href="{% url 'plans:proposal_create' plan.id %}">Compartir mi propuesta</a>{% endif %}</div>
+    <div class="pb-proposals-empty"><span aria-hidden="true">✧</span><h3>¡El primer plan empieza con una idea!</h3><p>Todavía no hay propuestas para este plan.</p>{% if can_create_proposal and not plan.selected_proposal_id %}<a class="button button--primary" href="{% url 'plans:proposal_create' plan.id %}">Compartir mi propuesta</a>{% endif %}</div>
     {% endif %}
     {% if not can_create_proposal %}<p class="empty-proposals">Ya compartiste tu propuesta para este plan.</p>{% endif %}
   </section>

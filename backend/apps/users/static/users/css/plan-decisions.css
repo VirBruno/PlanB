@@ -1,0 +1,15 @@
+/* Plan B · Etapa 8 · decisión del grupo, sin alterar clima ni votaciones */
+.pb-decision-panel{margin:1.35rem 0;padding:1.3rem 1.5rem;border:1px solid var(--border-color,rgba(110,89,205,.18));border-radius:22px;background:linear-gradient(130deg,rgba(208,248,237,.36),rgba(219,210,255,.34));color:inherit}
+.pb-decision-panel h2{font-size:clamp(1.16rem,2vw,1.6rem);margin:.55rem 0;font-weight:750}
+.pb-decision-panel p{color:var(--text-secondary,#657084);line-height:1.55;margin:.4rem 0 .8rem}
+.pb-decision-badge{display:inline-flex;align-items:center;gap:.35rem;font-size:.72rem;letter-spacing:.075em;font-weight:800;color:#17765b}
+.pb-decision-badge--pending{color:#765dd6}
+.pb-decision-meta{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin:.8rem 0 1rem;font-weight:650;font-size:.93rem}
+.pb-decision-meta a{color:#7056da;text-decoration:none}
+.pb-decision-note{font-size:.86rem}
+.pb-decision-panel form{margin-top:.75rem}
+.pb-confirm-form{margin:.75rem 0}
+.pb-confirm-form .button{font-size:.86rem;white-space:normal}
+.pb-proposal-confirmed{display:inline-flex;background:rgba(113,223,174,.2);color:#17765b;padding:.4rem .7rem;border-radius:9px;font-weight:700;font-size:.84rem}
+[data-theme="dark"] .pb-decision-panel{background:linear-gradient(130deg,rgba(58,97,91,.28),rgba(106,78,171,.25))}
+@media(max-width:700px){.pb-decision-panel{padding:1.1rem}.pb-decision-meta{flex-direction:column;align-items:flex-start;gap:.5rem}}

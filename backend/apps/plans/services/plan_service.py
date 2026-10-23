@@ -14,6 +14,7 @@ COLUMNS = "id,created_at,name,description,status,group_id,created_by,election_me
 LEGACY_COLUMNS = COLUMNS.removesuffix(",election_method")
 PLANNING_FIELDS = "scheduled_at,weather_province,weather_city_id,weather_city_name"
 PLANNING_COLUMNS = COLUMNS + "," + PLANNING_FIELDS
+DECISION_COLUMNS = PLANNING_COLUMNS + ",selected_proposal_id,confirmed_at"  # ETAPA8_DECISION_PLAN
 ELECTION_METHODS = ("ideal", "votes", "combat")
 
 
@@ -30,6 +31,14 @@ def _plan(row):
         if key != "election_method"
     }
     result["election_method"] = row.get("election_method")
+    selected = row.get("selected_proposal_id")
+    if selected is not None and (type(selected) is not int or selected < 1):
+        raise ValueError
+    result["selected_proposal_id"] = selected
+    result["decision_schema"] = "selected_proposal_id" in row
+    result["confirmed_at"] = parse_datetime(row["confirmed_at"]) if row.get("confirmed_at") else None
+    if row.get("confirmed_at") and result["confirmed_at"] is None:
+        raise ValueError
     result["planning_schema"] = "scheduled_at" in row
     result["scheduled_at"] = parse_datetime(row["scheduled_at"]) if row.get("scheduled_at") else None
     if row.get("scheduled_at") and result["scheduled_at"] is None:
@@ -37,7 +46,7 @@ def _plan(row):
     result["weather_province"] = row.get("weather_province")
     result["weather_city_id"] = row.get("weather_city_id")
     result["weather_city_name"] = row.get("weather_city_name")
-    if result["scheduled_at"] is not None:
+    if result["scheduled_at"] is not None and selected is None:
         from .plan_weather_service import PROVINCES
         if (result["weather_province"] not in PROVINCES
                 or not isinstance(result["weather_city_id"], int)
@@ -69,6 +78,15 @@ def _translate(error):
         if error.code in ("22023", "23514"):
             raise InvalidPlan() from None
     raise PlanUnavailable() from None
+
+
+def _missing_decision_columns(error):
+    return (
+        isinstance(error, APIError)
+        and error.code in ("42703", "PGRST204")
+        and any(field in (error.message or "").lower()
+                for field in ("selected_proposal_id", "confirmed_at"))
+    )
 
 
 def _missing_planning_columns(error):
@@ -129,10 +147,13 @@ def list_plans(access_token, *, page=1, group_id=None):
         with clients.public_client(access_token=access_token) as client:
             try:
                 rows = _list_plan_rows(
-                    client, columns=PLANNING_COLUMNS, group_id=canonical_group, start=start,
+                    client, columns=DECISION_COLUMNS, group_id=canonical_group, start=start,
                 )
             except APIError as error:
-                if _missing_election_method(error):
+                if _missing_decision_columns(error):
+                    rows = _list_plan_rows(client, columns=PLANNING_COLUMNS,
+                                           group_id=canonical_group, start=start)
+                elif _missing_election_method(error):
                     rows = _list_plan_rows(client, columns=LEGACY_COLUMNS, group_id=canonical_group, start=start)
                 elif _missing_planning_columns(error):
                     try:
@@ -164,9 +185,11 @@ def get_plan(access_token, plan_id):
     try:
         with clients.public_client(access_token=access_token) as client:
             try:
-                rows = _get_plan_rows(client, columns=PLANNING_COLUMNS, plan_id=canonical_id)
+                rows = _get_plan_rows(client, columns=DECISION_COLUMNS, plan_id=canonical_id)
             except APIError as error:
-                if _missing_election_method(error):
+                if _missing_decision_columns(error):
+                    rows = _get_plan_rows(client, columns=PLANNING_COLUMNS, plan_id=canonical_id)
+                elif _missing_election_method(error):
                     rows = _get_plan_rows(client, columns=LEGACY_COLUMNS, plan_id=canonical_id)
                 elif _missing_planning_columns(error):
                     try:

@@ -18,6 +18,7 @@
         <form method="post" class="auth-form pf-form pb-create-form" data-submit-form data-plan-create-form>
           {% csrf_token %}
           {% include 'components/form_errors.html' %}
+          {% if confirmed_plan %}<p class="pb-create-help" role="status">Este encuentro ya está confirmado. Para cambiar fecha o lugar, primero reabrí la decisión desde el detalle del plan. Podés editar el nombre, la descripción y el estado.</p>{% endif %}
 
           <section class="pb-create-section" aria-labelledby="pb-create-idea-title">
             <div class="pb-create-section-head">
@@ -38,8 +39,8 @@
             <div class="pb-create-section-head">
               <span class="pb-create-number" aria-hidden="true">02</span>
               <div>
-                <h2 id="pb-schedule-title">¿Cuándo y dónde?</h2>
-                <p>Completá los datos de tu encuentro. El clima aparece automáticamente.</p>
+                <h2 id="pb-schedule-title">¿Tenés una fecha y lugar en mente?</h2>
+                <p>Opcional: elegí una preferencia inicial para explorar el clima. La fecha y el lugar definitivos saldrán de la propuesta elegida.</p>
               </div>
             </div>
             <div class="pb-schedule-grid">
