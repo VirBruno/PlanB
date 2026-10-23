@@ -1,8 +1,8 @@
 {% extends 'components/authenticated_base.html' %}
 {% load static %}
 {% block title %}Mis planes · Plan B{% endblock %}
-{% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'users/css/plans-experience.css' %}?v=14.1"><link rel="stylesheet" href="{% static 'users/css/plan-meet-cards.css' %}?v=5">{% endblock %}
-{% block extra_js %}{{ block.super }}<script src="{% static 'users/js/plan-filters.js' %}?v=5" defer></script>{% endblock %}
+{% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'users/css/plans-experience.css' %}?v=14.1"><link rel="stylesheet" href="{% static 'users/css/plan-meet-cards.css' %}?v=5"><link rel="stylesheet" href="{% static 'users/css/meeting-agenda.css' %}?v=7">{% endblock %}
+{% block extra_js %}{{ block.super }}<script src="{% static 'users/js/plan-filters.js' %}?v=7" defer></script><script src="{% static 'users/js/meeting-indicators.js' %}?v=7" defer></script>{% endblock %}
 {% block workspace %}
 <div class="pb-plans-wrap">
   <header class="pb-page-heading pb-plans-heading">
@@ -12,6 +12,7 @@
   {% if plans_page.items %}
   <section class="pb-plan-overview" aria-label="Resumen de planes de esta página">
     <div class="pb-plan-overview-item pb-plan-overview-item--active"><span class="pb-overview-symbol" aria-hidden="true">✦</span><div><strong data-plan-overview-count="active">–</strong><span>En curso</span></div><small>Ideas abiertas en esta página</small></div>
+    <div class="pb-plan-overview-item pb-plan-overview-item--upcoming"><span class="pb-overview-symbol" aria-hidden="true">☀</span><div><strong data-plan-overview-count="upcoming">–</strong><span>Próximos</span></div><small>Encuentros futuros de esta página</small></div>
     <div class="pb-plan-overview-item"><span class="pb-overview-symbol" aria-hidden="true">↗</span><div><strong data-plan-overview-count="inactive">–</strong><span>Inactivos</span></div><small>Planes que no están activos</small></div>
   </section>
   <section class="pb-plans-section" aria-labelledby="plans-title">
@@ -22,6 +23,7 @@
         <div class="pb-plan-filter-buttons" role="group" aria-label="Filtrar planes de esta página">
           <button type="button" data-plan-filter="all" aria-pressed="true">Todos <span data-plan-count="all"></span></button>
           <button type="button" data-plan-filter="active" aria-pressed="false">En curso <span data-plan-count="active"></span></button>
+          <button type="button" data-plan-filter="upcoming" aria-pressed="false">Próximos <span data-plan-count="upcoming"></span></button>
           <button type="button" data-plan-filter="inactive" aria-pressed="false">Inactivos <span data-plan-count="inactive"></span></button>
         </div>
         <label class="pb-plan-sort-label">Ordenar

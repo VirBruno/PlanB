@@ -17,7 +17,11 @@
   const counts = {
     all: items.length,
     active: items.filter(item => item.dataset.planState === 'active').length,
-    inactive: items.filter(item => item.dataset.planState === 'inactive').length
+    inactive: items.filter(item => item.dataset.planState === 'inactive').length,
+    upcoming: items.filter(item => {
+      const t = Date.parse(item.dataset.planScheduled || '');
+      return item.dataset.planState === 'active' && Number.isFinite(t) && t > Date.now();
+    }).length
   };
   let filter = 'all';
   const entries = items.map((item, originalIndex) => ({
@@ -38,6 +42,7 @@
   Object.keys(counts).forEach(key => setText(`[data-plan-count="${key}"]`, counts[key]));
   setText('[data-plan-overview-count="active"]', counts.active);
   setText('[data-plan-overview-count="inactive"]', counts.inactive);
+  setText('[data-plan-overview-count="upcoming"]', counts.upcoming);
 
   function update() {
     const term = normalize(search?.value || '');
@@ -46,7 +51,8 @@
 
     entries.forEach(entry => {
       const state = entry.item.dataset.planState;
-      const show = (filter === 'all' || filter === state) && (!term || entry.content.includes(term));
+      const isUpcoming = state === 'active' && Number.isFinite(entry.scheduled) && entry.scheduled > Date.now();
+      const show = (filter === 'all' || filter === state || (filter === 'upcoming' && isUpcoming)) && (!term || entry.content.includes(term));
       entry.item.hidden = !show;
       if (show) visibleCounts[state]++;
     });

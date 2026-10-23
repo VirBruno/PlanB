@@ -1,0 +1,29 @@
+/* Plan B - Etapa 7: próximos encuentros y badges de fecha. */
+.pb-app-shell .pb-plans-wrap .pb-plan-overview{grid-template-columns:repeat(3,minmax(0,1fr));}
+.pb-app-shell .pb-plan-overview-item--upcoming{background:linear-gradient(118deg,var(--pb-soft-mint,rgba(186,237,216,.3)),var(--sd-panel));}
+.pb-app-shell .pb-plan-card-end{gap:7px;}
+.pb-app-shell .pb-meeting-status{
+  display:inline-flex;align-items:center;justify-content:center;align-self:flex-start;
+  width:max-content;max-width:100%;padding:5px 9px;border-radius:999px;
+  font-size:10px;line-height:1.3;font-weight:800;letter-spacing:.01em;
+  white-space:nowrap;border:1px solid var(--glass-border,rgba(151,137,216,.22));
+  color:var(--text);background:var(--pb-soft-highlight,rgba(149,128,236,.12));
+}
+.pb-app-shell .pb-meeting-status--today{color:#166c53;background:rgba(121,215,179,.22);border-color:rgba(82,177,143,.3);}
+.pb-app-shell .pb-meeting-status--soon{color:var(--pb-highlight,#7457d8);background:var(--pb-soft-highlight,rgba(149,128,236,.15));}
+.pb-app-shell .pb-meeting-status--past{opacity:.77;background:rgba(143,149,170,.11);}
+.pb-app-shell .group-social-plan-info .pb-meeting-status{font-size:10px;justify-self:start;margin-top:2px;}
+html[data-theme='dark'] .pb-app-shell .pb-meeting-status--today{color:#9deed3;background:rgba(55,127,109,.3);}
+@media(max-width:850px){
+  .pb-app-shell .pb-plans-wrap .pb-plan-overview{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .pb-app-shell .pb-plan-overview-item--upcoming{grid-column:1/-1;}
+}
+@media(max-width:700px){
+  .pb-app-shell .pb-plans-wrap .pb-plan-filter-buttons>button[data-plan-filter]{flex:1 1 calc(50% - 9px);min-width:0;}
+  .pb-app-shell .pb-meeting-status{font-size:10px;}
+}
+@media(max-width:430px){
+  .pb-app-shell .pb-plans-wrap .pb-plan-overview{grid-template-columns:1fr;}
+  .pb-app-shell .pb-plan-overview-item--upcoming{grid-column:auto;}
+  .pb-app-shell .pb-plan-overview-item{grid-template-columns:1fr;}
+}
