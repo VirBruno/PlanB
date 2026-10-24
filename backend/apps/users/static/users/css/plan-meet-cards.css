@@ -1,0 +1,24 @@
+/* Etapa 5: fecha y lugar visibles en los listados, sin nuevas consultas a la API. */
+.pb-app-shell .pb-plan-meet {
+  display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:10px 0 5px;min-width:0;
+  font-size:11px;line-height:1.5;color:var(--text);
+}
+.pb-app-shell .pb-plan-meet-chip {
+  display:inline-flex;align-items:center;gap:5px;max-width:100%;min-width:0;
+  padding:5px 9px;border-radius:9px;background:var(--pb-soft-highlight,rgba(143,121,227,.13));
+  border:1px solid var(--glass-border,rgba(154,137,219,.18));color:var(--text);font-size:11px;font-weight:750;
+  overflow-wrap:anywhere;
+}
+.pb-app-shell .pb-plan-meet-chip > span {flex:none}
+.pb-app-shell .pb-plan-info > .pb-plan-meet {display:flex;overflow:visible;-webkit-line-clamp:unset}
+.pb-app-shell .group-social-plan-info > .pb-group-meet {
+  display:flex;flex-wrap:wrap;align-items:center;gap:5px 12px;margin:2px 0 4px;
+  color:var(--sd-ink,var(--text));font-size:11px;font-weight:750;line-height:1.5;
+}
+.pb-app-shell .pb-group-meet > span {display:inline-flex;gap:5px;align-items:center;min-width:0;overflow-wrap:anywhere}
+.pb-app-shell .pb-group-meet > span > span {flex:none}
+@media(max-width:700px){
+  .pb-app-shell .pb-plan-meet{gap:6px}
+  .pb-app-shell .pb-plan-meet-chip{font-size:10px;padding:5px 8px}
+  .pb-app-shell .group-social-plan-info > .pb-group-meet{font-size:10px;gap:4px 9px}
+}

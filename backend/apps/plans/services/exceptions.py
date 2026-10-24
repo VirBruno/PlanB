@@ -15,3 +15,6 @@ class InvalidPlan(PlanError):
 
 class PlanNotFound(PlanError):
     message = "No encontramos ese plan."
+
+class PlanningSchemaUnavailable(PlanError):
+    message = "Falta aplicar la migración del calendario y clima del plan en Supabase."

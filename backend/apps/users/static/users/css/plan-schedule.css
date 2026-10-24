@@ -1,0 +1,109 @@
+/* Plan B · fecha, hora, destino y pronóstico en planes */
+.pb-schedule, .pb-schedule-summary {
+  border: 1px solid var(--glass-border, rgba(125, 109, 199, .22));
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(143, 118, 236, .12), rgba(114, 209, 198, .06) 66%, rgba(225, 154, 215, .06));
+  padding: clamp(18px, 2.4vw, 26px);
+  min-width: 0;
+  color: var(--text, inherit);
+}
+.pb-schedule { margin: 10px 0 22px; }
+.pb-schedule-summary { margin: 24px 0 18px; }
+.pb-schedule-eyebrow { display: block; font-size: 11px; font-weight: 800; letter-spacing: .09em; color: #8b6cee; }
+.pb-schedule h2, .pb-schedule-summary h2 { margin: 8px 0; font-size: clamp(18px, 2.1vw, 24px); line-height: 1.25; color: var(--text, inherit); }
+.pb-schedule > p, .pb-schedule-summary > p { color: var(--muted, #6c6883); font-size: 13px; line-height: 1.65; }
+.pb-schedule-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; margin: 21px 0 18px; }
+.pb-schedule-field { min-width: 0; display: flex; flex-direction: column; gap: 7px; }
+.pb-schedule-field label { font-size: 12px; font-weight: 800; color: var(--text, inherit); }
+.pb-schedule-field input:not([type=hidden]), .pb-schedule-field select {
+  min-width: 0; width: 100%; height: 45px; box-sizing: border-box;
+  border-radius: 12px; padding: 0 12px; border: 1px solid var(--glass-border, rgba(125,109,199,.30));
+  background: var(--glass-bg, var(--surface, rgba(255,255,255,.1)));
+  color: var(--text, #27213e); font: inherit; font-size: 13px;
+}
+.pb-schedule-field select option { background: #fff; color: #222; }
+.pb-schedule-field input:focus-visible, .pb-schedule-field select:focus-visible { outline: 2px solid #8b6cee; outline-offset: 2px; }
+.pb-schedule-search { display: flex; gap: 8px; min-width: 0; }
+.pb-schedule-search input { flex: 1; }
+.pb-schedule-search button { flex: none; border-radius: 11px; min-width: 78px; padding: 0 12px; }
+.pb-schedule-search button:disabled { opacity: .55; }
+.pb-schedule-city-picked { color: #8b6cee; font-weight: 750; font-size: 12px; }
+.pb-schedule-error { font-size: 12px; color: #c45160; }
+.pb-schedule-city-results { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; }
+.pb-schedule-city-results[hidden] { display: none; }
+.pb-schedule-city-choice { border: 1px solid rgba(146,122,229,.42); border-radius: 999px; padding: 8px 13px; background: rgba(157,133,236,.10); color: var(--text, #282339); cursor: pointer; font-size: 12px; font-weight: 650; }
+.pb-schedule-city-choice:hover, .pb-schedule-city-choice:focus-visible { border-color: #8b6cee; background: rgba(157,133,236,.20); }
+.pb-schedule-weather { display: flex; align-items: center; gap: 16px; padding: 17px; background: rgba(143, 118, 236, .09); border: 1px solid rgba(143,118,236,.19); border-radius: 15px; }
+.pb-schedule-symbol { font-size: 32px; flex: none; }
+.pb-schedule-weather-body { min-width: 0; }
+.pb-schedule-weather-body strong { display: block; font-size: 15px; color: var(--text, inherit); }
+.pb-schedule-weather-body p { margin: 4px 0 0; font-size: 12px; line-height: 1.5; color: var(--muted, #6c6883); }
+.pb-schedule-metrics { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+.pb-schedule-metrics[hidden] { display: none; }
+.pb-schedule-metrics span { padding: 7px 9px; border: 1px solid rgba(146,122,229,.26); border-radius: 9px; font-weight: 750; font-size: 12px; color: var(--text, inherit); }
+.pb-schedule-footnote { margin-bottom: 0; font-size: 11px !important; }
+.pb-schedule-summary-meta { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0 18px; }
+.pb-schedule-summary-meta span { display: inline-flex; padding: 8px 12px; border: 1px solid rgba(146,122,229,.23); border-radius: 12px; background: rgba(146,122,229,.08); font-weight: 700; font-size: 13px; }
+@media(max-width: 660px) {
+  .pb-schedule-grid { grid-template-columns: minmax(0, 1fr); }
+  .pb-schedule-weather { align-items: flex-start; padding: 13px; }
+  .pb-schedule-summary { margin: 18px 0; }
+}
+@media(max-width: 380px) { .pb-schedule-search { flex-wrap: wrap; }.pb-schedule-search button { width: 100%; height: 40px; } }
+
+
+/* Etapa 4: clima integrado al proceso de crear/editar planes.
+   Los estilos del detalle y comparador de clima quedan intactos. */
+.pb-create-plan .pf-layout{grid-template-columns:minmax(0,1.48fr) minmax(245px,.80fr)}
+.pb-create-plan .pf-main{padding:clamp(22px,3.2vw,38px)}
+.pb-create-plan .pf-heading{margin-bottom:26px}
+.pb-create-plan .pb-create-form{gap:0}
+.pb-create-plan .pb-create-section{padding:22px 0;border-bottom:1px solid var(--pf-line)}
+.pb-create-plan .pb-create-section:first-of-type{padding-top:0}
+.pb-create-plan .pb-create-section:last-of-type{border-bottom:0}
+.pb-create-plan .pb-create-section-head{display:flex;gap:13px;align-items:flex-start;margin:0 0 18px}
+.pb-create-plan .pb-create-number{flex:0 0 33px;width:33px;height:33px;display:grid;place-items:center;border-radius:11px;color:#745be8;background:rgba(128,99,232,.12);font-size:11px;font-weight:800;letter-spacing:.03em}
+.pb-create-plan .pb-create-section-head h2{margin:2px 0 4px;font-size:19px;line-height:1.35;letter-spacing:-.035em;color:var(--pf-ink)}
+.pb-create-plan .pb-create-section-head p{margin:0;font-size:12px;line-height:1.6;color:var(--pf-muted)}
+.pb-create-plan .pb-create-section-fields{display:grid;gap:18px}
+.pb-create-plan .pb-schedule{background:transparent;border:0;border-radius:0;margin:0;padding:22px 0;color:var(--pf-ink)}
+.pb-create-plan .pb-schedule-grid{gap:14px;margin:0 0 15px}
+.pb-create-plan .pb-schedule-field label{font-size:13px;font-weight:750;color:var(--pf-ink)}
+.pb-create-plan .pb-schedule-field input:not([type=hidden]),
+.pb-create-plan .pb-schedule-field select{height:49px;font-size:14px;border:1px solid var(--pf-line);background:var(--pf-strong);color:var(--pf-ink);border-radius:13px;outline:0;padding-inline:14px}
+.pb-create-plan .pb-schedule-field input:focus-visible,
+.pb-create-plan .pb-schedule-field select:focus-visible{border-color:#8d76ee;box-shadow:0 0 0 3px rgba(137,111,241,.16);outline:none}
+.pb-create-plan .pb-schedule-field select option{color:#24243a;background:#fff}
+.pb-create-plan .pb-schedule-search{gap:7px}
+.pb-create-plan .pb-schedule-search button{background:rgba(128,99,232,.11);border:1px solid var(--pf-line);color:var(--pf-ink);font-weight:750;min-width:76px;border-radius:12px}
+.pb-create-plan .pb-schedule-search button:hover{background:rgba(128,99,232,.22)}
+.pb-create-plan .pb-create-help{color:var(--pf-muted);font-size:11px;line-height:1.4}
+.pb-create-plan .pb-schedule-city-results{gap:7px;margin:4px 0 15px}
+.pb-create-plan .pb-schedule-city-choice{border-radius:12px;background:var(--pf-strong);color:var(--pf-ink);font-size:12px}
+.pb-create-plan .pb-schedule-city-choice:focus-visible{outline:2px solid #8067e8;outline-offset:2px}
+.pb-create-plan .pb-create-weather{background:linear-gradient(110deg,rgba(136,107,235,.13),rgba(96,204,173,.11));border:1px solid var(--pf-line);padding:15px;gap:12px;align-items:flex-start;margin:5px 0 0}
+.pb-create-plan .pb-schedule-symbol{display:grid;place-items:center;min-width:43px;width:43px;height:43px;border-radius:14px;background:var(--pf-surface);font-size:26px}
+.pb-create-plan .pb-create-weather-kicker{display:block;color:#8165e5;font-size:10px;letter-spacing:.08em;font-weight:800;margin:0 0 4px}
+.pb-create-plan .pb-schedule-weather-body strong{font-size:14px;line-height:1.5;color:var(--pf-ink)}
+.pb-create-plan .pb-schedule-weather-body p{color:var(--pf-muted)}
+.pb-create-plan .pb-schedule-metrics span{background:var(--pf-surface);border-color:var(--pf-line);color:var(--pf-ink)}
+.pb-create-plan .pb-schedule-footnote{font-size:11px!important;line-height:1.6!important;color:var(--pf-muted);margin-top:12px}
+.pb-create-plan .pb-create-final>.field{max-width:360px}
+.pb-create-plan .pb-create-actions{padding-top:22px;margin-top:0}
+.pb-create-plan .pb-create-preview{position:sticky;top:22px;min-height:0;overflow:visible;padding:26px 23px}
+.pb-create-plan .pb-preview-top{display:flex;justify-content:space-between;align-items:center;margin:13px 0 15px}
+.pb-create-plan .pb-preview-icon{width:43px;height:43px;display:grid;place-items:center;background:rgba(126,105,231,.13);color:#795de4;border-radius:13px;font-size:24px}
+.pb-create-plan .pb-preview-state{border-radius:999px;padding:7px 11px;background:rgba(93,189,158,.15);color:#318e75;font-size:11px;font-weight:800}
+html[data-theme=dark] .pb-create-plan .pb-preview-state{color:#9ee3ca}
+.pb-create-plan .pb-create-preview h2{font-size:clamp(22px,2.1vw,28px);margin:0 0 9px;overflow-wrap:anywhere}
+.pb-create-plan .pb-create-preview>p:not(.pf-aside-kicker){margin-bottom:16px;overflow-wrap:anywhere}
+.pb-create-plan .pb-preview-details{display:grid;gap:9px;margin:18px 0}
+.pb-create-plan .pb-preview-details>div{background:var(--pf-surface);border:1px solid var(--pf-line);border-radius:13px;padding:12px;display:flex;gap:10px;align-items:start;min-width:0}
+.pb-create-plan .pb-preview-details>div>span{font-size:18px;flex:none}
+.pb-create-plan .pb-preview-details>div>div{min-width:0}
+.pb-create-plan .pb-preview-details small{display:block;font-size:10px;letter-spacing:.06em;color:var(--pf-muted);font-weight:800;margin-bottom:4px}
+.pb-create-plan .pb-preview-details strong{display:block;color:var(--pf-ink);font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.pb-create-plan .pb-preview-hint{border-top:1px solid var(--pf-line);padding-top:16px;margin-top:16px!important;font-size:11px!important}
+@media(max-width:1000px){.pb-create-plan .pf-layout{grid-template-columns:minmax(0,1fr)}.pb-create-plan .pb-create-preview{position:static;order:-1;padding:18px 20px}.pb-create-plan .pb-preview-details{grid-template-columns:repeat(3,minmax(0,1fr))}.pb-create-plan .pb-preview-details>div{padding:10px}}
+@media(max-width:660px){.pb-create-plan .pb-schedule-grid{grid-template-columns:minmax(0,1fr)}.pb-create-plan .pb-create-preview{order:1}.pb-create-plan .pb-preview-details{grid-template-columns:1fr}.pb-create-plan .pb-create-section{padding:19px 0}.pb-create-plan .pb-create-section-head h2{font-size:18px}}
+@media(prefers-reduced-motion:reduce){.pb-create-plan *, .pb-create-plan *::before, .pb-create-plan *::after{scroll-behavior:auto!important}}

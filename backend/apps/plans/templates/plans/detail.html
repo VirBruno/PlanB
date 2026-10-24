@@ -4,12 +4,20 @@
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'users/css/proposals.css' %}?v=5">
   <link rel="stylesheet" href="{% static 'users/css/plan-detail-social.css' %}">
+  <link rel="stylesheet" href="{% static 'users/css/plan-decisions.css' %}?v=8">
+  <link rel="stylesheet" href="{% static 'users/css/proposal-weather.css' %}?v=1">
+  <link rel="stylesheet" href="{% static 'users/css/plan-weather-planner.css' %}?v=1">
+  <link rel="stylesheet" href="{% static 'users/css/plan-schedule.css' %}?v=1">
   {% if proposals %}
   <link rel="stylesheet" href="{% static 'leaflet.css' %}">
   {% endif %}
+  <link rel="stylesheet" href="{% static 'users/css/plan-detail-weather-focus.css' %}?v=6">
 {% endblock %}
 {% block extra_js %}
+  <script src="{% static 'users/js/plan-weather-planner.js' %}?v=1" defer></script>
+  <script src="{% static 'users/js/plan-schedule.js' %}?v=1" defer></script>
   {% if proposals %}
+  <script src="{% static 'users/js/proposal-weather.js' %}?v=1" defer></script>
   <script src="{% static 'leaflet.js' %}" defer></script>
   <script src="{% static 'users/js/proposals.js' %}?v=11" defer></script>
   {% if election_method == 'combat' %}
@@ -36,15 +44,131 @@
     {% endif %}
   </div>
   {% if plan.description %}<p class="group-description">{{ plan.description|linebreaksbr }}</p>{% endif %}
+  {% if plan.scheduled_at and not plan.selected_proposal_id %}
+  <section class="pb-schedule-summary" data-plan-schedule-summary
+           data-weather-url="{% url 'plans:group_weather_at' group.id %}"
+           data-province="{{ plan.weather_province }}"
+           data-city-id="{{ plan.weather_city_id }}"
+           data-date="{{ scheduled_date_iso }}"
+           data-time="{{ scheduled_hour }}"
+           aria-label="Fecha y clima del plan">
+    <span class="pb-schedule-eyebrow">PREFERENCIA TENTATIVA</span>
+    <h2>📅 Fecha y destino del plan</h2>
+    <div class="pb-schedule-summary-meta">
+      <span>🕒 {{ scheduled_display }} hs.</span>
+      <span>📍 {{ plan.weather_city_name }}{% if plan_province_name %}, {{ plan_province_name }}{% endif %}</span>
+    </div>
+    <div class="pb-schedule-weather" aria-live="polite">
+      <span class="pb-schedule-symbol" data-schedule-symbol aria-hidden="true">🌤️</span>
+      <div class="pb-schedule-weather-body">
+        <strong data-schedule-headline>Clima previsto para este plan</strong>
+        <p data-schedule-message>Consultando pronóstico…</p>
+        <div class="pb-schedule-metrics" data-schedule-metrics hidden></div>
+      </div>
+    </div>
+    <p class="pb-schedule-footnote">Pronóstico de <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a>. Puede cambiar a medida que se acerca la fecha.</p>
+  </section>
+  {% endif %}
   <dl class="group-meta">
     <div><dt>Estado</dt><dd>{% if plan.status %}Activo{% else %}Inactivo{% endif %}</dd></div>
     <div><dt>Creado el</dt><dd>{{ plan.created_at|date:"d/m/Y" }}</dd></div>
     <div><dt>Grupo</dt><dd><a href="{% url 'groups:detail' group.id %}">{{ group.name }}</a></dd></div>
   </dl>
+  {% if plan.scheduled_at %}
+  <details class="pb-weather-compare" data-weather-compare>
+    <summary class="pb-weather-compare-toggle">
+      <span class="pb-weather-compare-main"><span class="pb-weather-compare-icon" aria-hidden="true">☀</span> ¿Querés comparar otro día o lugar?</span>
+      <span class="pb-weather-compare-hint">Explorar alternativas <span aria-hidden="true">⌄</span></span>
+    </summary>
+  {% endif %}
+  <section class="pb-climate-planner" data-plan-weather
+           data-cities-url="{% url 'plans:plan_weather_cities' plan.id %}"
+           data-forecast-url="{% url 'plans:plan_weather_forecast' plan.id %}"
+           aria-labelledby="pb-plan-weather-title">
+    <div class="pb-climate-head">
+      <div>
+        <span class="pb-climate-kicker">PLANIFICÁ MEJOR</span>
+        <h2 id="pb-plan-weather-title"><span aria-hidden="true">☀</span> {% if scheduled_local %}Compará otras fechas y destinos{% else %}Explorá el clima{% endif %}</h2>
+        <p>Elegí una provincia y localidad argentina para comparar el pronóstico de los próximos 16 días.</p>
+      </div>
+      <span class="pb-climate-horizon">Hasta 16 días</span>
+    </div>
+    <div class="pb-climate-form">
+      <div class="pb-climate-field">
+        <label for="pb-climate-province">Provincia</label>
+        <select id="pb-climate-province" data-weather-province>
+          <option value="">Elegí una provincia</option>
+          <option value="buenos-aires">Buenos Aires</option>
+          <option value="caba">Ciudad Autónoma de Buenos Aires</option>
+          <option value="catamarca">Catamarca</option>
+          <option value="chaco">Chaco</option>
+          <option value="chubut">Chubut</option>
+          <option value="cordoba">Córdoba</option>
+          <option value="corrientes">Corrientes</option>
+          <option value="entre-rios">Entre Ríos</option>
+          <option value="formosa">Formosa</option>
+          <option value="jujuy">Jujuy</option>
+          <option value="la-pampa">La Pampa</option>
+          <option value="la-rioja">La Rioja</option>
+          <option value="mendoza">Mendoza</option>
+          <option value="misiones">Misiones</option>
+          <option value="neuquen">Neuquén</option>
+          <option value="rio-negro">Río Negro</option>
+          <option value="salta">Salta</option>
+          <option value="san-juan">San Juan</option>
+          <option value="san-luis">San Luis</option>
+          <option value="santa-cruz">Santa Cruz</option>
+          <option value="santa-fe">Santa Fe</option>
+          <option value="santiago-del-estero">Santiago del Estero</option>
+          <option value="tierra-del-fuego">Tierra del Fuego</option>
+          <option value="tucuman">Tucumán</option>
+        </select>
+      </div>
+      <form class="pb-climate-city-form" data-weather-search-form role="search">
+        <div class="pb-climate-field">
+          <label for="pb-climate-city">Localidad</label>
+          <input id="pb-climate-city" type="search" placeholder="Ej.: Mar del Plata" minlength="3" maxlength="70" autocomplete="off" data-weather-query disabled>
+        </div>
+        <button type="submit" class="button button--primary" data-weather-search disabled>Buscar</button>
+      </form>
+    </div>
+    <div class="pb-climate-results" data-weather-cities hidden aria-label="Elegí una localidad"></div>
+    <p class="pb-climate-status" data-weather-message aria-live="polite">Seleccioná provincia y localidad para explorar el pronóstico.</p>
+    <div class="pb-climate-forecast" data-weather-forecast hidden>
+      <div class="pb-climate-forecast-head">
+        <div><span class="pb-climate-kicker">PRONÓSTICO DISPONIBLE</span><h3 data-weather-city-title></h3></div>
+        <small>Seleccioná un día para ver sus condiciones</small>
+      </div>
+      <div class="pb-climate-days" data-weather-days aria-label="Comparación de días"></div>
+      <div class="pb-climate-selected" data-weather-selected aria-live="polite"></div>
+      <p class="pb-climate-note">Los datos son orientativos y pueden cambiar. Comparar alternativas no modifica la fecha ni el lugar guardados en el plan. <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Clima: Open-Meteo</a> · <a href="https://www.geonames.org/" target="_blank" rel="noopener noreferrer">Localidades: GeoNames</a>.</p>
+    </div>
+  </section>
+  {% if plan.scheduled_at %}
+  </details>
+  {% endif %}
+  {# ETAPA8_DECISION_PLAN: decisión explícita, independiente del comparador. #}
+  <section class="pb-decision-panel" aria-labelledby="pb-decision-title">
+    {% if plan.selected_proposal_id and confirmed_proposal %}
+      <div class="pb-decision-badge">✓ ENCUENTRO CONFIRMADO</div>
+      <h2 id="pb-decision-title">{{ confirmed_proposal.tittle }}</h2>
+      <p>Esta es la alternativa elegida por el grupo. La fecha y el lugar definitivos provienen de esta propuesta.</p>
+      <div class="pb-decision-meta">
+        <span>📅 {{ confirmed_proposal.date_pick|date:"d/m/Y H:i" }}</span>
+        <a href="https://www.openstreetmap.org/?mlat={{ confirmed_proposal.latitude|unlocalize }}&amp;mlon={{ confirmed_proposal.longitude|unlocalize }}#map=16/{{ confirmed_proposal.latitude|unlocalize }}/{{ confirmed_proposal.longitude|unlocalize }}" target="_blank" rel="noopener noreferrer">📍 Ver ubicación confirmada ↗</a>
+      </div>
+      {% if can_manage %}<form method="post" action="{% url 'plans:reopen_plan_decision' plan.id %}" data-confirm-delete="¿Reabrir el plan? La fecha definitiva se quitará y se podrán volver a evaluar las propuestas.">{% csrf_token %}<button type="submit" class="button button--quiet">Reabrir decisión</button></form>{% endif %}
+    {% else %}
+      <div class="pb-decision-badge pb-decision-badge--pending">⌛ EN ORGANIZACIÓN</div>
+      <h2 id="pb-decision-title">Todavía no hay encuentro confirmado</h2>
+      <p>Las fechas y ubicaciones son alternativas. Cuando el grupo decida, el administrador podrá confirmar una propuesta.</p>
+      {% if plan.scheduled_at %}<p class="pb-decision-note">La fecha y localidad del plan son una <strong>preferencia tentativa</strong>, no una decisión del grupo.</p>{% endif %}
+    {% endif %}
+  </section>
   <section class="proposals-section pb-plan-proposals" aria-labelledby="proposals-title">
     <div class="section-heading pb-proposals-heading">
-      <div><p class="pb-proposals-kicker">IDEAS DEL GRUPO</p><h2 id="proposals-title">Propuestas <span class="pb-proposals-count">{{ proposals|length }}</span></h2><p class="pb-proposals-subtitle">Explorá las alternativas que compartieron los integrantes.</p></div>
-      {% if can_create_proposal %}<a class="button button--primary" href="{% url 'plans:proposal_create' plan.id %}">Nueva propuesta <span aria-hidden="true">+</span></a>{% endif %}
+      <div><p class="pb-proposals-kicker">IDEAS DEL GRUPO</p><h2 id="proposals-title">Propuestas <span class="pb-proposals-count">{{ proposals|length }}</span></h2><p class="pb-proposals-subtitle">{% if plan.selected_proposal_id %}El encuentro está confirmado; reabrí la decisión para cambiar alternativas.{% else %}Explorá las alternativas que compartieron los integrantes.{% endif %}</p></div>
+      {% if can_create_proposal and not plan.selected_proposal_id %}<a class="button button--primary" href="{% url 'plans:proposal_create' plan.id %}">Nueva propuesta <span aria-hidden="true">+</span></a>{% endif %}
     </div>
     {% if proposals %}
     <section class="proposal-election" id="proposal-election" aria-labelledby="proposal-election-title">
@@ -55,7 +179,7 @@
         </div>
         {% if election_method %}<span class="proposal-method-active">{% if election_method == 'ideal' %}Punto de encuentro{% elif election_method == 'votes' %}Votación{% else %}Combate{% endif %}</span>{% else %}<span class="proposal-method-active">Sin elegir</span>{% endif %}
       </div>
-      {% if can_manage %}
+      {% if can_manage and not plan.selected_proposal_id %}
       <details class="proposal-method-picker" {% if not election_method %}open{% endif %}>
         <summary data-method-picker>Elija su Método de elección</summary>
         <form method="post" action="{% url 'plans:proposal_election_method' plan.id %}">
@@ -127,7 +251,7 @@
         {% endfor %}
       </ol>
       {% if election_method == 'combat' %}
-      {% if my_proposal %}
+      {% if my_proposal and not plan.selected_proposal_id %}
       <div class="proposal-combat-game" data-combat-game>
         <div class="proposal-combat-copy"><span>Tu propuesta</span><strong>{{ my_proposal.tittle }}</strong><span>Mejor puntaje: {{ my_proposal.Score }}</span></div>
         <canvas class="proposal-combat-canvas" width="720" height="320" data-combat-canvas role="img" aria-label="Juego de vuelo: evitá los obstáculos para sumar puntos"></canvas>
@@ -153,7 +277,7 @@
             <h3>{{ proposal.tittle }}</h3>
             <p class="proposal-author">Propuesta por <strong>{{ proposal.creator_username }}</strong></p>
           </div>
-          {% if proposal.can_manage %}
+          {% if proposal.can_manage and not plan.selected_proposal_id %}
           <div class="proposal-actions">
             <a class="button button--quiet" href="{% url 'plans:proposal_edit' plan.id proposal.id %}">Editar</a>
             <form method="post" action="{% url 'plans:proposal_delete' plan.id proposal.id %}" data-confirm-delete="¿Eliminar esta propuesta? Esta acción no se puede deshacer.">
@@ -163,8 +287,14 @@
           </div>
           {% endif %}
         </div>
+        {% if proposal.is_confirmed %}<p class="pb-proposal-confirmed">✓ Elegida para el encuentro</p>{% endif %}
+        {% if proposal.can_confirm %}
+        <form method="post" action="{% url 'plans:confirm_plan_proposal' plan.id proposal.id %}" class="pb-confirm-form" data-confirm-delete="¿Confirmar esta propuesta como encuentro definitivo?">
+          {% csrf_token %}<button class="button button--primary" type="submit">✓ Confirmar este encuentro</button>
+        </form>
+        {% endif %}
         {% if proposal.description %}<p>{{ proposal.description|linebreaksbr }}</p>{% endif %}
-        {% if election_method == 'votes' %}
+        {% if election_method == 'votes' and not plan.selected_proposal_id %}
         <div class="proposal-election-score"><strong>{{ proposal.votes }} voto{{ proposal.votes|pluralize }}</strong>{% if proposal.id == champion_id %}<span class="proposal-champion-badge">Campeona</span>{% endif %}
           {% if proposal.id == voted_proposal_id %}
           <span class="proposal-voted-label">Tu voto</span>
@@ -183,6 +313,18 @@
           <div class="proposal-budget-range"><dt>Presupuesto</dt><dd>{% if proposal.budget_min != None and proposal.budget_max != None %}{{ proposal.budget_min|floatformat:2 }} – {{ proposal.budget_max|floatformat:2 }}{% elif proposal.budget_min != None %}Desde {{ proposal.budget_min|floatformat:2 }}{% else %}Hasta {{ proposal.budget_max|floatformat:2 }}{% endif %}</dd></div>
           {% endif %}
         </dl>
+        {% if proposal.date_pick %}
+        <section class="pb-weather" data-proposal-weather data-weather-url="{% url 'plans:proposal_weather' plan.id proposal.id %}" aria-label="Pronóstico para esta propuesta" aria-live="polite">
+          <div class="pb-weather-heading"><span aria-hidden="true">☁</span><strong>Clima para la fecha propuesta</strong></div>
+          <p class="pb-weather-status" data-weather-status>Consultando pronóstico…</p>
+          <div class="pb-weather-details" data-weather-details hidden>
+            <div class="pb-weather-primary"><span class="pb-weather-symbol" data-weather-symbol aria-hidden="true"></span><div><strong data-weather-condition></strong><span data-weather-temperature></span></div></div>
+            <div class="pb-weather-metrics"><span data-weather-rain></span><span data-weather-wind></span></div>
+            <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" class="pb-weather-source">Datos: Open-Meteo</a>
+            <small>Pronóstico orientativo, sujeto a cambios.</small>
+          </div>
+        </section>
+        {% endif %}
         <div class="proposal-location pb-proposal-card-location">
           <span class="proposal-location-label">Ubicación propuesta</span>
           <a class="proposal-map-link" href="https://www.openstreetmap.org/?mlat={{ proposal.latitude|unlocalize }}&amp;mlon={{ proposal.longitude|unlocalize }}#map=16/{{ proposal.latitude|unlocalize }}/{{ proposal.longitude|unlocalize }}" target="_blank" rel="noopener noreferrer" aria-label="Abrir ubicación de {{ proposal.tittle }} en OpenStreetMap">
@@ -194,7 +336,7 @@
       {% endfor %}
     </ul>
     {% else %}
-    <div class="pb-proposals-empty"><span aria-hidden="true">✧</span><h3>¡El primer plan empieza con una idea!</h3><p>Todavía no hay propuestas para este plan.</p>{% if can_create_proposal %}<a class="button button--primary" href="{% url 'plans:proposal_create' plan.id %}">Compartir mi propuesta</a>{% endif %}</div>
+    <div class="pb-proposals-empty"><span aria-hidden="true">✧</span><h3>¡El primer plan empieza con una idea!</h3><p>Todavía no hay propuestas para este plan.</p>{% if can_create_proposal and not plan.selected_proposal_id %}<a class="button button--primary" href="{% url 'plans:proposal_create' plan.id %}">Compartir mi propuesta</a>{% endif %}</div>
     {% endif %}
     {% if not can_create_proposal %}<p class="empty-proposals">Ya compartiste tu propuesta para este plan.</p>{% endif %}
   </section>

@@ -12,7 +12,29 @@ class PlanFormTests(SimpleTestCase):
         })
         self.assertTrue(form.is_valid())
         self.assertFalse(form.cleaned_data["status"])
-        self.assertEqual(set(form.cleaned_data), {"name", "description", "status"})
+        self.assertTrue({"name", "description", "status"}.issubset(form.cleaned_data))
+        self.assertIsNone(form.cleaned_data["scheduled_at"])
+
+    def test_schedule_requires_date_time_province_and_selected_city(self):
+        base = {"name": "Parque", "description": "Mate", "status": "true"}
+        form = PlanForm({**base, "plan_date": "2026-10-25"})
+        self.assertFalse(form.is_valid())
+        self.assertIn("plan_time", form.errors)
+        self.assertIn("weather_province", form.errors)
+        self.assertIn("weather_city_id", form.errors)
+
+        valid = PlanForm({**base, "plan_date": "2026-10-25", "plan_time": "15:30",
+                          "weather_province": "buenos-aires", "weather_city_id": "3432043"})
+        self.assertTrue(valid.is_valid(), valid.errors)
+        self.assertEqual(valid.cleaned_data["scheduled_at"].utcoffset().total_seconds(), -10800)
+
+    def test_schedule_rejects_invalid_province_and_city(self):
+        base = {"name": "Parque", "description": "Mate", "status": "true",
+                "plan_date": "2026-10-25", "plan_time": "15:30"}
+        form = PlanForm({**base, "weather_province": "otra", "weather_city_id": "-1"})
+        self.assertFalse(form.is_valid())
+        self.assertIn("weather_province", form.errors)
+        self.assertIn("weather_city_id", form.errors)
 
     def test_blank_name_and_description_are_rejected(self):
         form = PlanForm({"name": "  ", "description": "", "status": "true"})

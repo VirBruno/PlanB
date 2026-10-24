@@ -1,41 +1,117 @@
 {% extends 'components/authenticated_base.html' %}
 {% load static %}
-{% block title %}Crear/editar plan · Plan B{% endblock %}
-{% block page_css %}<link rel="stylesheet" href="{% static 'users/css/forms-social.css' %}">{% endblock %}
-{% block breadcrumbs %}<a href="{% url 'users:dashboard' %}">Mi espacio</a><span aria-hidden="true">/</span><span aria-current="page">Crear o editar plan</span>{% endblock %}
+{% block title %}{% if is_edit %}Editar plan{% else %}Crear plan{% endif %} · Plan B{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'users/css/forms-social.css' %}"><link rel="stylesheet" href="{% static 'users/css/plan-schedule.css' %}?v=4">{% endblock %}
+{% block extra_js %}{{ block.super }}<script src="{% static 'users/js/plan-schedule.js' %}?v=4" defer></script>{% endblock %}
+{% block breadcrumbs %}<a href="{% url 'users:dashboard' %}">Mi espacio</a><span aria-hidden="true">/</span><span aria-current="page">{% if is_edit %}Editar plan{% else %}Crear plan{% endif %}</span>{% endblock %}
 {% block workspace %}
-<div class="pf-workspace">
+<div class="pf-workspace pb-create-plan">
   <div class="pf-layout">
     <section class="pf-main" aria-labelledby="pf-heading">
       <div class="pf-heading">
-        <span class="pf-eyebrow"><span class="pf-sparkle" aria-hidden="true">✳</span> PLANES QUE SE CONVIERTEN EN MOMENTOS</span>
-        <h1 id="pf-heading">{% if is_edit %}Editá tu plan{% else %}Creá un plan{% endif %}</h1>
-        <p>{% if is_edit %}Ajustá los detalles para que el grupo esté al tanto.{% else %}Una buena idea merece un lugar donde empezar.{% endif %}</p>
+        <span class="pf-eyebrow"><span class="pf-sparkle" aria-hidden="true">✳</span> TODO EMPIEZA CON UNA IDEA</span>
+        <h1 id="pf-heading">{% if is_edit %}Editá tu plan{% else %}¿Qué vamos a hacer?{% endif %}</h1>
+        <p>{% if is_edit %}Actualizá los detalles para que tu grupo pueda organizarse.{% else %}Contá tu idea, elegí cuándo y dónde, y descubrí qué clima los espera.{% endif %}</p>
         <span class="pf-group-note">Grupo: {{ group.name }}</span>
       </div>
       <div class="pf-form-wrap">
-  <form method="post" class="auth-form pf-form" data-submit-form>
-    {% csrf_token %}
-    {% include 'components/form_errors.html' %}
-    {% for field in form %}{% include 'components/field.html' %}{% endfor %}
-    <div class="group-actions">
-      <button class="button button--primary" type="submit" data-loading-label="Guardando…"><span data-button-label>{% if is_edit %}Guardar cambios{% else %}Crear plan{% endif %}</span><span aria-hidden="true">→</span></button>
-      <a class="button button--quiet" href="{% if is_edit %}{% url 'plans:detail' plan.id %}{% else %}{% url 'groups:detail' group.id %}{% endif %}">Cancelar</a>
-    </div>
-    <p class="submit-status sr-only" role="status" aria-live="polite"></p>
-  </form>
+        <form method="post" class="auth-form pf-form pb-create-form" data-submit-form data-plan-create-form>
+          {% csrf_token %}
+          {% include 'components/form_errors.html' %}
+          {% if confirmed_plan %}<p class="pb-create-help" role="status">Este encuentro ya está confirmado. Para cambiar fecha o lugar, primero reabrí la decisión desde el detalle del plan. Podés editar el nombre, la descripción y el estado.</p>{% endif %}
+
+          <section class="pb-create-section" aria-labelledby="pb-create-idea-title">
+            <div class="pb-create-section-head">
+              <span class="pb-create-number" aria-hidden="true">01</span>
+              <div><h2 id="pb-create-idea-title">Tu idea</h2><p>Ponéle nombre y contá qué tienen ganas de hacer.</p></div>
+            </div>
+            <div class="pb-create-section-fields">
+              {% with field=form.name %}{% include 'components/field.html' %}{% endwith %}
+              {% with field=form.description %}{% include 'components/field.html' %}{% endwith %}
+            </div>
+          </section>
+
+          <section class="pb-create-section pb-schedule" data-plan-schedule-form
+                   data-cities-url="{% url 'plans:group_weather_cities' group.id %}"
+                   data-weather-url="{% url 'plans:group_weather_at' group.id %}"
+                   data-initial-city-name="{{ selected_city_name|default:'' }}"
+                   aria-labelledby="pb-schedule-title">
+            <div class="pb-create-section-head">
+              <span class="pb-create-number" aria-hidden="true">02</span>
+              <div>
+                <h2 id="pb-schedule-title">¿Tenés una fecha y lugar en mente?</h2>
+                <p>Opcional: elegí una preferencia inicial para explorar el clima. La fecha y el lugar definitivos saldrán de la propuesta elegida.</p>
+              </div>
+            </div>
+            <div class="pb-schedule-grid">
+              <div class="pb-schedule-field">
+                {{ form.plan_date.label_tag }} {{ form.plan_date }}
+                {% for error in form.plan_date.errors %}<small role="alert" class="pb-schedule-error">{{ error }}</small>{% endfor %}
+              </div>
+              <div class="pb-schedule-field">
+                {{ form.plan_time.label_tag }} {{ form.plan_time }}
+                {% for error in form.plan_time.errors %}<small role="alert" class="pb-schedule-error">{{ error }}</small>{% endfor %}
+              </div>
+              <div class="pb-schedule-field">
+                {{ form.weather_province.label_tag }} {{ form.weather_province }}
+                {% for error in form.weather_province.errors %}<small role="alert" class="pb-schedule-error">{{ error }}</small>{% endfor %}
+              </div>
+              <div class="pb-schedule-field">
+                <label for="pb-schedule-city-search">Localidad</label>
+                <div class="pb-schedule-search">
+                  <input type="search" id="pb-schedule-city-search" data-city-search
+                         placeholder="Ej.: La Plata" autocomplete="off" maxlength="70"
+                         aria-describedby="pb-schedule-city-help">
+                  <button type="button" data-city-button class="button button--quiet">Buscar</button>
+                </div>
+                <small id="pb-schedule-city-help" class="pb-create-help">Escribí 3 letras y seleccioná una opción.</small>
+                {{ form.weather_city_id }}
+                {% for error in form.weather_city_id.errors %}<small role="alert" class="pb-schedule-error">{{ error }}</small>{% endfor %}
+                <small class="pb-schedule-city-picked" data-city-picked hidden></small>
+              </div>
+            </div>
+            <div class="pb-schedule-city-results" data-city-results aria-label="Localidades encontradas" hidden></div>
+
+            <div class="pb-schedule-weather pb-create-weather" data-schedule-forecast aria-live="polite" aria-atomic="true">
+              <div class="pb-schedule-symbol" data-schedule-symbol aria-hidden="true">🌤️</div>
+              <div class="pb-schedule-weather-body">
+                <span class="pb-create-weather-kicker">CLIMA PREVISTO</span>
+                <strong data-schedule-headline>Tu clima, al elegir dónde y cuándo</strong>
+                <p data-schedule-message>Completá los datos para consultar el pronóstico.</p>
+                <div class="pb-schedule-metrics" data-schedule-metrics hidden></div>
+              </div>
+            </div>
+            <p class="pb-schedule-footnote">Los datos del encuentro son opcionales, pero si empezás a completarlos, necesitarás indicar fecha, hora, provincia y localidad. Clima provisto por <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> hasta 16 días; puede cambiar.</p>
+          </section>
+
+          <section class="pb-create-section pb-create-final" aria-labelledby="pb-create-status-title">
+            <div class="pb-create-section-head">
+              <span class="pb-create-number" aria-hidden="true">03</span>
+              <div><h2 id="pb-create-status-title">Listo para compartir</h2><p>Elegí si el plan estará activo para el grupo.</p></div>
+            </div>
+            {% with field=form.status %}{% include 'components/field.html' %}{% endwith %}
+          </section>
+
+          <div class="group-actions pb-create-actions">
+            <button class="button button--primary" type="submit" data-loading-label="Guardando…"><span data-button-label>{% if is_edit %}Guardar cambios{% else %}Crear plan{% endif %}</span><span aria-hidden="true">→</span></button>
+            <a class="button button--quiet" href="{% if is_edit %}{% url 'plans:detail' plan.id %}{% else %}{% url 'groups:detail' group.id %}{% endif %}">Cancelar</a>
+          </div>
+          <p class="submit-status sr-only" role="status" aria-live="polite"></p>
+        </form>
       </div>
     </section>
-    <aside class="pf-aside" aria-label="Información para empezar">
-      <div class="pf-aside-symbol" aria-hidden="true"><span>✦</span><span>✳</span></div>
-      <p class="pf-aside-kicker">PLAN B · JUNTOS ES MEJOR</p>
-      <h2>Contanos tu idea</h2>
-      <p>Definí el nombre y los detalles del plan para que el grupo pueda participar.</p>
-      <div class="pf-aside-steps">
-        <div><span>01</span> Una idea para compartir</div>
-        <div><span>02</span> Personas que se suman</div>
-        <div><span>03</span> Momentos para recordar</div>
+
+    <aside class="pf-aside pb-create-preview" aria-label="Vista previa del plan">
+      <span class="pf-aside-kicker">VISTA PREVIA · TU PLAN</span>
+      <div class="pb-preview-top"><span class="pb-preview-icon" aria-hidden="true">✦</span><span class="pb-preview-state" data-preview-state>Activo</span></div>
+      <h2 data-preview-name>Tu próximo plan</h2>
+      <p data-preview-description>Acá vas a ver tu idea mientras la organizás.</p>
+      <div class="pb-preview-details">
+        <div><span aria-hidden="true">📅</span><div><small>DÍA Y HORA</small><strong data-preview-when>A definir</strong></div></div>
+        <div><span aria-hidden="true">📍</span><div><small>LUGAR</small><strong data-preview-location>A definir</strong></div></div>
+        <div><span aria-hidden="true">🌤️</span><div><small>PRONÓSTICO</small><strong data-preview-weather>Se actualizará al elegir el destino</strong></div></div>
       </div>
+      <p class="pb-preview-hint">Una vista previa de lo que compartís con tu grupo. Podés actualizar estos detalles después.</p>
     </aside>
   </div>
 </div>

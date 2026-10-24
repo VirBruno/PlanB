@@ -1,0 +1,55 @@
+/* Comparador de clima · por provincia y localidad · Plan B */
+.pb-plan-detail .pb-climate-planner{margin:24px 0 32px;padding:24px;border:1px solid var(--glass-border,rgba(135,120,190,.22));border-radius:22px;background:linear-gradient(145deg,rgba(139,114,221,.12),rgba(111,202,202,.045) 62%,rgba(236,174,212,.075));min-width:0;color:var(--text)}
+.pb-plan-detail .pb-climate-head,.pb-plan-detail .pb-climate-forecast-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.pb-plan-detail .pb-climate-kicker{font-size:11px;font-weight:800;letter-spacing:.105em;color:#a48cf4}
+.pb-plan-detail .pb-climate-head h2{margin:8px 0 8px;font-size:clamp(21px,2vw,26px);line-height:1.2;color:var(--text)}
+.pb-plan-detail .pb-climate-head h2 span{font-size:22px;color:#a48cf4}
+.pb-plan-detail .pb-climate-head p{margin:0;max-width:65ch;color:var(--muted);font-size:13px;line-height:1.55}
+.pb-plan-detail .pb-climate-horizon{white-space:nowrap;font-size:11px;font-weight:800;color:var(--text);padding:9px 11px;border:1px solid var(--glass-border,rgba(135,120,190,.24));border-radius:999px;background:rgba(153,125,238,.08)}
+.pb-plan-detail .pb-climate-form{display:grid;grid-template-columns:minmax(190px,1fr) minmax(220px,1.7fr);gap:12px;margin-top:22px;align-items:end}
+.pb-plan-detail .pb-climate-city-form{display:flex;align-items:end;gap:10px;min-width:0}
+.pb-plan-detail .pb-climate-field{display:grid;gap:8px;flex:1;min-width:0}
+.pb-plan-detail .pb-climate-field label{font-size:12px;font-weight:800;color:var(--text)}
+.pb-plan-detail .pb-climate-field :is(select,input){width:100%;min-width:0;height:44px;border:1px solid var(--glass-border,rgba(135,120,190,.3));border-radius:11px;outline:none;padding:0 13px;background:var(--glass-bg,var(--surface,rgba(255,255,255,.055)));color:var(--text);font:inherit;font-size:13px}
+.pb-plan-detail .pb-climate-field select option{color:#191628;background:#fff}
+.pb-plan-detail .pb-climate-field :is(select,input):focus-visible{outline:2px solid #a48cf4;outline-offset:2px}
+.pb-plan-detail .pb-climate-field :is(select,input):disabled{opacity:.55;cursor:not-allowed}
+.pb-plan-detail .pb-climate-city-form .button{height:44px;min-width:100px;padding:0 18px;border-radius:11px;white-space:nowrap}
+.pb-plan-detail .pb-climate-city-form .button:disabled{opacity:.55;cursor:not-allowed}
+.pb-plan-detail .pb-climate-status{margin:16px 0 0;color:var(--muted);font-size:13px;line-height:1.55}
+.pb-plan-detail .pb-climate-status[hidden],.pb-plan-detail .pb-climate-results[hidden],.pb-plan-detail .pb-climate-forecast[hidden]{display:none!important}
+.pb-plan-detail .pb-climate-results{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 0}
+.pb-plan-detail .pb-climate-city-choice{appearance:none;border:1px solid var(--glass-border,rgba(135,120,190,.28));border-radius:12px;padding:10px 13px;background:rgba(137,114,222,.1);color:var(--text);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.pb-plan-detail .pb-climate-city-choice:hover,.pb-plan-detail .pb-climate-city-choice:focus-visible{border-color:#a18deb;background:rgba(137,114,222,.18)}
+.pb-plan-detail .pb-climate-forecast{margin-top:22px;padding-top:20px;border-top:1px solid var(--glass-border,rgba(135,120,190,.25))}
+.pb-plan-detail .pb-climate-forecast-head h3{margin:6px 0 0;font-size:18px;color:var(--text)}
+.pb-plan-detail .pb-climate-forecast-head small{font-size:11px;color:var(--muted);margin-top:5px}
+.pb-plan-detail .pb-climate-days{display:flex;gap:9px;overflow-x:auto;scroll-snap-type:x mandatory;padding:14px 2px 10px;scrollbar-width:thin;max-width:100%}
+.pb-plan-detail .pb-climate-day{appearance:none;flex:0 0 103px;display:grid;justify-items:center;gap:7px;min-height:148px;scroll-snap-align:start;border:1px solid var(--glass-border,rgba(135,120,190,.25));border-radius:15px;padding:12px 9px;background:rgba(140,130,203,.07);color:var(--text);font:inherit;cursor:pointer;transition:background .15s,border-color .15s}
+.pb-plan-detail .pb-climate-day:hover{border-color:#a48cf4;background:rgba(139,114,221,.12)}
+.pb-plan-detail .pb-climate-day.is-selected{background:rgba(149,122,239,.2);border-color:#a18cec;box-shadow:0 0 0 1px rgba(162,141,235,.28) inset}
+.pb-plan-detail .pb-climate-day:focus-visible{outline:2px solid #a48cf4;outline-offset:2px}
+.pb-plan-detail .pb-climate-day-week{font-size:12px;font-weight:800;text-transform:capitalize}
+.pb-plan-detail .pb-climate-day-date{font-size:11px;color:var(--muted)}
+.pb-plan-detail .pb-climate-day-symbol{font-size:25px;line-height:1.25}
+.pb-plan-detail .pb-climate-day-temp{font-size:12px;font-weight:800}
+.pb-plan-detail .pb-climate-day-rain{font-size:11px;color:var(--muted)}
+.pb-plan-detail .pb-climate-selected{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;border-radius:15px;border:1px solid var(--glass-border,rgba(135,120,190,.25));padding:16px;background:rgba(149,122,239,.07)}
+.pb-plan-detail .pb-climate-selected-head{display:flex;align-items:center;gap:13px}
+.pb-plan-detail .pb-climate-selected-symbol{font-size:31px;line-height:1}
+.pb-plan-detail .pb-climate-selected-head>div{display:grid;gap:4px}
+.pb-plan-detail .pb-climate-selected-head strong{font-size:14px;text-transform:capitalize;color:var(--text)}
+.pb-plan-detail .pb-climate-selected-head span:not(.pb-climate-selected-symbol){font-size:12px;color:var(--muted)}
+.pb-plan-detail .pb-climate-selected-metrics{display:flex;flex-wrap:wrap;gap:8px}
+.pb-plan-detail .pb-climate-selected-metrics span{border-radius:9px;padding:8px 10px;border:1px solid var(--glass-border,rgba(135,120,190,.25));font-size:12px;font-weight:700}
+.pb-plan-detail .pb-climate-note{font-size:11px;line-height:1.65;color:var(--muted);margin:12px 0 0}
+.pb-plan-detail .pb-climate-note a{color:#a48cf4;font-weight:800}
+@media(max-width:720px){
+.pb-plan-detail .pb-climate-planner{padding:17px;margin:20px 0 25px;border-radius:18px}
+.pb-plan-detail .pb-climate-head{flex-wrap:wrap;gap:12px}
+.pb-plan-detail .pb-climate-form{grid-template-columns:minmax(0,1fr);gap:14px;margin-top:17px}
+.pb-plan-detail .pb-climate-forecast-head{flex-direction:column;gap:4px}
+.pb-plan-detail .pb-climate-day{flex-basis:92px;min-height:140px}
+.pb-plan-detail .pb-climate-selected{align-items:stretch}
+}
+@media(max-width:370px){.pb-plan-detail .pb-climate-city-form{flex-wrap:wrap}.pb-plan-detail .pb-climate-city-form .button{width:100%}}

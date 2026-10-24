@@ -1,12 +1,13 @@
 {% extends 'components/authenticated_base.html' %}
 {% load static %}
 {% block title %}{% if group %}{{ group.name }}{% else %}Tu grupo{% endif %} · Plan B{% endblock %}
-{% block page_css %}<link rel="stylesheet" href="{% static 'users/css/group-social.css' %}?v=12.3">{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'users/css/group-social.css' %}?v=12.3"><link rel="stylesheet" href="{% static 'users/css/plan-meet-cards.css' %}?v=5"><link rel="stylesheet" href="{% static 'users/css/meeting-agenda.css' %}?v=7">{% endblock %}
 {% block breadcrumbs %}
   <a href="{% url 'users:dashboard' %}">Mi espacio</a><span aria-hidden="true">/</span>
   <a href="{% url 'groups:index' %}">Mis grupos</a><span aria-hidden="true">/</span>
   <span aria-current="page">{% if group %}{{ group.name }}{% else %}Detalle de grupo{% endif %}</span>
 {% endblock %}
+{% block extra_js %}{{ block.super }}<script src="{% static 'users/js/meeting-indicators.js' %}?v=7" defer></script>{% endblock %}
 {% block workspace %}
 <div class="group-social-shell">
     {% if unavailable %}
@@ -24,7 +25,7 @@
         {% elif plans_by_date %}
         <div class="group-social-plan-groups">{% for date_group in plans_by_date %}
           <section class="group-social-date"><h3>{{ date_group.date|date:"d/m/Y" }}</h3><ul class="group-social-plan-list">
-          {% for plan in date_group.items %}<li><a class="group-social-plan-card" href="{% url 'plans:detail' plan.id %}"><span class="group-social-plan-icon" aria-hidden="true">✧</span><span class="group-social-plan-info"><strong>{{ plan.name }}</strong><small>{% if plan.description %}{{ plan.description|truncatechars:100 }}{% else %}Abrí el plan para ver los detalles.{% endif %}</small><span class="group-social-plan-date">Creado a las {{ plan.created_at|date:"H:i" }}</span></span><span class="group-social-plan-status {% if plan.status %}is-active{% endif %}">{% if plan.status %}Activo{% else %}Inactivo{% endif %}</span><span class="group-social-arrow" aria-hidden="true">↗</span></a></li>{% endfor %}
+          {% for plan in date_group.items %}<li><a class="group-social-plan-card" href="{% url 'plans:detail' plan.id %}" data-meeting-at="{% if plan.selected_proposal_id %}{{ plan.scheduled_at|date:'c' }}{% endif %}"><span class="group-social-plan-icon" aria-hidden="true">✧</span><span class="group-social-plan-info"><strong>{{ plan.name }}</strong><small>{% if plan.description %}{{ plan.description|truncatechars:100 }}{% else %}Abrí el plan para ver los detalles.{% endif %}</small>{% if plan.scheduled_at %}<span class="pb-group-meet"><span><span aria-hidden="true">📅</span> {{ plan.scheduled_at|date:"d/m/Y" }} · {{ plan.scheduled_at|date:"H:i" }} hs</span>{% if plan.selected_proposal_id %}<span>✓ Encuentro confirmado · Ver ubicación</span>{% elif plan.weather_city_name %}<span><span aria-hidden="true">📍</span> {{ plan.weather_city_name }} · Tentativo</span>{% endif %}</span>{% endif %}<span class="group-social-plan-date">Creado a las {{ plan.created_at|date:"H:i" }}</span></span><span class="group-social-plan-status {% if plan.status %}is-active{% endif %}">{% if plan.status %}Activo{% else %}Inactivo{% endif %}</span><span class="group-social-arrow" aria-hidden="true">↗</span></a></li>{% endfor %}
           </ul></section>{% endfor %}</div>
         {% else %}<div class="group-social-empty"><span aria-hidden="true">✦</span><h3>Su primer plan empieza acá</h3><p>Creen una actividad para compartir ideas y organizarse entre todos.</p><a class="group-social-primary" href="{% url 'groups:plan_create' group.id %}">＋ Crear el primer plan</a></div>{% endif %}
       </section>

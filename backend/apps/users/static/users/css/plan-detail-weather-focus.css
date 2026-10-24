@@ -1,0 +1,152 @@
+/* Plan B - Etapa 6: agenda y clima en primer plano.
+   Usa los colores de tema existentes. No altera propuestas ni votaciones. */
+.pb-plan-detail .pb-schedule-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(245px, 0.9fr);
+  gap: 12px 22px;
+  align-items: center;
+  padding: clamp(20px, 2.8vw, 32px);
+  margin: 18px 0 22px;
+  border-color: rgba(136, 112, 226, .30);
+  border-radius: 24px;
+  background: linear-gradient(120deg,
+    rgba(157, 128, 240, .17) 0%,
+    rgba(140, 213, 201, .11) 56%,
+    rgba(161, 136, 239, .10) 100%);
+  box-shadow: 0 14px 38px rgba(75, 54, 139, .055);
+}
+.pb-plan-detail .pb-schedule-eyebrow {
+  grid-column: 1;
+  align-self: end;
+  font-size: 11px;
+  letter-spacing: .10em;
+}
+.pb-plan-detail .pb-schedule-summary > h2 {
+  grid-column: 1;
+  font-size: clamp(23px, 2.7vw, 32px);
+  letter-spacing: -.035em;
+  margin: 0;
+  line-height: 1.16;
+}
+.pb-plan-detail .pb-schedule-summary-meta {
+  grid-column: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin: 4px 0 0;
+  align-items: flex-start;
+}
+.pb-plan-detail .pb-schedule-summary-meta span {
+  max-width: 100%;
+  white-space: normal;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  padding: 9px 13px;
+  border-radius: 12px;
+  background: rgba(159, 143, 235, .11);
+}
+.pb-plan-detail .pb-schedule-summary .pb-schedule-weather {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  padding: clamp(16px, 2.2vw, 24px);
+  border-radius: 18px;
+  border-color: rgba(146, 126, 221, .26);
+  background: var(--glass-bg, rgba(255, 255, 255, .25));
+}
+.pb-plan-detail .pb-schedule-summary .pb-schedule-symbol {
+  font-size: clamp(32px, 3vw, 42px);
+}
+.pb-plan-detail .pb-schedule-summary .pb-schedule-weather-body strong {
+  line-height: 1.35;
+  font-size: clamp(15px, 1.5vw, 18px);
+}
+.pb-plan-detail .pb-schedule-summary .pb-schedule-footnote {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  margin: 3px 0 0;
+  opacity: .84;
+}
+/* Metadatos administrativos menos protagonistas, pero siempre visibles. */
+.pb-plan-detail .group-meta { margin-top: 8px; margin-bottom: 22px; }
+
+/* Comparador secundario accesible usando <details>/<summary> nativos. */
+.pb-plan-detail .pb-weather-compare {
+  margin: 8px 0 28px;
+  min-width: 0;
+  border: 1px solid var(--glass-border, rgba(135, 120, 190, .24));
+  border-radius: 18px;
+  background: rgba(155, 137, 235, .045);
+  overflow: hidden;
+}
+.pb-plan-detail .pb-weather-compare-toggle {
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  padding: 16px 20px;
+  cursor: pointer;
+  color: var(--text, #29253c);
+  font-size: 14px;
+  font-weight: 750;
+  transition: background .18s ease;
+}
+.pb-plan-detail .pb-weather-compare-toggle::-webkit-details-marker { display: none; }
+.pb-plan-detail .pb-weather-compare-toggle:hover { background: rgba(146, 122, 229, .085); }
+.pb-plan-detail .pb-weather-compare-toggle:focus-visible { outline: 3px solid #8b6cee; outline-offset: -3px; }
+.pb-plan-detail .pb-weather-compare-main { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.pb-plan-detail .pb-weather-compare-icon {
+  display: inline-grid; place-items: center;
+  flex: 0 0 34px; height: 34px;
+  border-radius: 11px;
+  background: rgba(143, 118, 236, .15);
+  color: #8b6cee;
+  font-size: 18px;
+}
+.pb-plan-detail .pb-weather-compare-hint {
+  display: inline-flex; align-items: center; gap: 9px;
+  color: var(--muted, #6c6883);
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+.pb-plan-detail .pb-weather-compare-hint span {
+  display: inline-block;
+  font-size: 21px;
+  line-height: .75;
+  transition: transform .18s ease;
+}
+.pb-plan-detail .pb-weather-compare[open] .pb-weather-compare-hint span { transform: rotate(180deg); }
+.pb-plan-detail .pb-weather-compare[open] > .pb-climate-planner {
+  margin: 0;
+  border: 0;
+  border-top: 1px solid var(--glass-border, rgba(135, 120, 190, .24));
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+@media (max-width: 830px) {
+  .pb-plan-detail .pb-schedule-summary { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .pb-plan-detail .pb-schedule-summary :is(.pb-schedule-eyebrow, h2, .pb-schedule-summary-meta, .pb-schedule-weather, .pb-schedule-footnote) {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .pb-plan-detail .pb-schedule-summary .pb-schedule-weather { grid-column: 1; grid-row: auto; }
+}
+@media (max-width: 600px) {
+  .pb-plan-detail .pb-schedule-summary { padding: 17px; border-radius: 18px; }
+  .pb-plan-detail .pb-schedule-summary-meta { align-items: stretch; }
+  .pb-plan-detail .pb-schedule-summary-meta span { display: block; }
+  .pb-plan-detail .pb-schedule-summary .pb-schedule-weather { align-items: flex-start; }
+  .pb-plan-detail .pb-weather-compare-toggle { align-items: flex-start; padding: 14px 15px; }
+  .pb-plan-detail .pb-weather-compare-hint { font-size: 0; gap: 0; margin-top: 8px; }
+  .pb-plan-detail .pb-weather-compare-hint span { font-size: 23px; }
+  .pb-plan-detail .pb-weather-compare[open] > .pb-climate-planner { padding: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pb-plan-detail .pb-weather-compare-toggle,
+  .pb-plan-detail .pb-weather-compare-hint span { transition: none; }
+}
