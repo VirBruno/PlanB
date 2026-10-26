@@ -10,6 +10,7 @@ from apps.users.services.exceptions import SessionExpired
 from .exceptions import InvalidPlan, PlanNotFound, PlanUnavailable, PlanningSchemaUnavailable
 
 PAGE_SIZE = 12
+MEETING_PAGE_SIZE = 500
 COLUMNS = "id,created_at,name,description,status,group_id,created_by,election_method"
 LEGACY_COLUMNS = COLUMNS.removesuffix(",election_method")
 PLANNING_FIELDS = "scheduled_at,weather_province,weather_city_id,weather_city_name"
@@ -288,5 +289,40 @@ def delete_plan(access_token, plan_id):
         return canonical_id
     except PlanNotFound:
         raise
+    except Exception as error:
+        _translate(error)
+
+
+@sensitive_variables()
+def list_meetings(access_token, *, start, end):
+    """Todas las decisiones del intervalo local, con JWT/RLS y paginación estable.
+
+    scheduled_at es la copia congelada de date_pick de selected_proposal_id.
+    No se usa la fecha tentativa ni se recorren las páginas de la lista de planes.
+    Sin columnas de decisión no hay una fuente fiable: se informa indisponibilidad.
+    """
+    from django.utils import timezone
+    if not access_token:
+        raise SessionExpired()
+    if timezone.is_naive(start) or timezone.is_naive(end) or start >= end:
+        raise InvalidPlan()
+    try:
+        plans = []
+        with clients.public_client(access_token=access_token) as client:
+            offset = 0
+            while True:
+                rows = (client.table("plans").select(DECISION_COLUMNS)
+                        .not_.is_("selected_proposal_id", "null")
+                        .gte("scheduled_at", start.isoformat())
+                        .lt("scheduled_at", end.isoformat())
+                        .order("scheduled_at").order("id")
+                        .range(offset, offset + MEETING_PAGE_SIZE - 1).execute().data)
+                if not isinstance(rows, list):
+                    raise ValueError
+                plans.extend(_plan(row) for row in rows)
+                if len(rows) < MEETING_PAGE_SIZE:
+                    break
+                offset += MEETING_PAGE_SIZE
+        return plans
     except Exception as error:
         _translate(error)

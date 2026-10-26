@@ -1,0 +1,72 @@
+/* Calendario principal: reutiliza el shell, la tipografía y los temas de Plan B. */
+.pb-app-shell:has(.pb-calendar) .pb-app-content {
+  max-width: none !important;
+  padding: 22px clamp(18px, 2vw, 32px) 28px !important;
+}
+.pb-calendar { min-width: 0; color: var(--text); }
+.pb-calendar-header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 18px; }
+.pb-calendar-header h1 { margin: 6px 0 0; font-size: clamp(26px, 2.8vw, 38px); letter-spacing: -.04em; line-height: 1.2; }
+.pb-calendar-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 22px; }
+.pb-calendar-toolbar h2 { margin: 0; font-size: clamp(19px, 2vw, 25px); letter-spacing: -.025em; }
+.pb-calendar-navigation { display: flex; align-items: center; gap: 6px; }
+.pb-calendar-navigation a { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; height: 44px; border: 1px solid var(--line); border-radius: var(--pb-radius-control); background: var(--sd-panel); color: var(--text); text-decoration: none; }
+.pb-calendar-navigation .pb-calendar-today { padding: 0 16px; margin-right: 6px; font-size: 13px; font-weight: 700; }
+.pb-calendar-navigation a:hover { border-color: var(--blue); background: var(--pb-soft-highlight); }
+.pb-calendar-meta { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; font-size: 12px; color: var(--muted); }
+.pb-calendar-key { display: inline-flex; align-items: center; gap: 7px; }
+.pb-calendar-key::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--blue); }
+.pb-calendar-key--finished::before { background: var(--muted); }
+.pb-calendar-message { margin: 0 0 16px; color: var(--muted); font-size: 13px; }
+.pb-calendar-weekdays, .pb-calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.pb-calendar-desktop { border: 1px solid var(--line); border-radius: var(--pb-radius-control); overflow: hidden; background: var(--sd-panel); }
+.pb-calendar-weekdays { border-bottom: 1px solid var(--line); background: var(--glass); }
+.pb-calendar-weekdays span { padding: 12px; color: var(--muted); font-size: 12px; font-weight: 700; }
+.pb-calendar-grid { height: max(calc(var(--calendar-weeks) * 140px), calc(100svh - 280px)); grid-template-rows: repeat(var(--calendar-weeks), minmax(0, 1fr)); }
+.pb-calendar-day { min-width: 0; min-height: 0; display: flex; flex-direction: column; padding: 8px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.pb-calendar-day:nth-child(7n) { border-right: 0; }
+.pb-calendar-day:nth-last-child(-n+7) { border-bottom: 0; }
+.pb-calendar-day h3 { margin: 0 0 6px; font-size: 12px; font-weight: 600; }
+.pb-calendar-day h3 time { display: inline-flex; justify-content: center; align-items: center; width: 28px; height: 28px; border-radius: 50%; }
+.pb-calendar .is-outside { color: var(--muted); background: var(--glass); }
+.pb-calendar .is-outside time { opacity: .45; }
+.pb-calendar .is-today { background: var(--pb-soft-highlight); }
+.pb-calendar .is-today > h3 time, .pb-calendar-overview-day.is-today time { background: var(--blue); color: var(--canvas); font-weight: 800; }
+.pb-calendar-day-events { display: grid; gap: 6px; min-height: 0; overflow-y: auto; scrollbar-width: thin; border-radius: 6px; }
+.pb-calendar-day-events:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.pb-calendar-event { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 3px 6px; padding: 8px; min-width: 0; border-left: 3px solid var(--blue); border-radius: 6px; background: var(--pb-soft-highlight); color: var(--text); text-decoration: none; font-size: 12px; line-height: 1.4; overflow-wrap: anywhere; }
+.pb-calendar-event time { font-weight: 700; color: var(--blue); font-variant-numeric: tabular-nums; }
+.pb-calendar-event strong { font-size: 12px; font-weight: 700; }
+.pb-calendar-event-status { grid-column: 1 / -1; font-size: 10px; }
+.pb-calendar-event-group { display: none; }
+.pb-calendar-event-group { color: var(--muted); }
+.pb-calendar-event--finished { background: var(--glass); border-left-color: var(--muted); color: var(--muted); }
+.pb-calendar-event--finished time { color: var(--muted); }
+.pb-calendar-event:hover { background: var(--pb-soft-mint); box-shadow: inset 0 0 0 1px var(--blue); }
+.pb-calendar-mobile { display: none; }
+@media (min-width: 901px) and (max-width: 1060px) {
+  .pb-calendar-header { align-items: start; }
+  .pb-calendar-toolbar { width: 100%; justify-content: space-between; }
+  .pb-calendar-day { padding: 5px; }
+  .pb-calendar-event { padding: 6px; }
+}
+@media (max-width: 900px) {
+  .pb-calendar-desktop { display: none; }
+  .pb-calendar-mobile { display: block; }
+  .pb-calendar-header { gap: 18px; }
+  .pb-calendar-toolbar { width: 100%; gap: 10px; justify-content: space-between; }
+  .pb-calendar-toolbar h2 { font-size: 18px; }
+  .pb-calendar-navigation { gap: 4px; }
+  .pb-calendar-navigation .pb-calendar-today { padding: 0 10px; margin-right: 0; }
+  .pb-calendar-overview { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; padding: 10px 4px; border: 1px solid var(--line); border-radius: var(--pb-radius-control); background: var(--sd-panel); }
+  .pb-calendar-overview-weekday { text-align: center; padding: 8px 0; color: var(--muted); font-size: 11px; font-weight: 700; }
+  .pb-calendar-overview-day { position: relative; min-width: 0; min-height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 12px; }
+  .pb-calendar-overview-day a { width: 100%; min-height: 44px; display: flex; align-items: center; justify-content: center; color: var(--blue); text-decoration: none; border-radius: 8px; background: var(--pb-soft-highlight); }
+  .pb-calendar-overview-day time { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .pb-calendar-overview-day small { position: absolute; bottom: 0; right: 3px; font-size: 9px; font-weight: 800; }
+  .pb-calendar-agenda { display: grid; gap: 22px; margin-top: 24px; }
+  .pb-calendar-agenda section { scroll-margin-top: 16px; display: grid; gap: 8px; }
+  .pb-calendar-agenda h3 { font-size: 14px; margin: 0 0 4px; }
+  .pb-calendar-agenda .pb-calendar-event { padding: 12px; grid-template-columns: 48px minmax(0, 1fr); column-gap: 12px; }
+  .pb-calendar-agenda .pb-calendar-event time { grid-row: span 3; }
+  .pb-calendar-agenda .pb-calendar-event-status, .pb-calendar-agenda .pb-calendar-event-group { display: block; grid-column: 2; font-size: 11px; }
+}
