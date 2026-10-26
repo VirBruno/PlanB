@@ -7,5 +7,12 @@
     <a href="{% url 'notifications:index' %}" {% if request.resolver_match.namespace == 'notifications' %}class="social-side-active" aria-current="page"{% endif %}><svg class="pb-nav-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg><span class="pb-nav-label">Notificaciones</span></a>
     <a href="{% url 'users:profile' %}" {% if request.resolver_match.namespace == 'users' and request.resolver_match.url_name == 'profile' %}class="social-side-active" aria-current="page"{% endif %}><svg class="pb-nav-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="9" r="3"/><path d="M5.6 19a7 7 0 0 1 12.8 0"/></svg><span class="pb-nav-label">Mi perfil</span></a>
   </nav>
+  <div class="pb-theme-sidebar-control" aria-label="Preferencias de apariencia">
+    <div class="pb-theme-sidebar-copy"><strong>Modo oscuro</strong><small>Cambiar apariencia</small></div>
+    <button type="button" class="pb-theme-sidebar-switch" role="switch" aria-checked="false"
+            data-theme-toggle data-theme-compact aria-label="Activar modo oscuro" title="Cambiar apariencia">
+      <span class="pb-theme-sidebar-knob" aria-hidden="true"></span>
+    </button>
+  </div>
   <div class="social-side-bottom"><span class="social-side-bottom-icon" aria-hidden="true">✦</span><strong>Más planes,<br>más momentos.</strong><small>Todo comienza con tu grupo.</small></div>
 </aside>

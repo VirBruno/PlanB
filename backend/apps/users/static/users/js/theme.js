@@ -9,7 +9,14 @@
     var dark = root.dataset.theme === 'dark';
     button.setAttribute('aria-label', dark ? 'Activar modo claro' : 'Activar modo oscuro');
     button.setAttribute('aria-pressed', dark ? 'true' : 'false');
-    button.textContent = compact ? (dark ? '☀' : '☾') : (dark ? '☀ Modo claro' : '☾ Modo oscuro');
+    if (button.getAttribute('role') === 'switch') button.setAttribute('aria-checked', dark ? 'true' : 'false');
+    // PLANB_SWITCH_KNOB_FIX_03: actualizar el ícono sin borrar el elemento que se desliza.
+    if (button.getAttribute('role') === 'switch') {
+      var knob = button.querySelector('.pb-theme-sidebar-knob');
+      if (knob) knob.textContent = dark ? '☀' : '☾';
+    } else {
+      button.textContent = compact ? (dark ? '☀' : '☾') : (dark ? '☀ Modo claro' : '☾ Modo oscuro');
+    }
     button.title = dark ? 'Activar modo claro' : 'Activar modo oscuro';
   }
   button.addEventListener('click', function () {
