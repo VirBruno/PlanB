@@ -1,0 +1,61 @@
+{% extends 'components/authenticated_base.html' %}
+{% load static %}
+{% block title %}Mi calendario · Plan B{% endblock %}
+{% block shell_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'users/css/personal-calendar.css' %}">{% endblock %}
+{% block breadcrumbs %}<a href="{% url 'users:dashboard' %}">Mi espacio</a><span aria-hidden="true">/</span><span aria-current="page">Calendario</span>{% endblock %}
+{% block workspace %}
+<section class="pb-calendar" aria-labelledby="calendar-title">
+  <header class="pb-calendar-header">
+    <div><span class="social-section-caption">TU ESPACIO</span><h1 id="calendar-title">Mi calendario</h1></div>
+    <div class="pb-calendar-toolbar">
+      <h2 id="calendar-month">{{ month_date|date:"F Y"|capfirst }}</h2>
+      <nav class="pb-calendar-navigation" aria-label="Navegación mensual">
+        <a class="pb-calendar-today" href="{% url 'users:calendar' %}">Hoy</a>
+        {% if previous_month %}<a href="?year={{ previous_month|date:'Y' }}&amp;month={{ previous_month|date:'n' }}" aria-label="Mes anterior: {{ previous_month|date:'F Y' }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></a>{% endif %}
+        {% if next_month %}<a href="?year={{ next_month|date:'Y' }}&amp;month={{ next_month|date:'n' }}" aria-label="Mes siguiente: {{ next_month|date:'F Y' }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></a>{% endif %}
+      </nav>
+    </div>
+  </header>
+  <div class="pb-calendar-meta"><span class="pb-calendar-key pb-calendar-key--confirmed">Confirmado</span><span class="pb-calendar-key pb-calendar-key--finished">Finalizado · historial</span></div>
+  {% if calendar_unavailable %}
+    <p class="pb-calendar-message" role="alert">No pudimos cargar tus encuentros. <a href="?year={{ month_date|date:'Y' }}&amp;month={{ month_date|date:'n' }}">Reintentar</a></p>
+  {% elif not event_count %}
+    <p class="pb-calendar-message">No tenés encuentros programados este mes.</p>
+  {% endif %}
+  <div class="pb-calendar-desktop" aria-labelledby="calendar-month">
+    <div class="pb-calendar-weekdays" aria-hidden="true">{% for weekday in weekdays %}<span{% if forloop.counter > 5 %} class="is-weekend"{% endif %}>{{ weekday }}</span>{% endfor %}</div>
+    <div class="pb-calendar-grid">
+      {% for week in weeks %}{% for day in week %}
+        <section data-calendar-date="{{ day.date|date:'Y-m-d' }}" class="pb-calendar-day{% if day.is_weekend %} is-weekend{% endif %}{% if day.holiday %} is-holiday{% endif %}{% if not day.in_month %} is-outside{% endif %}{% if day.is_today %} is-today{% endif %}" aria-label="{{ day.date|date:'l j \d\e F Y' }}{% if day.is_today %}, hoy{% endif %}{% if day.is_weekend %}, fin de semana{% endif %}{% if day.holiday %}, {{ day.holiday.description }}{% endif %}">
+          <h3><time datetime="{{ day.date|date:'Y-m-d' }}"{% if day.is_today %} aria-current="date"{% endif %}>{{ day.date|date:'j' }}</time></h3>
+          {% if day.holiday %}<details class="pb-calendar-holiday">
+            <summary title="{{ day.holiday.description }}" aria-label="{{ day.holiday.description }}"><span class="pb-calendar-holiday-badge">{{ day.holiday.label }}</span><span class="pb-calendar-holiday-name">{{ day.holiday.short_name }}</span></summary>
+            <span class="pb-calendar-holiday-full">{{ day.holiday.name }}</span>
+          </details>{% endif %}
+          {% if day.events %}<div class="pb-calendar-day-events" tabindex="0" role="group" aria-label="Encuentros del {{ day.date|date:'j \d\e F' }}">{% for event in day.events %}{% include 'users/calendar_event.html' %}{% endfor %}</div>{% endif %}
+        </section>
+      {% endfor %}{% endfor %}
+    </div>
+  </div>
+  <div class="pb-calendar-mobile">
+    <div class="pb-calendar-overview" aria-label="Mes de {{ month_date|date:'F Y' }}">
+      {% for weekday in weekdays %}<span class="pb-calendar-overview-weekday{% if forloop.counter > 5 %} is-weekend{% endif %}" aria-hidden="true">{{ weekday }}</span>{% endfor %}
+      {% for week in weeks %}{% for day in week %}
+        <div data-calendar-date="{{ day.date|date:'Y-m-d' }}" class="pb-calendar-overview-day{% if day.is_weekend %} is-weekend{% endif %}{% if day.holiday %} is-holiday{% endif %}{% if not day.in_month %} is-outside{% endif %}{% if day.is_today %} is-today{% endif %}"{% if day.holiday %} role="group" aria-label="{{ day.date|date:'j \d\e F' }}, {{ day.holiday.description }}" title="{{ day.holiday.description }}"{% endif %}>
+          {% if day.holiday %}<span class="pb-calendar-holiday-marker" aria-hidden="true">•</span>{% endif %}
+          {% if day.events %}<a href="#calendar-day-{{ day.date|date:'Y-m-d' }}" aria-label="{{ day.date|date:'j \d\e F' }}: {{ day.events|length }} encuentros{% if day.is_today %}, hoy{% endif %}{% if day.holiday %}, {{ day.holiday.description }}{% endif %}"><time datetime="{{ day.date|date:'Y-m-d' }}"{% if day.is_today %} aria-current="date"{% endif %}>{{ day.date|date:'j' }}</time><small>{{ day.events|length }}</small></a>{% else %}<time datetime="{{ day.date|date:'Y-m-d' }}"{% if day.is_today %} aria-current="date"{% endif %}>{{ day.date|date:'j' }}</time>{% endif %}
+        </div>
+      {% endfor %}{% endfor %}
+    </div>
+    {% if has_holidays %}<details class="pb-calendar-holiday-list">
+      <summary>Feriados y días no laborables del mes</summary>
+      <ul>{% for week in weeks %}{% for day in week %}{% if day.in_month and day.holiday %}<li><time datetime="{{ day.date|date:'Y-m-d' }}">{{ day.date|date:"j/m" }}</time><span>{{ day.holiday.description }}</span></li>{% endif %}{% endfor %}{% endfor %}</ul>
+    </details>{% endif %}
+    {% if event_count %}<div class="pb-calendar-agenda" aria-label="Encuentros del mes">
+      {% for week in weeks %}{% for day in week %}{% if day.events %}
+        <section class="pb-calendar-agenda-day{% if day.is_weekend %} is-weekend{% endif %}{% if day.holiday %} is-holiday{% endif %}" id="calendar-day-{{ day.date|date:'Y-m-d' }}"><h3>{{ day.date|date:"l j \d\e F"|capfirst }}{% if day.is_today %} · Hoy{% endif %}</h3>{% if day.holiday %}<p class="pb-calendar-agenda-note">{{ day.holiday.description }}</p>{% endif %}{% for event in day.events %}{% include 'users/calendar_event.html' %}{% endfor %}</section>
+      {% endif %}{% endfor %}{% endfor %}
+    </div>{% endif %}
+  </div>
+</section>
+{% endblock %}
