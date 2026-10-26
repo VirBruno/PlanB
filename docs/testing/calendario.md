@@ -54,12 +54,16 @@ local del primer día hasta, sin incluir, la medianoche del primer día del sigu
 
 ## Verificación automática
 
-Se agregan 39 tests en:
+Se agregan 51 tests del calendario (39 de la implementación inicial y 12 de feriados) en:
 
 - `apps.users.tests.test_calendar`: construcción del mes, año bisiesto, seis semanas,
   límites de navegación, parámetros inválidos, estados, membresía revocada, grupo
   ajeno, varias citas por día, fecha local, timezone activo, autenticación, privacidad
   de caché, errores, escape HTML, navegación móvil y apertura del detalle existente.
+- `apps.users.tests.test_calendar_holidays`: fechas oficiales observadas, traslados,
+  días turísticos, exclusiones territoriales/religiosas, año sin datos, fines de
+  semana, coincidencia de feriado y fin de semana, accesibilidad de nombres,
+  navegación y conservación de eventos, estados y enlaces al detalle.
 - `apps.plans.tests.test_calendar_service`: contrato del SDK real con HTTP en memoria,
   JWT y publishable key, filtros, paginación completa, errores y schema sin decisión.
 
@@ -68,13 +72,13 @@ Desde `backend`, usando el Python del virtualenv:
 ```text
 python manage.py check
 python manage.py check --settings=config.settings_test
-python manage.py test apps.users.tests.test_calendar apps.plans.tests.test_calendar_service
+python manage.py test apps.users.tests.test_calendar apps.users.tests.test_calendar_holidays apps.plans.tests.test_calendar_service
 python manage.py test
 ```
 
 La suite utiliza `settings_test`, SQLite en memoria y el runner que bloquea red/DNS.
-Resultado: 443 tests correctos (404 anteriores + 39 nuevos). Ambos checks sin errores.
-La suite previa a los cambios también pasó: 404 tests, sin fallos preexistentes.
+Resultado: 455 tests correctos (443 existentes + 12 de feriados). Ambos checks sin errores.
+Los 443 tests de la entrega inicial siguen pasando; no se modificaron sus expectativas.
 
 ## Revisión visual local
 
@@ -93,3 +97,62 @@ Revisión manual con una sesión real, si se desea validar datos del entorno:
 5. Revisar un mes vacío: la grilla y su navegación deben mantenerse.
 6. En móvil, elegir un día con eventos y recorrer su agenda; cambiar de tema.
 7. Con un usuario ajeno al grupo, comprobar que el encuentro no aparece.
+
+
+## Densidad, fines de semana y feriados argentinos
+
+La grilla mantiene siete columnas y todo el ancho útil en desktop. Usa filas
+`minmax(104px, auto)` y altura natural según su contenido, sin alturas basadas en
+viewport ni obligación de llenar la pantalla. Los días con muchos eventos tienen
+scroll local a partir de 136 px de contenido. Se redujeron paddings y separación
+entre breadcrumb, encabezado, leyenda y grilla. La vista móvil con agenda se conserva.
+
+`calendar_month` aporta `is_weekend` (sábado/domingo) y `holiday` sin intervenir en
+la selección de eventos ni los estados de planes. Los fines de semana tienen fondo
+neutro/lila tenue, también en encabezados y días vacíos. Un feriado usa otro tono
+y una etiqueta textual; Hoy conserva prioridad sobre ambos fondos y los eventos
+mantienen su propia apariencia de Confirmado/Finalizado.
+
+En desktop el nombre breve del feriado no desplaza los eventos. Un desplegable
+nativo `details/summary` permite consultar el nombre completo mediante clic, Enter
+o barra espaciadora, además del título y nombre accesible. En móvil hay un punto
+junto al día, nombre accesible y lista desplegable de feriados del mes; en la agenda
+se muestra el nombre cuando ese día tiene encuentros. Los turísticos llevan la
+etiqueta **No laborable**, para no equipararlos con un feriado nacional obligatorio.
+
+### Provider y fuentes
+
+`backend/apps/users/holidays.py` mantiene una tabla explícita de 20 fechas de alcance
+general para 2026. Las fechas son locales y observadas (por ejemplo, 15/6 y 23/11,
+no sus días de origen 17/6 y 20/11). No realiza requests, scraping ni cálculos de
+traslado en runtime, ni agrega dependencias. Fuentes oficiales verificadas el
+**26 de octubre de 2026**:
+
+- [Calendario nacional de Argentina](https://www.argentina.gob.ar/feriados).
+- [Listado 2026 de Cancillería](https://ejapo.cancilleria.gob.ar/es/content/feriados-y-diferencia-horaria),
+  para contrastar fechas y traslados. Se usan las fechas civiles indicadas en el
+  listado y las normas, sin convertirlas desde timestamps de la página web.
+- [Resolución 164/2025, artículo 1](https://www.argentina.gob.ar/normativa/nacional/norma-421799/texto):
+  días no laborables turísticos 23/3, 10/7 y 7/12 de 2026.
+- [DNU 1103/2026, artículo 2](https://www.argentina.gob.ar/normativa/nacional/norma-430580/texto):
+  9/11/2026, feriado nacional de alcance general por la visita del Papa León XIV.
+  Se excluyen los días 10 y 11/11 del mismo decreto por su alcance territorial.
+
+También se excluyen celebraciones limitadas a determinados grupos religiosos,
+feriados provinciales, municipales y asuetos sectoriales. Viernes Santo, Navidad
+e Inmaculada Concepción se incluyen por ser feriados nacionales generales.
+
+Para incorporar 2027 u otro año, agregar su tabla verificada a `HOLIDAYS_BY_YEAR`,
+actualizar estas referencias y extender los tests de fechas observadas. No se
+extrapolan feriados a años sin datos: `holiday_for` devuelve `None` y el calendario
+sigue mostrando el mes y los fines de semana normalmente. Los días adyacentes
+usan, si existe, la tabla de su propio año.
+
+### Revisión visual de este ajuste
+
+Chrome local verificó temas claro/oscuro, desktop de 1024 y 1440 px y móvil de 320
+y 390 px, con fechas y eventos ficticios. Sin overflow horizontal. Un mes vacío de
+seis semanas ocupa 624 px de grilla; un mes con días concurridos aumenta sólo las
+filas que lo necesitan. Se verificaron fondos distintos de Hoy/feriado/fin de
+semana, eventos confirmados y finalizados sobre un feriado en sábado, scroll local,
+enlaces a la agenda y despliegue del nombre de Navidad con Enter.

@@ -5,6 +5,8 @@ from datetime import date, datetime, time
 
 from django.utils import timezone
 
+from .holidays import holiday_for
+
 MIN_YEAR = 1900
 MAX_YEAR = 2100
 
@@ -44,11 +46,14 @@ def build_month(first, events, *, today=None):
         weeks.append([{
             "date": day, "in_month": day.month == first.month,
             "is_today": day == today,
+            "is_weekend": day.weekday() >= 5,
+            "holiday": holiday_for(day),
             "events": sorted(by_day[day], key=lambda event: (event["starts_at"], event["id"])),
         } for day in dates])
     previous, following = shift_month(first, -1), shift_month(first, 1)
     return {
         "month_date": first, "weeks": weeks,
+        "has_holidays": any(day["holiday"] for week in weeks for day in week if day["in_month"]),
         "previous_month": previous if previous.year >= MIN_YEAR else None,
         "next_month": following if following.year <= MAX_YEAR else None,
         "event_count": sum(len(events) for events in by_day.values()),
