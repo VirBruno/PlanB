@@ -5,6 +5,7 @@
   <link rel="stylesheet" href="{% static 'users/css/proposals.css' %}?v=5">
   <link rel="stylesheet" href="{% static 'users/css/plan-detail-social.css' %}">
   <link rel="stylesheet" href="{% static 'users/css/plan-decisions.css' %}?v=8">
+  <link rel="stylesheet" href="{% static 'users/css/plan-phases.css' %}?v=9">
   <link rel="stylesheet" href="{% static 'users/css/proposal-weather.css' %}?v=1">
   <link rel="stylesheet" href="{% static 'users/css/plan-weather-planner.css' %}?v=1">
   <link rel="stylesheet" href="{% static 'users/css/plan-schedule.css' %}?v=1">
@@ -70,7 +71,7 @@
   </section>
   {% endif %}
   <dl class="group-meta">
-    <div><dt>Estado</dt><dd>{% if plan.status %}Activo{% else %}Inactivo{% endif %}</dd></div>
+    <div><dt>Estado</dt><dd class="pb-phase-label">{% if plan.status %}{% if plan.selected_proposal_id %}Confirmado{% else %}En organización{% endif %}{% else %}{% if plan.selected_proposal_id %}Finalizado{% else %}Inactivo{% endif %}{% endif %}</dd></div>
     <div><dt>Creado el</dt><dd>{{ plan.created_at|date:"d/m/Y" }}</dd></div>
     <div><dt>Grupo</dt><dd><a href="{% url 'groups:detail' group.id %}">{{ group.name }}</a></dd></div>
   </dl>
@@ -150,18 +151,32 @@
   {# ETAPA8_DECISION_PLAN: decisión explícita, independiente del comparador. #}
   <section class="pb-decision-panel" aria-labelledby="pb-decision-title">
     {% if plan.selected_proposal_id and confirmed_proposal %}
-      <div class="pb-decision-badge">✓ ENCUENTRO CONFIRMADO</div>
+      {# ETAPA9_PHASES: el cierre se representa con status=false y propuesta confirmada. #}
+      <div class="pb-decision-badge {% if not plan.status %}pb-phase-finished{% endif %}">{% if plan.status %}✓ ENCUENTRO CONFIRMADO{% else %}✓ ENCUENTRO FINALIZADO{% endif %}</div>
       <h2 id="pb-decision-title">{{ confirmed_proposal.tittle }}</h2>
-      <p>Esta es la alternativa elegida por el grupo. La fecha y el lugar definitivos provienen de esta propuesta.</p>
+      <p>{% if plan.status %}Esta es la alternativa elegida por el grupo. La fecha y el lugar definitivos provienen de esta propuesta.{% else %}Este encuentro fue marcado como finalizado. Conservamos la propuesta, la fecha y la ubicación elegidas para el historial.{% endif %}</p>
       <div class="pb-decision-meta">
         <span>📅 {{ confirmed_proposal.date_pick|date:"d/m/Y H:i" }}</span>
         <a href="https://www.openstreetmap.org/?mlat={{ confirmed_proposal.latitude|unlocalize }}&amp;mlon={{ confirmed_proposal.longitude|unlocalize }}#map=16/{{ confirmed_proposal.latitude|unlocalize }}/{{ confirmed_proposal.longitude|unlocalize }}" target="_blank" rel="noopener noreferrer">📍 Ver ubicación confirmada ↗</a>
       </div>
-      {% if can_manage %}<form method="post" action="{% url 'plans:reopen_plan_decision' plan.id %}" data-confirm-delete="¿Reabrir el plan? La fecha definitiva se quitará y se podrán volver a evaluar las propuestas.">{% csrf_token %}<button type="submit" class="button button--quiet">Reabrir decisión</button></form>{% endif %}
+      {% if can_manage %}
+      <div class="pb-phase-actions">
+        {% if plan.status %}
+        {% if can_finish_meeting %}
+        <form method="post" action="{% url 'plans:finish_plan_meeting' plan.id %}" data-confirm-delete="¿Marcar este encuentro como finalizado? Quedará en el historial del grupo.">{% csrf_token %}<button type="submit" class="button button--primary">✓ Finalizar encuentro</button></form>
+        {% else %}
+        <span class="pb-phase-future-action" title="La fecha del encuentro todavía no llegó"><button type="button" class="button button--quiet" disabled aria-disabled="true">Finalizar encuentro</button><small>Disponible cuando llegue la fecha y hora del encuentro.</small></span>
+        {% endif %}
+        <form method="post" action="{% url 'plans:reopen_plan_decision' plan.id %}" data-confirm-delete="¿Reabrir el plan? Se eliminará la fecha definitiva y podrán modificarse las propuestas.">{% csrf_token %}<button type="submit" class="button button--quiet">Reabrir decisión</button></form>
+        {% else %}
+        <form method="post" action="{% url 'plans:reactivate_plan_meeting' plan.id %}" data-confirm-delete="¿Reactivar este encuentro finalizado?">{% csrf_token %}<button type="submit" class="button button--quiet">Reactivar encuentro</button></form>
+        {% endif %}
+      </div>
+      {% endif %}
     {% else %}
-      <div class="pb-decision-badge pb-decision-badge--pending">⌛ EN ORGANIZACIÓN</div>
-      <h2 id="pb-decision-title">Todavía no hay encuentro confirmado</h2>
-      <p>Las fechas y ubicaciones son alternativas. Cuando el grupo decida, el administrador podrá confirmar una propuesta.</p>
+      <div class="pb-decision-badge pb-decision-badge--pending">{% if plan.status %}⌛ EN ORGANIZACIÓN{% else %}• PLAN INACTIVO{% endif %}</div>
+      <h2 id="pb-decision-title">{% if plan.status %}Todavía no hay encuentro confirmado{% else %}Este plan está inactivo{% endif %}</h2>
+      <p>{% if plan.status %}Las fechas y ubicaciones son alternativas. Cuando el grupo decida, el administrador podrá confirmar una propuesta.{% else %}No se eligió ninguna propuesta definitiva antes de desactivar el plan.{% endif %}</p>
       {% if plan.scheduled_at %}<p class="pb-decision-note">La fecha y localidad del plan son una <strong>preferencia tentativa</strong>, no una decisión del grupo.</p>{% endif %}
     {% endif %}
   </section>

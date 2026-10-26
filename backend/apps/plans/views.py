@@ -8,6 +8,8 @@ from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
+from datetime import datetime
 from django.views.decorators.debug import sensitive_variables
 from django.views.decorators.http import require_http_methods, require_POST
 
@@ -302,6 +304,7 @@ def detail(request, plan_id):
         "plan": plan, "group": group, "can_manage": group["role"] == "owner",
         "election_method": election_method,
         "confirmed_proposal": confirmed_proposal,
+        "can_finish_meeting": _meeting_can_be_finished(plan),
         "decision_schema": plan.get("decision_schema", False),
         "can_create_proposal": not any(
             proposal["created_by"] == request.planb_user["id"] for proposal in proposals
@@ -789,6 +792,84 @@ def delete(request, plan_id):
         )
     messages.success(request, "El plan se eliminó.")
     return redirect("groups:detail", group_id=group["id"])
+
+
+# ETAPA9A_FECHA_FIN · La UI y la vista usan la misma regla.
+def _meeting_can_be_finished(plan, *, now=None):
+    if not plan.get("status") or not plan.get("selected_proposal_id"):
+        return False
+    scheduled = plan.get("scheduled_at")
+    if isinstance(scheduled, str):
+        scheduled = parse_datetime(scheduled)
+    elif not isinstance(scheduled, datetime):
+        return False
+    if scheduled is None:
+        return False
+    if timezone.is_naive(scheduled):
+        scheduled = timezone.make_aware(scheduled, timezone.get_current_timezone())
+    return scheduled <= (now if now is not None else timezone.now())
+
+
+# ETAPA9_PHASES · Cierre explícito del encuentro; se conserva selected_proposal_id.
+@private_page
+@require_POST
+@supabase_login_required
+@sensitive_variables()
+def finish_plan_meeting(request, plan_id):
+    try:
+        plan, group = _plan_and_group(request, plan_id)
+    except (PlanNotFound, GroupNotFound):
+        raise Http404("No encontramos ese plan.") from None
+    except (GroupUnavailable, InvalidGroup, PlanUnavailable):
+        return _unavailable(request)
+    _require_group_admin(group)
+    if not plan.get("selected_proposal_id") or not plan.get("status"):
+        messages.error(request, "Solo se puede finalizar un encuentro confirmado y activo.")
+        return redirect("plans:detail", plan_id=plan_id)
+    if not _meeting_can_be_finished(plan):
+        messages.error(request, "No podés finalizar un encuentro antes de la fecha y hora programadas.")
+        return redirect("plans:detail", plan_id=plan_id)
+    try:
+        plan_service.update_plan(
+            session_service.get_access_token(request), plan_id=plan_id,
+            name=plan["name"], description=plan["description"], status=False,
+        )
+    except (InvalidPlan, PlanNotFound):
+        messages.error(request, "No pudimos finalizar el encuentro.")
+    except PlanUnavailable:
+        return _unavailable(request)
+    else:
+        messages.success(request, "El encuentro quedó finalizado.")
+    return redirect("plans:detail", plan_id=plan_id)
+
+
+@private_page
+@require_POST
+@supabase_login_required
+@sensitive_variables()
+def reactivate_plan_meeting(request, plan_id):
+    try:
+        plan, group = _plan_and_group(request, plan_id)
+    except (PlanNotFound, GroupNotFound):
+        raise Http404("No encontramos ese plan.") from None
+    except (GroupUnavailable, InvalidGroup, PlanUnavailable):
+        return _unavailable(request)
+    _require_group_admin(group)
+    if not plan.get("selected_proposal_id") or plan.get("status"):
+        messages.error(request, "Solo se puede reactivar un encuentro finalizado.")
+        return redirect("plans:detail", plan_id=plan_id)
+    try:
+        plan_service.update_plan(
+            session_service.get_access_token(request), plan_id=plan_id,
+            name=plan["name"], description=plan["description"], status=True,
+        )
+    except (InvalidPlan, PlanNotFound):
+        messages.error(request, "No pudimos reactivar el encuentro.")
+    except PlanUnavailable:
+        return _unavailable(request)
+    else:
+        messages.success(request, "El encuentro volvió a estar confirmado y activo.")
+    return redirect("plans:detail", plan_id=plan_id)
 
 
 @private_page

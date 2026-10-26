@@ -18,6 +18,9 @@
     all: items.length,
     active: items.filter(item => item.dataset.planState === 'active').length,
     inactive: items.filter(item => item.dataset.planState === 'inactive').length,
+    organizing: items.filter(item => item.dataset.planPhase === 'organizing').length,
+    confirmed: items.filter(item => item.dataset.planPhase === 'confirmed').length,
+    finished: items.filter(item => item.dataset.planPhase === 'finished').length,
     upcoming: items.filter(item => {
       const t = Date.parse(item.dataset.planScheduled || '');
       return item.dataset.planState === 'active' && Number.isFinite(t) && t > Date.now();
@@ -50,9 +53,11 @@
     const visibleCounts = { active: 0, inactive: 0 };
 
     entries.forEach(entry => {
+      // ETAPA9_PHASES: la fase distingue propuesta confirmada del status técnico.
       const state = entry.item.dataset.planState;
+      const phase = entry.item.dataset.planPhase;
       const isUpcoming = state === 'active' && Number.isFinite(entry.scheduled) && entry.scheduled > Date.now();
-      const show = (filter === 'all' || filter === state || (filter === 'upcoming' && isUpcoming)) && (!term || entry.content.includes(term));
+      const show = (filter === 'all' || filter === state || filter === phase || (filter === 'upcoming' && isUpcoming)) && (!term || entry.content.includes(term));
       entry.item.hidden = !show;
       if (show) visibleCounts[state]++;
     });
