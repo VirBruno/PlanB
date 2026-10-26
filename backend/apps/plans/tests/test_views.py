@@ -161,7 +161,7 @@ class PlanViewsTests(TestCase):
     @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row(created_by="another-user"))
     def test_group_owner_can_manage_plan_created_by_another_member(self, get_plan, get_group, list_proposals):
         response = self.client.get(f"/planes/{PLAN_ID}/")
-        self.assertContains(response, "Activo")
+        self.assertContains(response, "En organización")
         self.assertContains(response, 'aria-label="Editar plan"')
         self.assertContains(response, 'aria-label="Eliminar plan"')
         self.assertContains(response, f"/planes/{PLAN_ID}/editar/")

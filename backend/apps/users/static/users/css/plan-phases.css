@@ -1,0 +1,28 @@
+/* Plan B · Etapa 9A · Estados claros, reutilizando el diseño actual. */
+.pb-phase-label { font-weight: 750; }
+.pb-phase-chip--confirmed,
+.pb-plan-state.pb-phase-chip--confirmed,
+.group-social-plan-status.pb-phase-chip--confirmed {
+  color: #16755e;
+  background: #def4eb;
+}
+.pb-phase-chip--organizing,
+.pb-plan-state.pb-phase-chip--organizing {
+  color: #6550bf;
+  background: #eeeaff;
+}
+.pb-phase-chip--finished,
+.pb-plan-state.pb-phase-chip--finished {
+  color: #536078;
+  background: #e7ecf4;
+}
+.pb-decision-badge.pb-phase-finished { color: #536078; }
+.pb-phase-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-top: 1rem; }
+.pb-phase-actions form { margin: 0; }
+.pb-phase-actions .button { min-height: 42px; }
+.pb-plan-filter-buttons { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+@media (max-width: 680px) {
+  .pb-phase-actions { flex-direction: column; align-items: stretch; }
+  .pb-phase-actions .button, .pb-phase-actions form { width: 100%; }
+  .pb-plan-filter-buttons > button[data-plan-filter] { flex: 1 1 auto; min-width: 100px; }
+}

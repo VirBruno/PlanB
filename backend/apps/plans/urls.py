@@ -16,6 +16,9 @@ urlpatterns = [
     path("<uuid:plan_id>/propuestas/<int:proposal_id>/votar/", views.proposal_vote, name="proposal_vote"),
     path("<uuid:plan_id>/propuestas/<int:proposal_id>/score/", views.proposal_score, name="proposal_score"),
     path("<uuid:plan_id>/propuestas/<int:proposal_id>/confirmar/", views.confirm_plan_proposal, name="confirm_plan_proposal"),
+    # ETAPA9_PHASES: transiciones explícitas, sin SQL nuevo.
+    path("<uuid:plan_id>/encuentro/finalizar/", views.finish_plan_meeting, name="finish_plan_meeting"),
+    path("<uuid:plan_id>/encuentro/reactivar/", views.reactivate_plan_meeting, name="reactivate_plan_meeting"),
     path("<uuid:plan_id>/decision/reabrir/", views.reopen_plan_decision, name="reopen_plan_decision"),
     path("<uuid:plan_id>/propuestas/nueva/", views.proposal_create, name="proposal_create"),
     path("<uuid:plan_id>/propuestas/<int:proposal_id>/editar/", views.proposal_edit, name="proposal_edit"),
