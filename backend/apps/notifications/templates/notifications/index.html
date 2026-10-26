@@ -8,7 +8,7 @@
     <div>
       <p class="pb-notifications__eyebrow">TU COMUNIDAD</p>
       <h1 id="notifications-title">Notificaciones</h1>
-      <p class="pb-notifications__lead">Invitaciones y novedades de tus grupos, todo en un lugar.</p>
+      <p class="pb-notifications__lead">Invitaciones, recordatorios y novedades de tus grupos.</p>
     </div>
   </header>
 
@@ -26,8 +26,8 @@
           <div class="pb-notifications__content">
             <div class="pb-notifications__card-top">
               <div>
-                <p class="pb-notifications__kind">{% if notification.type == 'group_invitation' %}INVITACIÓN A UN GRUPO{% else %}NOVEDAD{% endif %}</p>
-                <h2>{% if notification.type == 'group_invitation' %}{{ notification.group_name }}{% else %}Nueva notificación{% endif %}</h2>
+                <p class="pb-notifications__kind">{% if notification.type == 'group_invitation' %}INVITACIÓN A UN GRUPO{% elif notification.type == 'plan_reminder' %}RECORDATORIO{% else %}NOVEDAD{% endif %}</p>
+                <h2>{% if notification.type == 'group_invitation' %}{{ notification.group_name }}{% elif notification.type == 'plan_reminder' %}{{ notification.day_label }} · {{ notification.plan_name }}{% else %}Nueva notificación{% endif %}</h2>
               </div>
               {% if not notification.read_at %}<span class="pb-notifications__unread">Sin leer</span>{% endif %}
             </div>
@@ -45,11 +45,19 @@
               {% else %}
                 <p class="pb-notifications__status">Invitación rechazada</p>
               {% endif %}
+            {% elif notification.type == 'plan_reminder' %}
+              <p>El encuentro es a las <time datetime="{{ notification.scheduled_at|date:'c' }}">{{ notification.scheduled_at|date:'H:i' }}</time>.</p>
+              {% if notification.plan_available %}
+                <p>{{ notification.group_name }}</p>
+                <div class="pb-notifications__actions"><a class="button button--primary" href="{% url 'plans:detail' notification.plan_id %}">Ver plan ↗</a></div>
+              {% else %}
+                <p class="pb-notifications__status">Ya no tenés acceso a este plan.</p>
+              {% endif %}
             {% endif %}
             <div class="pb-notifications__meta">
               <time datetime="{{ notification.created_at|date:'c' }}" title="{{ notification.created_at|date:'d/m/Y H:i' }}">Hace {{ notification.created_at|timesince }}</time>
               {% if not notification.read_at %}
-                <form method="post" action="{% url 'notifications:mark_read' notification.id %}">{% csrf_token %}<button class="pb-notifications__mark" type="submit">Marcar como leída<span class="sr-only">: {{ notification.group_name }}</span></button></form>
+                <form method="post" action="{% url 'notifications:mark_read' notification.id %}">{% csrf_token %}<button class="pb-notifications__mark" type="submit">Marcar como leída<span class="sr-only">: {% if notification.type == 'plan_reminder' %}{{ notification.plan_name }}{% else %}{{ notification.group_name }}{% endif %}</span></button></form>
               {% endif %}
             </div>
           </div>
@@ -58,7 +66,7 @@
         <li class="pb-notifications__empty">
           <div class="pb-notifications__empty-icon" aria-hidden="true">✧</div>
           <h2>Todo al día</h2>
-          <p>Cuando te inviten a un grupo, vas a encontrar la invitación acá.</p>
+          <p>Acá vas a encontrar invitaciones a grupos y recordatorios de tus encuentros.</p>
           <a href="{% url 'groups:index' %}" class="button button--primary">Explorar mis grupos ↗</a>
         </li>
       {% endfor %}

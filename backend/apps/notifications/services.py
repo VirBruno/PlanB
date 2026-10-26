@@ -1,6 +1,8 @@
-"""Notificaciones privadas sin copia del estado de la invitación."""
+"""Bandeja privada extensible; las referencias provienen de RPCs autorizadas."""
+from datetime import timedelta
 from uuid import UUID
 
+from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django.views.decorators.debug import sensitive_variables
 from postgrest.exceptions import APIError
@@ -12,6 +14,28 @@ from apps.users.services import clients
 from apps.users.services.exceptions import SessionExpired
 
 PAGE_SIZE = 12
+
+
+def _reminder(row):
+    item = {'plan_id': str(UUID(row['plan_id'])), 'plan_name': row['plan_name'],
+            'plan_available': row['plan_available']}
+    scheduled = parse_datetime(row['scheduled_at'])
+    if (not isinstance(item['plan_name'], str) or not item['plan_name']
+            or type(item['plan_available']) is not bool
+            or scheduled is None or timezone.is_naive(scheduled)):
+        raise ValueError
+    item['scheduled_at'] = timezone.localtime(scheduled)
+    today = timezone.localdate()
+    day = item['scheduled_at'].date()
+    item['day_label'] = ('Hoy' if day == today else
+                         'Mañana' if day == today + timedelta(days=1) else
+                         item['scheduled_at'].strftime('%d/%m/%Y'))
+    if item['plan_available']:
+        item['group_id'] = str(UUID(row['group_id']))
+        item['group_name'] = row['group_name']
+        if not isinstance(item['group_name'], str):
+            raise ValueError
+    return item
 
 
 @sensitive_variables()
@@ -58,6 +82,8 @@ def list_notifications(access_token, *, page=1):
                 item['status'] = row['status']
                 if item['status'] not in ('pending', 'accepted', 'rejected'):
                     raise ValueError
+            elif item['type'] == 'plan_reminder':
+                item.update(_reminder(row))
             items.append(item)
         return {'items': items, 'page': page,
                 'previous_page': page - 1 if page > 1 else None,

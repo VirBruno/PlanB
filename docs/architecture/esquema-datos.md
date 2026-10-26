@@ -240,6 +240,22 @@ RPC; la segunda habilita INSERT de planes por miembros y conserva gestión del
 owner. No hay modelos Django nuevos ni cambios en Auth o secretos.
 Consultar [contratos, grants, SQL y prueba manual](../testing/invitaciones.md).
 
+## Recordatorios internos de planes (20261026)
+
+`202610260001_plan_reminders.sql` extiende `notifications` con `plan_id` (FK con
+CASCADE), un CHECK por tipo y un índice único parcial por usuario/plan/tipo para
+`plan_reminder`. Conserva RLS y permisos de invitaciones. La nueva RPC de
+generación es atómica, bloquea los planes y las membresías vigentes y permite
+EXECUTE sólo a `service_role`; no concede DML directo sobre las tablas.
+`list_notifications` mantiene la autorización por destinatario y agrega campos
+del plan, fecha histórica y disponibilidad según membresía. La interfaz usa JWT
+y las RPCs habituales para bandeja/lectura; el payload no autoriza acceso.
+
+Un servicio y comando Django invocan la generación con el cliente administrativo
+existente. El repositorio no programa su ejecución: configurar un job externo.
+La ventana es `(ahora, ahora + 24 horas]`, sólo activos con propuesta definitiva.
+Ver [arquitectura, operación y pruebas](../testing/recordatorios.md).
+
 ## Presupuesto opcional de propuestas
 
 `202610090001_proposal_budget_range.sql` extiende `public.proposals` mediante
