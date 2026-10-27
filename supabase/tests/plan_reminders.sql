@@ -1,5 +1,5 @@
 -- INTEGRACIÓN REVERSIBLE: sólo instancia local/de pruebas aislada, como administrador.
--- Requiere TODAS las migraciones hasta 202610260001. Nunca ejecutar en el compartido.
+-- Requiere TODAS las migraciones hasta 202610260002. Nunca ejecutar en el compartido.
 -- El reloj es statement_timestamp(): dentro del DO permite probar límites exactos.
 BEGIN;
 
@@ -111,30 +111,31 @@ BEGIN
     actual := public.generate_plan_reminders();
     RESET ROLE;
     IF actual < 11 THEN RAISE EXCEPTION 'No se generaron los 11 recordatorios esperados'; END IF;
-    IF (SELECT count(*) FROM public.notifications WHERE plan_id IN (at_boundary, in_window, short_notice, other_group)) <> 11 THEN
+    IF (SELECT count(*) FROM public.notifications WHERE type = 'plan_reminder'
+        AND plan_id IN (at_boundary, in_window, short_notice, other_group)) <> 11 THEN
         RAISE EXCEPTION 'Cantidad incorrecta para miembros actuales/múltiples grupos';
     END IF;
-    IF EXISTS (SELECT 1 FROM public.notifications WHERE plan_id IN
+    IF EXISTS (SELECT 1 FROM public.notifications WHERE type = 'plan_reminder' AND plan_id IN
                (far_away, organizing, finished, inactive, undated, past, at_now)) THEN
         RAISE EXCEPTION 'Un estado o fecha excluidos recibió recordatorio';
     END IF;
-    IF EXISTS (SELECT 1 FROM public.notifications WHERE user_id IN (outsider_id, former_id)) THEN
+    IF EXISTS (SELECT 1 FROM public.notifications WHERE type = 'plan_reminder' AND user_id IN (outsider_id, former_id)) THEN
         RAISE EXCEPTION 'Outsider o antiguo miembro recibió recordatorio';
     END IF;
-    IF (SELECT count(*) FROM public.notifications WHERE user_id = owner_id
+    IF (SELECT count(*) FROM public.notifications WHERE type = 'plan_reminder' AND user_id = owner_id
         AND plan_id IN (at_boundary, in_window, short_notice, other_group)) <> 4 THEN
         RAISE EXCEPTION 'El owner no recibió todos los planes';
     END IF;
-    IF (SELECT count(*) FROM public.notifications WHERE user_id = member_id
+    IF (SELECT count(*) FROM public.notifications WHERE type = 'plan_reminder' AND user_id = member_id
         AND plan_id IN (at_boundary, in_window, short_notice, other_group)) <> 4 THEN
         RAISE EXCEPTION 'Un miembro de varios grupos no recibió todos los planes';
     END IF;
-    IF (SELECT count(*) FROM public.notifications WHERE user_id = newcomer_id
+    IF (SELECT count(*) FROM public.notifications WHERE type = 'plan_reminder' AND user_id = newcomer_id
         AND plan_id IN (at_boundary, in_window, short_notice)) <> 3 THEN
         RAISE EXCEPTION 'No se notificó al miembro incorporado antes del procesamiento';
     END IF;
     IF EXISTS (SELECT 1 FROM public.notifications n JOIN public.plans p ON p.id = n.plan_id
-               WHERE n.plan_id IN (at_boundary, in_window, short_notice, other_group)
+               WHERE n.type = 'plan_reminder' AND n.plan_id IN (at_boundary, in_window, short_notice, other_group)
                  AND ((n.payload->>'scheduled_at')::timestamptz IS DISTINCT FROM p.scheduled_at
                       OR n.payload->>'plan_name' IS DISTINCT FROM p.name)) THEN
         RAISE EXCEPTION 'La fecha/nombre del aviso no coincide con el encuentro confirmado';
@@ -190,7 +191,7 @@ BEGIN
         RAISE EXCEPTION 'No se indujo el fallo posterior a otros INSERTs';
     EXCEPTION WHEN SQLSTATE 'PT500' THEN NULL; END;
     RESET ROLE;
-    IF EXISTS (SELECT 1 FROM public.notifications WHERE plan_id = atomic_plan) THEN
+    IF EXISTS (SELECT 1 FROM public.notifications WHERE type = 'plan_reminder' AND plan_id = atomic_plan) THEN
         RAISE EXCEPTION 'El fallo dejó destinatarios con notificaciones parciales';
     END IF;
     PERFORM set_config('planb.reminder_fail_user', '', true);
@@ -204,7 +205,8 @@ BEGIN
     RESET ROLE;
     SELECT id INTO invitation_notification FROM public.notifications WHERE invitation_id = invitation;
     IF invitation_notification IS NULL THEN RAISE EXCEPTION 'Se rompió group_invitation'; END IF;
-    SELECT id INTO first_notification FROM public.notifications WHERE user_id = owner_id AND plan_id = in_window;
+    SELECT id INTO first_notification FROM public.notifications
+        WHERE user_id = owner_id AND plan_id = in_window AND type = 'plan_reminder';
 
     PERFORM set_config('request.jwt.claim.sub', outsider_id::text, true);
     SET LOCAL ROLE authenticated;
@@ -227,8 +229,10 @@ BEGIN
 
     PERFORM set_config('request.jwt.claim.sub', owner_id::text, true);
     SET LOCAL ROLE authenticated;
-    IF NOT EXISTS (SELECT 1 FROM public.list_notifications() WHERE id = first_notification
-                   AND plan_id = in_window AND group_id = group_a AND plan_available AND read_at IS NULL) THEN
+    IF NOT EXISTS (SELECT 1 FROM generate_series(1, 3) pages(page)
+                   CROSS JOIN LATERAL public.list_notifications(pages.page) n
+                   WHERE n.id = first_notification AND n.plan_id = in_window
+                     AND n.group_id = group_a AND n.plan_available AND n.read_at IS NULL) THEN
         RAISE EXCEPTION 'El recordatorio no aparece en la bandeja propia';
     END IF;
     SELECT count(*) INTO count_before FROM public.notifications WHERE read_at IS NULL;
@@ -243,8 +247,10 @@ BEGIN
     DELETE FROM public.group_members WHERE group_id = group_a AND user_id = newcomer_id;
     PERFORM set_config('request.jwt.claim.sub', newcomer_id::text, true);
     SET LOCAL ROLE authenticated;
-    IF EXISTS (SELECT 1 FROM public.list_notifications() WHERE plan_id = in_window
-               AND (plan_available OR group_id IS NOT NULL OR group_name IS NOT NULL)) THEN
+    IF EXISTS (SELECT 1 FROM generate_series(1, 3) pages(page)
+               CROSS JOIN LATERAL public.list_notifications(pages.page) n
+               WHERE n.plan_id = in_window
+                 AND (n.plan_available OR n.group_id IS NOT NULL OR n.group_name IS NOT NULL)) THEN
         RAISE EXCEPTION 'La bandeja habilita acceso tras perder membresía';
     END IF;
     IF EXISTS (SELECT 1 FROM public.plans WHERE id = in_window) THEN

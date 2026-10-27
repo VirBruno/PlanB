@@ -256,6 +256,17 @@ existente. El repositorio no programa su ejecución: configurar un job externo.
 La ventana es `(ahora, ahora + 24 horas]`, sólo activos con propuesta definitiva.
 Ver [arquitectura, operación y pruebas](../testing/recordatorios.md).
 
+## Confirmaciones inmediatas (20261026)
+
+`202610260002_plan_confirmed_notifications.sql` amplía el CHECK de referencias
+para admitir `plan_confirmed` y agrega su índice único parcial por usuario/plan/tipo.
+Extiende `confirm_plan_proposal` para fijar la decisión y crear los avisos a todos
+los miembros actuales en una sola transacción, conservando firma, grants y RLS.
+El índice de `plan_reminder` permanece independiente. `list_notifications` ya
+proyecta ambos tipos mediante la FK y membresía actual; se reutiliza sin cambios.
+Reabrir y reconfirmar no duplica ni sobrescribe una confirmación ya enviada.
+Ver [decisiones, seguridad y validación](../testing/confirmaciones.md).
+
 ## Presupuesto opcional de propuestas
 
 `202610090001_proposal_budget_range.sql` extiende `public.proposals` mediante

@@ -16,7 +16,7 @@ from apps.users.services.exceptions import SessionExpired
 PAGE_SIZE = 12
 
 
-def _reminder(row):
+def _plan_notification(row):
     item = {'plan_id': str(UUID(row['plan_id'])), 'plan_name': row['plan_name'],
             'plan_available': row['plan_available']}
     scheduled = parse_datetime(row['scheduled_at'])
@@ -82,8 +82,8 @@ def list_notifications(access_token, *, page=1):
                 item['status'] = row['status']
                 if item['status'] not in ('pending', 'accepted', 'rejected'):
                     raise ValueError
-            elif item['type'] == 'plan_reminder':
-                item.update(_reminder(row))
+            elif item['type'] in ('plan_reminder', 'plan_confirmed'):
+                item.update(_plan_notification(row))
             items.append(item)
         return {'items': items, 'page': page,
                 'previous_page': page - 1 if page > 1 else None,
