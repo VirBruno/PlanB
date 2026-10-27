@@ -1,0 +1,8 @@
+<div class="proposal-datetime-fields">
+  {% for widget in widget.subwidgets %}
+    <div class="field">
+      <label for="{{ widget.attrs.id }}">{% if forloop.first %}Fecha{% else %}Hora{% endif %}</label>
+      {% include widget.template_name %}
+    </div>
+  {% endfor %}
+</div>

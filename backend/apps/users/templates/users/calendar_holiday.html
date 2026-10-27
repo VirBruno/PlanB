@@ -1,0 +1,10 @@
+{% if day.holiday %}
+  {% if calendar_selectable %}
+    <span class="pb-calendar-holiday" title="{{ day.holiday.description }}"><span class="pb-calendar-holiday-badge">{{ day.holiday.label }}</span> <span class="pb-calendar-holiday-name">{{ day.holiday.short_name }}</span></span>
+  {% else %}
+    <details class="pb-calendar-holiday">
+      <summary title="{{ day.holiday.description }}" aria-label="{{ day.holiday.description }}"><span class="pb-calendar-holiday-badge">{{ day.holiday.label }}</span><span class="pb-calendar-holiday-name">{{ day.holiday.short_name }}</span></summary>
+      <span class="pb-calendar-holiday-full">{{ day.holiday.name }}</span>
+    </details>
+  {% endif %}
+{% endif %}
