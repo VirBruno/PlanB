@@ -247,6 +247,29 @@ cargar cada página. Aplicar manualmente, en orden,
 `supabase/migrations/202610180001_group_invite_links.sql`, después de las
 migraciones anteriores. Ver [SQL exacto, permisos y prueba manual](docs/testing/invitaciones.md).
 
+## Notificaciones de planes confirmados
+
+Al confirmar una propuesta, la misma RPC crea inmediatamente `plan_confirmed`
+para los miembros actuales, owner incluido. La bandeja muestra fecha/hora local,
+lectura y enlace al plan con permisos vigentes. Requiere la migración incremental
+`202610260002_plan_confirmed_notifications.sql`, después de la de recordatorios.
+Su unicidad es independiente: cada usuario puede recibir una confirmación y un
+recordatorio por plan. Ver [atomicidad, reconfirmación y pruebas](docs/testing/confirmaciones.md).
+
+Las notificaciones internas incluyen `plan_reminder` para todos los integrantes
+actuales del grupo, incluido el owner, cuando faltan hasta 24 horas para un plan
+activo con propuesta definitiva y `scheduled_at`. Se integran en la misma bandeja,
+badge y acción de lectura, con enlace al detalle. Un índice único impide duplicados
+por usuario/plan/tipo incluso al ejecutar el proceso varias veces.
+
+Requiere revisar/aplicar `supabase/migrations/202610260001_plan_reminders.sql`
+después de las migraciones de decisión de planes. No hay scheduler versionado:
+programar externamente, cada hora, `python manage.py generate_plan_reminders`
+desde `backend/`, usando las variables de servidor existentes. El comando escribe
+en el Supabase configurado; para desarrollo usar una instancia local/de pruebas.
+No se generan avisos al abrir páginas. Ver [ventana exacta, permisos, ejecución
+segura, despliegue y pruebas](docs/testing/recordatorios.md).
+
 ## Propuestas geográficas existentes
 
 La app de planes envía la posición como GeoJSON al tipo `geography` de PostGIS.
