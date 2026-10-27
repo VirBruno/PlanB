@@ -1,0 +1,65 @@
+/* Densidad del selector; colores y semántica compartidos con personal-calendar.css. */
+.proposal-datetime { margin: 0; padding: 0; border: 0; min-width: 0; }
+.proposal-datetime-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.proposal-datetime-fields input { width: 100%; min-width: 0; }
+.pfs-date [data-open-proposal-calendar] { justify-self: start; }
+html.proposal-calendar-open { overflow: hidden; }
+.proposal-calendar-dialog { width: min(840px, calc(100% - 24px)); max-width: none; max-height: 90vh; max-height: 90dvh; padding: 18px; box-sizing: border-box; border: 1px solid var(--line); border-radius: 20px; background: var(--sd-panel, var(--canvas)); color: var(--text); box-shadow: 0 24px 90px #0004; overflow-y: auto; }
+.proposal-calendar-dialog::backdrop { background: #10132299; backdrop-filter: blur(3px); }
+.proposal-calendar-dialog-head { display: flex; align-items: start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.proposal-calendar-dialog-head h2 { margin: 0 0 4px; font-size: 20px; letter-spacing: -.03em; }
+.proposal-calendar-dialog-head p { margin: 0; font-size: 12px; color: var(--muted); }
+.proposal-calendar-close { flex: none; width: 36px; height: 36px; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: var(--glass); color: var(--text); font-size: 25px; cursor: pointer; }
+.proposal-calendar-status { color: var(--muted); font-size: 13px; }
+.proposal-calendar-status:not(:empty) { padding: 14px 0; }
+.pb-calendar--selector .pb-calendar-toolbar { justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.pb-calendar--selector .pb-calendar-navigation { gap: 10px; }
+.pb-calendar--selector .pb-calendar-navigation h3 { margin: 0; min-width: 150px; text-align: center; font-size: 17px; }
+.pb-calendar--selector .pb-calendar-navigation button, .pb-calendar--selector > .pb-calendar-toolbar > button { min-width: 36px; min-height: 36px; padding: 0 9px; border: 1px solid var(--line); border-radius: var(--pb-radius-control); background: var(--glass); color: var(--text); cursor: pointer; }
+.pb-calendar--selector .pb-calendar-navigation button { font-size: 24px; }
+.pb-calendar--selector .pb-calendar-meta { gap: 12px; font-size: 10px; }
+.pb-calendar--selector .pb-calendar-desktop { display: block; }
+.pb-calendar--selector .pb-calendar-weekdays span { padding: 6px; font-size: 10px; }
+.pb-calendar--selector .pb-calendar-grid { grid-auto-rows: 80px; }
+.pb-calendar--selector .pb-calendar-day { appearance: none; position: relative; align-items: stretch; gap: 2px; padding: 4px; margin: 0; border-top: 0; border-left: 0; border-radius: 0; background: transparent; color: var(--text); text-align: left; font: inherit; cursor: pointer; overflow: hidden; }
+.pb-calendar--selector .pb-calendar-day.is-weekend { background: var(--calendar-weekend); }
+.pb-calendar--selector .pb-calendar-day.is-holiday { background: var(--calendar-holiday); }
+.pb-calendar--selector .pb-calendar-day.is-outside { color: var(--muted); }
+.pb-calendar--selector .pb-calendar-day.is-today { background: var(--pb-soft-highlight); }
+.pb-calendar--selector .pb-calendar-day.is-selected { box-shadow: inset 0 0 0 2px var(--blue); }
+.pb-calendar--selector .pb-calendar-day:hover { box-shadow: inset 0 0 0 2px var(--blue); }
+.pb-calendar--selector button:focus-visible, .proposal-calendar-close:focus-visible { outline: 2px solid var(--blue); outline-offset: -3px; z-index: 1; }
+.pb-calendar-day-number { display: flex; font-size: 11px; line-height: 20px; font-weight: 700; }
+.pb-calendar-day-number time { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; }
+.pb-calendar--selector .is-today .pb-calendar-day-number time { background: var(--blue); color: var(--canvas); }
+.pb-calendar--selector .pb-calendar-holiday { display: flex; align-items: center; gap: 2px; flex: none; margin: 0; overflow: hidden; white-space: nowrap; line-height: 12px; font-size: 9px; }
+.pb-calendar--selector .pb-calendar-holiday-badge { padding: 0 2px; font-size: 8px; }
+.pb-calendar-selector-events { display: grid; gap: 2px; min-width: 0; }
+.pb-calendar--selector .pb-calendar-event { grid-template-columns: auto minmax(0, 1fr); column-gap: 3px; padding: 2px 3px; border-left-width: 2px; border-radius: 3px; font-size: 10px; line-height: 13px; }
+.pb-calendar--selector .pb-calendar-event time { white-space: nowrap; }
+.pb-calendar--selector .pb-calendar-event time::after { content: ' ·'; }
+.pb-calendar--selector .pb-calendar-event strong { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: inherit; }
+.pb-calendar--selector .pb-calendar-event-status, .pb-calendar--selector .pb-calendar-event-group { display: none; }
+.pb-calendar--selector .pb-calendar-event:hover { box-shadow: none; }
+.pb-calendar-more { font-size: 9px; color: var(--muted); line-height: 11px; }
+.pb-calendar-selector-agenda { margin-top: 12px; font-size: 12px; }
+.pb-calendar-selector-agenda summary { padding: 6px 0; cursor: pointer; color: var(--muted); }
+.pb-calendar-selector-agenda-day { display: grid; gap: 4px; margin: 12px 0; }
+.pb-calendar-selector-agenda-day h4 { margin: 0; font-size: 12px; }
+.pb-calendar-selector-agenda .pb-calendar-event strong { white-space: normal; overflow-wrap: anywhere; }
+.pb-calendar-selector-agenda .pb-calendar-event-status { display: block; }
+@media (max-width: 560px) {
+  .proposal-calendar-dialog { padding: 10px; border-radius: 14px; }
+  .proposal-calendar-dialog-head h2 { font-size: 18px; }
+  .proposal-calendar-dialog-head p { max-width: 220px; font-size: 11px; }
+  .pb-calendar--selector .pb-calendar-navigation { gap: 4px; }
+  .pb-calendar--selector .pb-calendar-navigation h3 { min-width: 112px; font-size: 14px; }
+  .pb-calendar--selector .pb-calendar-grid { grid-auto-rows: 100px; }
+  .pb-calendar--selector .pb-calendar-day { padding: 3px 2px; gap: 1px; }
+  .pb-calendar--selector .pb-calendar-event { grid-template-columns: minmax(0, 1fr); padding: 1px 2px; font-size: 9px; line-height: 11px; }
+  .pb-calendar--selector .pb-calendar-event time { font-size: 9px; }
+  .pb-calendar--selector .pb-calendar-event time::after { content: none; }
+  .pb-calendar--selector .pb-calendar-holiday { font-size: 8px; }
+  .pb-calendar--selector .pb-calendar-holiday-badge { display: none; }
+  .pb-calendar--selector .pb-calendar-weekdays span { padding: 6px 2px; font-size: 9px; }
+}

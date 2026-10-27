@@ -1,6 +1,6 @@
-<a class="pb-calendar-event pb-calendar-event--{{ event.phase }}" href="{% url 'plans:detail' event.id %}">
+{% if calendar_selectable %}<span class="pb-calendar-event pb-calendar-event--{{ event.phase }}" title="{{ event.starts_at|date:'H:i' }} · {{ event.name }} · {{ event.status_label }} · {{ event.group_name }}">{% else %}<a class="pb-calendar-event pb-calendar-event--{{ event.phase }}" href="{% url 'plans:detail' event.id %}">{% endif %}
   <time datetime="{{ event.starts_at|date:'c' }}">{{ event.starts_at|date:"H:i" }}</time>
   <strong>{{ event.name }}</strong>
   <span class="pb-calendar-event-status">{{ event.status_label }}</span>
   <span class="pb-calendar-event-group">{{ event.group_name }}</span>
-</a>
+{% if calendar_selectable %}</span>{% else %}</a>{% endif %}

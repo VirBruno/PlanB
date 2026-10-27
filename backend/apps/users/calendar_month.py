@@ -34,7 +34,7 @@ def month_bounds(first):
                  for day in (first, shift_month(first, 1)))
 
 
-def build_month(first, events, *, today=None):
+def build_month(first, events, *, today=None, selected=None):
     today = today or timezone.localdate()
     by_day = defaultdict(list)
     for event in events:
@@ -50,6 +50,14 @@ def build_month(first, events, *, today=None):
             "holiday": holiday_for(day),
             "events": sorted(by_day[day], key=lambda event: (event["starts_at"], event["id"])),
         } for day in dates])
+    for week in weeks:
+        for day in week:
+            day['is_selected'] = day['date'] == selected
+            day['css_classes'] = ' '.join(name for name, active in (
+                ('is-weekend', day['is_weekend']), ('is-holiday', bool(day['holiday'])),
+                ('is-outside', not day['in_month']), ('is-today', day['is_today']),
+                ('is-selected', day['is_selected']),
+            ) if active)
     previous, following = shift_month(first, -1), shift_month(first, 1)
     return {
         "month_date": first, "weeks": weeks,

@@ -285,6 +285,15 @@ los autores. El mapa usa Leaflet local; la búsqueda de ciudad usa Nominatim.
 Consultar el procedimiento en
 [pruebas de propuestas geográficas](docs/testing/planes.md#propuestas-geográficas).
 
+## Fecha de propuesta desde mi calendario
+
+Crear y editar propuestas permite escribir Fecha/Hora por separado o abrir
+**Elegir fecha desde mi calendario**. El popup reutiliza el Calendario Personal,
+sus encuentros con horario, feriados, fines de semana y temas claro/oscuro.
+Elegir un día conserva la hora y no envía el formulario. No requiere migraciones,
+dependencias o configuración adicional. Ver [arquitectura, validación y pasos
+manuales](docs/testing/selector-calendario.md).
+
 ## Métodos de elección
 
 Después de aplicar las migraciones de propuestas y presupuesto, aplicar en orden
