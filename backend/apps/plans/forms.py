@@ -59,6 +59,29 @@ class PlanForm(forms.Form):
         return cleaned
 
 
+class ProposalDateTimeWidget(forms.SplitDateTimeWidget):
+    """Dos controles visibles; conserva compatibilidad con POSTs del input anterior."""
+    template_name = 'plans/widgets/proposal_datetime.html'
+
+    def __init__(self):
+        super().__init__(
+            date_format='%Y-%m-%d', time_format='%H:%M',
+            date_attrs={'type': 'date', 'data-proposal-date': ''},
+            time_attrs={'type': 'time', 'step': '60', 'data-proposal-time': ''},
+        )
+
+    def value_from_datadict(self, data, files, name):
+        if name in data and not any(f'{name}_{i}' in data for i in (0, 1)):
+            value = data.get(name, '')
+            if isinstance(value, str):
+                day, _, hour = value.partition('T')
+                return [day, hour]
+        return super().value_from_datadict(data, files, name)
+
+    def id_for_label(self, id_):
+        return f'{id_}_0' if id_ else ''
+
+
 class ProposalForm(forms.Form):
     TYPES = (
         ("juntada", "Juntada"),
@@ -76,13 +99,11 @@ class ProposalForm(forms.Form):
         required=False,
         widget=forms.Textarea(attrs={"rows": 4, "placeholder": "Contá un poco más de la propuesta"}),
     )
-    date_pick = forms.DateTimeField(
+    date_pick = forms.SplitDateTimeField(
         label="Fecha y hora",
         required=False,
-        input_formats=("%Y-%m-%dT%H:%M",),
-        widget=forms.DateTimeInput(
-            format="%Y-%m-%dT%H:%M", attrs={"type": "datetime-local"},
-        ),
+        input_date_formats=('%Y-%m-%d',), input_time_formats=('%H:%M',),
+        widget=ProposalDateTimeWidget(),
     )
     type = forms.ChoiceField(
         label="Tipo de juntada",

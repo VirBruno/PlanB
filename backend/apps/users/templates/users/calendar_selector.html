@@ -1,0 +1,35 @@
+<section class="pb-calendar pb-calendar--selector" aria-labelledby="selector-month" data-selector-month="{{ month_date|date:'Y-m' }}">
+  <div class="pb-calendar-toolbar">
+    <nav class="pb-calendar-navigation" aria-label="Navegación mensual">
+      {% if previous_month %}<button type="button" data-calendar-month="{{ previous_month|date:'Y-m' }}" aria-label="Mes anterior: {{ previous_month|date:'F Y' }}">‹</button>{% endif %}
+      <h3 id="selector-month">{{ month_date|date:'F Y'|capfirst }}</h3>
+      {% if next_month %}<button type="button" data-calendar-month="{{ next_month|date:'Y-m' }}" aria-label="Mes siguiente: {{ next_month|date:'F Y' }}">›</button>{% endif %}
+    </nav>
+    <button type="button" class="pb-calendar-today" data-calendar-month="" aria-label="Volver al mes actual">Hoy</button>
+  </div>
+  <div class="pb-calendar-meta"><span class="pb-calendar-key pb-calendar-key--confirmed">Confirmado</span><span class="pb-calendar-key pb-calendar-key--finished">Finalizado · historial</span></div>
+  {% if calendar_unavailable %}
+    <p class="pb-calendar-message" role="alert">No pudimos cargar tus encuentros.</p>
+  {% else %}
+    {% if not event_count %}<p class="pb-calendar-message">No tenés encuentros programados este mes.</p>{% endif %}
+    <div class="pb-calendar-desktop">
+      <div class="pb-calendar-weekdays" aria-hidden="true">{% for weekday in weekdays %}<span{% if forloop.counter > 5 %} class="is-weekend"{% endif %}>{{ weekday }}</span>{% endfor %}</div>
+      <div class="pb-calendar-grid">
+        {% for week in weeks %}{% for day in week %}
+          <button type="button" class="pb-calendar-day {{ day.css_classes }}" data-calendar-select="{{ day.date|date:'Y-m-d' }}" data-calendar-date="{{ day.date|date:'Y-m-d' }}" aria-pressed="{{ day.is_selected|yesno:'true,false' }}" aria-label="Elegir {{ day.date|date:'l j \d\e F Y' }}{% if day.is_today %}, hoy{% endif %}{% if day.is_weekend %}, fin de semana{% endif %}{% if day.holiday %}, {{ day.holiday.description }}{% endif %}{% for event in day.events %}; {{ event.starts_at|date:'H:i' }} · {{ event.name }}, {{ event.status_label }}{% endfor %}">
+            <span class="pb-calendar-day-number"><time datetime="{{ day.date|date:'Y-m-d' }}"{% if day.is_today %} aria-current="date"{% endif %}>{{ day.date|date:'j' }}</time></span>
+            {% include 'users/calendar_holiday.html' with calendar_selectable=True %}
+            <span class="pb-calendar-selector-events">{% for event in day.events|slice:':2' %}{% include 'users/calendar_event.html' with calendar_selectable=True %}{% endfor %}</span>
+            {% if day.events|length > 2 %}<span class="pb-calendar-more">+{{ day.events|length|add:'-2' }} más</span>{% endif %}
+          </button>
+        {% endfor %}{% endfor %}
+      </div>
+    </div>
+    {% if event_count %}<details class="pb-calendar-selector-agenda">
+      <summary>Ver todos los encuentros del mes ({{ event_count }})</summary>
+      {% for week in weeks %}{% for day in week %}{% if day.events %}
+        <div class="pb-calendar-selector-agenda-day"><h4>{{ day.date|date:'j \d\e F' }}{% if day.holiday %} · {{ day.holiday.description }}{% endif %}</h4>{% for event in day.events %}{% include 'users/calendar_event.html' with calendar_selectable=True %}{% endfor %}</div>
+      {% endif %}{% endfor %}{% endfor %}
+    </details>{% endif %}
+  {% endif %}
+</section>

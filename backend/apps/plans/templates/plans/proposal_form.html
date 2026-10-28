@@ -9,11 +9,14 @@
 {% block page_css %}
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'users/css/proposal-form-social.css' %}">
+  <link rel="stylesheet" href="{% static 'users/css/personal-calendar.css' %}">
+  <link rel="stylesheet" href="{% static 'users/css/proposal-calendar.css' %}">
 {% endblock %}
 {% block extra_js %}
   {{ block.super }}
   <script src="{% static 'leaflet.js' %}" defer></script>
   <script src="{% static 'users/js/proposals.js' %}" defer></script>
+  <script src="{% static 'users/js/proposal-calendar.js' %}" defer></script>
 {% endblock %}
 {% block breadcrumbs %}
   <a href="{% url 'users:dashboard' %}">Mi espacio</a><span aria-hidden="true">/</span>
@@ -56,9 +59,13 @@
     <section class="pfs-section" aria-labelledby="pfs-date-heading">
       <header class="pfs-section-head"><span class="pfs-step" aria-hidden="true">02</span><div><h2 id="pfs-date-heading">¿Cuándo?</h2><p>Elegí una fecha y horario tentativos.</p></div></header>
       <div class="pfs-fields pfs-date">
-        {% for field in form %}
-          {% if field.name == 'date_pick' %}{% include 'components/field.html' %}{% endif %}
-        {% endfor %}
+        <fieldset class="proposal-datetime"{% if form.date_pick.errors %} aria-describedby="id_date_pick_error"{% endif %}>
+          <legend class="sr-only">Fecha y hora</legend>
+          {{ form.date_pick }}
+          {% if form.date_pick.errors %}<ul class="field-errors" id="id_date_pick_error">{% for error in form.date_pick.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+        </fieldset>
+        <button class="button button--quiet" type="button" data-open-proposal-calendar aria-haspopup="dialog" aria-controls="proposal-calendar-dialog" hidden>Elegir fecha desde mi calendario</button>
+        <p class="field-help">El calendario elige sólo el día. El horario lo completás vos.</p>
       </div>
     </section>
     <section class="pfs-section location-picker" aria-labelledby="location-heading">
@@ -88,4 +95,10 @@
     <p class="submit-status sr-only" role="status" aria-live="polite"></p>
   </form>
 </div>
+<dialog class="proposal-calendar-dialog" id="proposal-calendar-dialog" aria-labelledby="proposal-calendar-title" aria-describedby="proposal-calendar-help" data-proposal-calendar data-calendar-url="{% url 'users:calendar_selector' %}">
+  <header class="proposal-calendar-dialog-head"><div><h2 id="proposal-calendar-title">Mi calendario</h2><p id="proposal-calendar-help">Elegí un día para tu propuesta. Tu horario se conserva.</p></div><button type="button" class="proposal-calendar-close" data-close-proposal-calendar aria-label="Cerrar calendario">×</button></header>
+  <div class="proposal-calendar-status" data-calendar-status role="status" aria-live="polite"></div>
+  <button type="button" class="button button--quiet" data-calendar-retry hidden>Reintentar</button>
+  <div class="proposal-calendar-body" data-calendar-content></div>
+</dialog>
 {% endblock %}
