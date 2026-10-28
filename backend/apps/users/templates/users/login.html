@@ -1,12 +1,10 @@
-{% extends 'users/auth_base.html' %}
-{% block layout_class %}auth-layout--compact{% endblock %}
+{% extends 'users/auth_social_base.html' %}
+{% block auth_variant_class %}pb-warm-auth--login{% endblock %}
 {% block title %}Iniciar sesión · Plan B{% endblock %}
-{% block top_link %}¿Es tu primera vez? <a href="{% url 'users:register' %}">Creá tu cuenta <span aria-hidden="true">↗</span></a>{% endblock %}
+{% block top_link %}¿No tenés cuenta? <a href="{% url 'users:register' %}">Registrate</a>{% endblock %}
 {% block auth_content %}
-<div class="welcome-symbol" aria-hidden="true">↗</div>
-<p class="eyebrow eyebrow--blue">QUÉ BUENO VERTE</p>
-<h2>Tu próximo plan<br>te espera.</h2>
-<p class="panel-description">Iniciá sesión para volver a tu espacio.</p>
+<h2>Iniciá sesión</h2>
+<p class="panel-description">Volvé a encontrarte con tu grupo y seguí planeando.</p>
 <form method="post" action="{% url 'users:login' %}" class="auth-form" data-submit-form>
   {% csrf_token %}
   <input type="hidden" name="next" value="{{ next }}">

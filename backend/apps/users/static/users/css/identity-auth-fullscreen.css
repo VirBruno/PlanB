@@ -1,0 +1,184 @@
+/* Plan B · Identidad visual 05 · Autenticación a pantalla completa.
+   Solo modifica el diseño. No cambia los formularios, las rutas ni el tema.
+   Esta hoja se carga DESPUÉS de identity-auth-friends.css. */
+
+/* La foto deja de estar dentro de un recuadro; ocupa todo el viewport. */
+body:has(.pb-warm-auth) {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100svh;
+  background: #20332a;
+}
+
+.pb-warm-auth {
+  display: block;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: 0;
+  background: transparent;
+}
+
+.pb-warm-auth--login .pb-warm-auth__scene,
+.pb-warm-auth--register .pb-warm-auth__scene {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100svh;
+  max-width: none;
+  height: auto;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+  box-sizing: border-box;
+  padding: clamp(24px, 3.5vh, 42px) clamp(18px, 4vw, 64px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(12px, 2vh, 24px);
+  /* Evita estirar/deformar a los amigos: recorte proporcional tipo fotografía. */
+  background-size: cover, cover;
+  background-position: center center, center 58%;
+  background-repeat: no-repeat;
+  background-attachment: scroll;
+}
+
+/* Una sombra muy sutil sobre la foto aporta legibilidad sin oscurecerla. */
+.pb-warm-auth__scene::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg,
+    rgba(27, 31, 26, .03) 0%,
+    rgba(27, 31, 26, 0) 35%,
+    rgba(27, 31, 26, .12) 100%);
+}
+
+.pb-warm-auth__header,
+.pb-warm-auth__main {
+  position: relative;
+  z-index: 1;
+}
+
+.pb-warm-auth__header {
+  flex: 0 0 auto;
+  width: auto;
+  max-width: 100%;
+  margin: 0;
+  text-align: center;
+}
+
+.pb-warm-auth__brand {
+  display: block;
+  width: clamp(158px, 13.5vw, 204px);
+  margin: 0 auto;
+}
+
+.pb-warm-auth__brand img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.pb-warm-auth__tagline {
+  margin: -1px auto 0;
+  color: #183b2e;
+  text-shadow: 0 1px 9px rgba(255, 246, 226, .8);
+}
+
+.pb-warm-auth__main {
+  width: 100%;
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+}
+
+.pb-warm-auth__card {
+  width: min(100%, 460px);
+  box-shadow: 0 20px 60px rgba(22, 29, 23, .20),
+              0 3px 16px rgba(22, 29, 23, .06);
+}
+
+/* El botón de apariencia queda en la esquina real del navegador. */
+.pb-warm-auth__theme {
+  position: fixed;
+  z-index: 30;
+  top: clamp(14px, 2vw, 26px);
+  right: clamp(14px, 2.5vw, 36px);
+}
+
+/* En registro la tarjeta es más alta; permitimos desplazarse ante errores. */
+.pb-warm-auth--register .pb-warm-auth__scene {
+  padding-block: clamp(22px, 3vh, 34px);
+  gap: clamp(8px, 1.5vh, 16px);
+}
+
+.pb-warm-auth--register .pb-warm-auth__brand {
+  width: clamp(150px, 12vw, 185px);
+}
+
+/* Modo oscuro: foto a todo lo ancho, con un velo suave y tarjeta verde. */
+html[data-theme="dark"] body:has(.pb-warm-auth),
+html[data-theme="dark"] .pb-warm-auth {
+  background: #18271f;
+}
+
+html[data-theme="dark"] .pb-warm-auth__scene {
+  box-shadow: none;
+}
+
+html[data-theme="dark"] .pb-warm-auth__scene::after {
+  background: linear-gradient(180deg,
+    rgba(10, 19, 15, .08),
+    rgba(10, 19, 15, .13) 45%,
+    rgba(10, 19, 15, .34));
+}
+
+/* En pantallas más bajas preferimos achicar ligeramente la marca, no el formulario. */
+@media (max-height: 740px) and (min-width: 761px) {
+  .pb-warm-auth__scene { gap: 8px !important; padding-block: 14px !important; }
+  .pb-warm-auth__brand { width: 150px; }
+  .pb-warm-auth__card { padding-block: 19px; }
+  .pb-warm-auth__card .panel-description { margin-bottom: 11px; }
+}
+
+@media (max-width: 760px) {
+  .pb-warm-auth { padding: 0; }
+  .pb-warm-auth--login .pb-warm-auth__scene,
+  .pb-warm-auth--register .pb-warm-auth__scene {
+    min-height: 100svh;
+    width: 100%;
+    border-radius: 0;
+    padding: 68px 16px 26px;
+    gap: 13px;
+    background-size: cover, cover;
+    background-position: center, 33% 60%;
+    overflow: visible;
+  }
+  .pb-warm-auth__header { margin: 0; }
+  .pb-warm-auth__brand { width: 169px; }
+  .pb-warm-auth__main { width: 100%; margin: 0; padding: 0; }
+  .pb-warm-auth__card {
+    width: min(100%, 450px);
+    padding: 22px 20px;
+    border-radius: 24px;
+    /* En teléfonos da prioridad a la legibilidad sobre la fotografía. */
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+  .pb-warm-auth--register .pb-warm-auth__scene { padding-top: 64px; }
+  .pb-warm-auth--register .pb-warm-auth__brand { width: 157px; }
+  .pb-warm-auth__theme { top: 12px; right: 12px; }
+}
+
+@media (max-width: 380px) {
+  .pb-warm-auth--login .pb-warm-auth__scene,
+  .pb-warm-auth--register .pb-warm-auth__scene { padding-inline: 12px; }
+  .pb-warm-auth__brand { width: 150px; }
+  .pb-warm-auth__card { padding-inline: 17px; }
+}
