@@ -312,3 +312,71 @@ html[data-theme="dark"] .pb-app-shell .pb-plan-detail .pb-weather-compare-toggle
 html[data-theme="dark"] .pb-app-shell .pb-plan-detail .pb-weather-compare-main,
 html[data-theme="dark"] .pb-app-shell .pb-plan-detail .pb-weather-compare-hint {color:#F4F4EA!important;}
 html[data-theme="dark"] .pb-app-shell .pb-plan-detail .pb-weather-compare-toggle:focus-visible {outline:3px solid #F4D06F;outline-offset:3px;}
+
+
+/* Etapa 23 — comparador de alternativas: un panel, jerarquía corta, sin contenedores duplicados. */
+.pb-plan-detail .pb-weather-compare{border:1px solid #D8E3D4!important;border-radius:22px!important;background:#FFFDF8!important;box-shadow:none!important;overflow:hidden!important}
+.pb-plan-detail .pb-weather-compare-toggle{padding:16px 22px!important;color:#1F4D3A!important}
+.pb-plan-detail .pb-weather-compare-toggle:hover{background:#F2F4EA!important}
+.pb-plan-detail .pb-weather-compare-icon{background:#F4E8BC!important;color:#1F4D3A!important;border-radius:12px!important}
+.pb-plan-detail .pb-weather-compare-hint{color:#4F7058!important}
+.pb-plan-detail .pb-weather-compare[open]>.pb-climate-planner{padding:19px 22px 23px!important;border:0!important;border-top:1px solid #E8DFD4!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;margin:0!important}
+.pb-plan-detail .pb-weather-compare .pb-climate-head{display:flex!important;align-items:center!important;gap:12px!important;justify-content:space-between!important}
+.pb-plan-detail .pb-weather-compare .pb-climate-head .pb-climate-kicker{display:none!important}
+.pb-plan-detail .pb-weather-compare .pb-climate-head h2{font-size:clamp(17px,1.7vw,21px)!important;line-height:1.25!important;margin:0!important;letter-spacing:-.025em!important}
+.pb-plan-detail .pb-weather-compare .pb-climate-head p{font-size:13px!important;line-height:1.45!important;margin:5px 0 0!important;max-width:65ch}
+.pb-plan-detail .pb-weather-compare .pb-climate-horizon{flex-shrink:0!important;font-size:11px!important}
+.pb-plan-detail .pb-weather-compare .pb-climate-form{margin-top:17px!important;grid-template-columns:minmax(0,1fr) minmax(0,1.8fr)!important;gap:14px!important}
+.pb-plan-detail .pb-weather-compare .pb-climate-city-form{gap:10px!important}
+.pb-plan-detail .pb-weather-compare .pb-climate-field :is(input,select){background:#FAF7F0!important;color:#1F4D3A!important;border-color:#D9DFD0!important}
+.pb-plan-detail .pb-weather-compare .pb-climate-field :is(input,select):disabled{opacity:.6!important}
+.pb-plan-detail .pb-weather-compare .pb-climate-city-form .button:not(:disabled){background:#1F4D3A!important;color:#FFFDF8!important;border-color:#1F4D3A!important}
+.pb-plan-detail .pb-weather-compare .pb-climate-city-form .button:disabled{background:#D8DBCF!important;color:#637464!important;opacity:1!important}
+.pb-plan-detail .pb-weather-compare .pb-climate-status{font-size:12px!important;margin-top:11px!important}
+html[data-theme='dark'] .pb-plan-detail .pb-weather-compare{background:#253D2F!important;border-color:#48624E!important}
+html[data-theme='dark'] .pb-plan-detail .pb-weather-compare-toggle,html[data-theme='dark'] .pb-plan-detail .pb-weather-compare-main{color:#FAF7F0!important}
+html[data-theme='dark'] .pb-plan-detail .pb-weather-compare-hint{color:#DCE8D6!important}
+html[data-theme='dark'] .pb-plan-detail .pb-weather-compare-toggle:hover{background:#304B39!important}
+html[data-theme='dark'] .pb-plan-detail .pb-weather-compare[open]>.pb-climate-planner{border-top-color:#48624E!important}
+html[data-theme='dark'] .pb-plan-detail .pb-weather-compare .pb-climate-head h2{color:#FAF7F0!important}
+html[data-theme='dark'] .pb-plan-detail .pb-weather-compare .pb-climate-field :is(input,select){background:#304939!important;color:#FAF7F0!important;border-color:#55705A!important}
+html[data-theme='dark'] .pb-plan-detail .pb-weather-compare .pb-climate-city-form .button:not(:disabled){background:#F4D06F!important;color:#1F4D3A!important;border-color:#F4D06F!important}
+html[data-theme='dark'] .pb-plan-detail .pb-weather-compare .pb-climate-city-form .button:disabled{background:#4C5144!important;color:#D1D6C8!important}
+@media(max-width:800px){.pb-plan-detail .pb-weather-compare .pb-climate-form{grid-template-columns:minmax(0,1fr)!important}.pb-plan-detail .pb-weather-compare .pb-climate-head{align-items:flex-start!important}}
+@media(max-width:540px){.pb-plan-detail .pb-weather-compare-toggle{padding:13px 15px!important}.pb-plan-detail .pb-weather-compare[open]>.pb-climate-planner{padding:17px 15px 19px!important}.pb-plan-detail .pb-weather-compare .pb-climate-head{flex-wrap:wrap!important}.pb-plan-detail .pb-weather-compare .pb-climate-city-form{flex-wrap:wrap!important}.pb-plan-detail .pb-weather-compare .pb-climate-city-form .button{width:100%!important}}
+
+
+/* Etapa 23.1 — Una sola cabecera visible y estados deshabilitados legibles. */
+/* El h2 sigue disponible para lectores de pantalla y aria-labelledby. */
+.pb-plan-detail .pb-weather-compare .pb-climate-head h2{
+  position:absolute!important;width:1px!important;height:1px!important;
+  padding:0!important;margin:-1px!important;overflow:hidden!important;
+  clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;
+}
+.pb-plan-detail .pb-weather-compare .pb-climate-head p{
+  margin:0!important;font-size:14px!important;line-height:1.5!important;
+}
+.pb-plan-detail .pb-weather-compare .pb-climate-field :is(input,select):disabled{
+  opacity:1!important;background:#F2F1E9!important;
+  color:#627365!important;border-color:#D5DCCE!important;
+  cursor:not-allowed!important;
+}
+.pb-plan-detail .pb-weather-compare .pb-climate-field input:disabled::placeholder{
+  color:#758677!important;opacity:1!important;
+}
+.pb-plan-detail .pb-weather-compare .pb-climate-city-form .button:disabled{
+  background:#E6E9DF!important;color:#546857!important;
+  border:1px solid #CBD5C9!important;opacity:1!important;
+  cursor:not-allowed!important;
+}
+html[data-theme='dark'] .pb-plan-detail .pb-weather-compare .pb-climate-field :is(input,select):disabled{
+  background:#344C3C!important;color:#D3E1D3!important;
+  border-color:#5A765F!important;
+}
+html[data-theme='dark'] .pb-plan-detail .pb-weather-compare .pb-climate-field input:disabled::placeholder{
+  color:#BDCEBF!important;
+}
+html[data-theme='dark'] .pb-plan-detail .pb-weather-compare .pb-climate-city-form .button:disabled{
+  background:#405745!important;color:#E0E9DB!important;
+  border-color:#65806B!important;
+}
