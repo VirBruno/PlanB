@@ -1,7 +1,7 @@
 {% extends 'components/authenticated_base.html' %}
 {% load static %}
 {% block title %}{% if is_edit %}Editar plan{% else %}Crear plan{% endif %} · Plan B{% endblock %}
-{% block page_css %}<link rel="stylesheet" href="{% static 'users/css/forms-social.css' %}"><link rel="stylesheet" href="{% static 'users/css/plan-schedule.css' %}?v=4">{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'users/css/forms-social.css' %}"><link rel="stylesheet" href="{% static 'users/css/plan-schedule.css' %}?v=24_3">{% endblock %}
 {% block extra_js %}{{ block.super }}<script src="{% static 'users/js/plan-schedule.js' %}?v=4" defer></script>{% endblock %}
 {% block breadcrumbs %}<a href="{% url 'users:dashboard' %}">Mi espacio</a><span aria-hidden="true">/</span><span aria-current="page">{% if is_edit %}Editar plan{% else %}Crear plan{% endif %}</span>{% endblock %}
 {% block workspace %}
