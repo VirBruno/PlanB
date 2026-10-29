@@ -3,17 +3,42 @@
 {% block title %}Mi espacio · Plan B{% endblock %}
 
 {% block workspace %}
-  <section class="social-hero" aria-labelledby="welcome-title">
+  <section class="social-hero pb-home-hero" aria-labelledby="welcome-title">
     <div class="social-hero-copy">
       <span class="social-kicker"><span aria-hidden="true">✳</span> TU ESPACIO</span>
       <h1 id="welcome-title">¡Hola, <span>{{ planb_user.username }}</span>! <span aria-hidden="true">👋</span></h1>
-      <p>¿Qué plan hacemos hoy? Organizá algo lindo con tu gente.</p>
+      <p>¿Qué plan pinta hoy? Organizá algo con tu gente.</p>
+      <div class="pb-hero-actions">
+        <a class="social-cta" href="{% url 'groups:create' %}"><span aria-hidden="true">＋</span> Crear grupo</a>
+        <a class="pb-hero-secondary" href="{% url 'plans:index' %}">Explorar mis planes <span aria-hidden="true">↗</span></a>
+      </div>
     </div>
-    <a class="social-cta" href="{% url 'groups:create' %}"><span aria-hidden="true">＋</span> Crear grupo</a>
+    <div class="pb-hero-side" aria-label="Accesos a tus grupos">
+      <span class="pb-moment-kicker">CON TU GENTE</span>
+      <strong class="pb-moment-title">¿Con quién armamos algo?</strong>
+      <span class="pb-moment-desc">Entrá a un grupo y elegí el próximo plan.</span>
+      {% if groups_page.items %}
+        <div class="pb-hero-group-list">
+          {% for group in groups_page.items|slice:":2" %}
+            <a class="pb-hero-group-link" href="{% url 'groups:detail' group.id %}">
+              <span class="pb-hero-group-initial" aria-hidden="true">{{ group.name|first|upper }}</span>
+              <span class="pb-hero-group-name">{{ group.name }}</span>
+              <span class="pb-hero-group-chevron" aria-hidden="true">↗</span>
+            </a>
+          {% endfor %}
+        </div>
+        <a class="pb-hero-all" href="{% url 'groups:index' %}">Ver todos mis grupos <span aria-hidden="true">↗</span></a>
+      {% else %}
+        <div class="pb-hero-empty">Todavía no tenés grupos acá.
+          <a href="{% url 'groups:create' %}">Creá el primero</a>
+        </div>
+      {% endif %}
+    </div>
   </section>
   <section class="social-mini-actions" aria-label="Accesos rápidos">
-    <a href="{% url 'groups:index' %}"><span class="pb-quick-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2M17 5a3 3 0 0 1 0 6M18 14a5 5 0 0 1 3 5v1"/></svg></span><strong>Mis grupos</strong><small>Tu gente, en un lugar</small><span class="pb-quick-arrow" aria-hidden="true">↗</span></a>
-    <a href="{% url 'notifications:index' %}"><span class="pb-quick-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></span><strong>Notificaciones</strong><small>Invitaciones y novedades</small><span class="pb-quick-arrow" aria-hidden="true">↗</span></a>
+    <a href="{% url 'plans:index' %}"><span class="pb-quick-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/><path d="m9 16 2 2 4-4"/></svg></span><strong>Mis planes</strong><small>Todo lo que se viene</small><span class="pb-quick-arrow" aria-hidden="true">↗</span></a>
+    <a href="{% url 'users:calendar' %}"><span class="pb-quick-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/><circle cx="8" cy="15" r=".8"/><circle cx="12" cy="15" r=".8"/><circle cx="16" cy="15" r=".8"/></svg></span><strong>Calendario</strong><small>Reservá momentos</small><span class="pb-quick-arrow" aria-hidden="true">↗</span></a>
+    <a href="{% url 'notifications:index' %}"><span class="pb-quick-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg></span><strong>Novedades</strong><small>Invitaciones y avisos</small><span class="pb-quick-arrow" aria-hidden="true">↗</span></a>
   </section>
 
   <section class="social-groups-section" id="mis-grupos" aria-labelledby="groups-title">
@@ -27,7 +52,7 @@
           <a class="social-group-card" href="{% url 'groups:detail' group.id %}" aria-label="Abrir grupo {{ group.name }}">
             <span class="social-group-avatar" aria-hidden="true">{{ group.name|first|upper }}</span>
             <span class="social-group-content"><strong>{{ group.name }}</strong><span>{% if group.description %}{{ group.description|truncatechars:105 }}{% else %}Un espacio para compartir nuevos planes.{% endif %}</span><small>Creado el {{ group.created_at|date:"d/m/Y" }}</small></span>
-            <span class="social-group-chevron" aria-hidden="true">↗</span>
+            <span class="social-group-chevron" aria-hidden="true">↗</span><span class="pb-card-entry" aria-hidden="true">Entrar al grupo</span>
           </a>
         </li>
       {% endfor %}

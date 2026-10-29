@@ -3,7 +3,6 @@
 {% block extra_css %}
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'users/css/proposals.css' %}?v=5">
-  <link rel="stylesheet" href="{% static 'users/css/plan-detail-social.css' %}">
   <link rel="stylesheet" href="{% static 'users/css/plan-decisions.css' %}?v=8">
   <link rel="stylesheet" href="{% static 'users/css/plan-phases.css' %}?v=9">
   <link rel="stylesheet" href="{% static 'users/css/proposal-weather.css' %}?v=1">
@@ -14,6 +13,7 @@
   {% endif %}
   <link rel="stylesheet" href="{% static 'users/css/plan-detail-weather-focus.css' %}?v=6">
   <link rel="stylesheet" href="{% static 'users/css/planb-proposals-polish.css' %}?v=3">
+  <link rel="stylesheet" href="{% static 'users/css/plan-detail-social.css' %}?v=25">
 {% endblock %}
 {% block extra_js %}
   <script src="{% static 'users/js/plan-weather-planner.js' %}?v=1" defer></script>
@@ -150,7 +150,7 @@
   </details>
   {% endif %}
   {# ETAPA8_DECISION_PLAN: decisión explícita, independiente del comparador. #}
-  <section class="pb-decision-panel" aria-labelledby="pb-decision-title">
+  <section class="pb-decision-panel {% if plan.selected_proposal_id and confirmed_proposal %}{% if plan.status %}pb-decision-panel--confirmed{% else %}pb-decision-panel--finished{% endif %}{% elif plan.status %}pb-decision-panel--organizing{% else %}pb-decision-panel--inactive{% endif %}" aria-labelledby="pb-decision-title">
     {% if plan.selected_proposal_id and confirmed_proposal %}
       {# ETAPA9_PHASES: el cierre se representa con status=false y propuesta confirmada. #}
       <div class="pb-decision-badge {% if not plan.status %}pb-phase-finished{% endif %}">{% if plan.status %}✓ ENCUENTRO CONFIRMADO{% else %}✓ ENCUENTRO FINALIZADO{% endif %}</div>

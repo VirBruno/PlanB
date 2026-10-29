@@ -88,3 +88,227 @@ html[data-theme='dark'] .pb-plan-detail .pb-proposal-card{box-shadow:0 12px 35px
  .pb-app-shell .proposal-ideal-map{height:min(42dvh,340px);min-height:220px}
 }
 
+
+
+/* ETAPA 19 — Detalle editorial, identidad Plan B.
+   Se conservan el DOM funcional, los forms, los atributos data-*, mapas y JS. */
+body:has(.pb-app-shell .pb-plan-detail),
+.pb-app-shell:has(.pb-plan-detail),
+.pb-app-shell:has(.pb-plan-detail) .pb-app-content{background:#FAF7F0!important;background-image:none!important;color:#1F4D3A}
+.pb-app-shell:has(.pb-plan-detail){--sd-ink:#1F4D3A;--sd-muted:#69796C;--sd-panel:#FFFDF8;--sd-shadow:none;--glass-border:#E8DFD4;--blue:#1F4D3A;--text:#1F4D3A;--muted:#69796C;--canvas:#FAF7F0;--white:#FFFDF8}
+.pb-app-shell:has(.pb-plan-detail) .social-sidebar{background:#FFFDF8!important;background-image:none!important;border-right:1px solid #E8DFD4}
+.pb-app-shell:has(.pb-plan-detail) .social-side-nav a{color:#536A5A!important}
+.pb-app-shell:has(.pb-plan-detail) .social-side-nav a:hover{background:#EAF0E3!important;color:#1F4D3A!important}
+.pb-app-shell:has(.pb-plan-detail) .social-side-nav a.social-side-active{background:#E1ECD8!important;color:#1F4D3A!important}
+.pb-app-shell:has(.pb-plan-detail) .social-side-bottom{background:#F4E8BC!important;background-image:none!important;color:#1F4D3A!important}
+.pb-app-shell:has(.pb-plan-detail) .pb-theme-sidebar-control{background:#FFFDF8;border-color:#E8DFD4}
+.pb-app-shell:has(.pb-plan-detail) .pb-breadcrumbs,.pb-app-shell:has(.pb-plan-detail) .pb-breadcrumbs a{color:#66786B}
+.pb-app-shell .pb-plan-back{color:#567960;display:inline-flex;gap:8px;padding:8px 0;margin:0 0 20px;font-size:13px;transition:color .18s ease}
+.pb-app-shell .pb-plan-back:hover{color:#1F4D3A}
+.pb-app-shell .pb-plan-detail{padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;overflow:visible}
+.pb-plan-detail>.pb-plan-eyebrow{display:block;color:#59845F!important;letter-spacing:.12em;font-size:12px;margin:20px 0 11px!important}
+.pb-plan-detail .pb-plan-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding-bottom:4px}
+.pb-plan-detail .pb-plan-title-row h1{font-size:clamp(42px,5.5vw,72px)!important;line-height:1.03!important;letter-spacing:-.065em!important;max-width:950px;color:#1F4D3A!important;margin:0;overflow-wrap:anywhere}
+.pb-plan-detail>.group-description{font-size:clamp(15px,1.35vw,18px)!important;line-height:1.6;color:#687A6C!important;margin:15px 0 0;max-width:78ch}
+.pb-plan-detail .plan-icon-button{background:#FFFDF8!important;color:#1F4D3A!important;border:1px solid #E8DFD4!important;border-radius:14px!important;transition:transform .18s ease,background .18s ease}
+.pb-plan-detail .plan-icon-button:hover{background:#E4EFDD!important;transform:translateY(-2px)}
+.pb-plan-detail .group-meta{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px!important;padding:22px 0 28px!important;margin:21px 0 27px!important;border-top:1px solid #E8DFD4;border-bottom:1px solid #E8DFD4}
+.pb-plan-detail .group-meta>div{min-width:0!important;padding:16px 19px!important;background:#FFFDF8!important;border:1px solid #E8DFD4!important;border-radius:18px!important}
+.pb-plan-detail .group-meta>div:first-child{background:#E4EFDD!important;border-color:#D9E8D3!important}
+.pb-plan-detail .group-meta dt{font-size:11px!important;letter-spacing:.08em;text-transform:uppercase;font-weight:800;color:#6D816F!important}
+.pb-plan-detail .group-meta dd,.pb-plan-detail .group-meta dd a{font-size:16px;color:#1F4D3A!important}
+.pb-plan-detail .pb-decision-panel{border-radius:26px!important;border:1px solid #DCE7D7!important;background:#E4EFDD!important;color:#1F4D3A!important;box-shadow:none!important;padding:clamp(24px,3vw,40px)!important;margin:28px 0!important}
+.pb-plan-detail .pb-decision-panel h2,.pb-plan-detail .pb-decision-panel p{color:#1F4D3A!important}
+.pb-plan-detail .pb-decision-panel h2{font-size:clamp(24px,3vw,38px)!important;letter-spacing:-.045em;line-height:1.13}
+.pb-plan-detail .pb-decision-badge{background:#FFFDF8!important;color:#1F4D3A!important;border:1px solid #BCD6B8!important}
+.pb-plan-detail .pb-decision-meta a{color:#1F4D3A!important;text-decoration:underline;text-underline-offset:4px}
+.pb-plan-detail .pb-climate-planner{background:#FFFDF8!important;background-image:none!important;border:1px solid #E8DFD4!important;border-radius:24px!important;box-shadow:none!important}
+.pb-plan-detail .pb-climate-kicker,.pb-plan-detail .pb-schedule-eyebrow{color:#5E8060!important}
+.pb-plan-detail .pb-climate-head h2{color:#1F4D3A!important}
+.pb-plan-detail .pb-schedule-summary{background:#FFF0BE!important;border-color:#F0DDA1!important;border-radius:24px!important;box-shadow:none!important}
+.pb-plan-detail .pb-schedule-summary h2{color:#1F4D3A!important}
+.pb-plan-detail .pb-weather-compare{border-color:#E8DFD4!important}
+.pb-plan-detail .pb-weather-compare-toggle{color:#1F4D3A!important}
+.pb-plan-detail .pb-plan-proposals{border-top:1px solid #D9E0D7!important;margin-top:52px!important;padding-top:33px!important}
+.pb-plan-detail .pb-proposals-kicker{color:#59845F!important}
+.pb-plan-detail .pb-proposals-heading{align-items:flex-end;margin-bottom:25px!important}
+.pb-plan-detail .pb-proposals-heading h2{font-size:clamp(30px,3.5vw,45px)!important;color:#1F4D3A!important;letter-spacing:-.05em}
+.pb-plan-detail .pb-proposals-count{background:#E5EFD9!important;color:#1F4D3A!important}
+.pb-plan-detail .pb-proposals-heading .button,.pb-plan-detail .pb-confirm-form .button--primary{background:#1F4D3A!important;background-image:none!important;color:#FFFDF8!important;border:0!important;border-radius:13px!important}
+.pb-plan-detail .pb-proposals-heading .button:hover{background:#32694F!important;transform:translateY(-2px)}
+.pb-plan-detail .proposal-election{background:#FFF0BE!important;background-image:none!important;border:1px solid #F0DEA9!important;border-radius:24px!important;box-shadow:none!important}
+.pb-plan-detail .proposal-election-heading h3{color:#1F4D3A!important}
+.pb-plan-detail .proposal-method-active{background:#FFFDF8!important;color:#1F4D3A!important;border-color:#E8DFD4!important}
+.pb-plan-detail .proposal-method-option{border-radius:14px!important}
+.pb-plan-detail .proposal-method-option.is-active{border-color:#65896B!important;background:#E4EFDD!important}
+.pb-plan-detail .pb-proposal-card{background:#FFFDF8!important;box-shadow:none!important;border:1px solid #E8DFD4!important;border-radius:24px!important;padding:clamp(19px,2.2vw,29px)!important}
+.pb-plan-detail .pb-proposals-grid>li:nth-child(3n+1){border-top:5px solid #A7C957!important}
+.pb-plan-detail .pb-proposals-grid>li:nth-child(3n+2){border-top:5px solid #F4D06F!important}
+.pb-plan-detail .pb-proposals-grid>li:nth-child(3n){border-top:5px solid #C7B3EE!important}
+.pb-plan-detail .pb-proposal-card:hover{transform:translateY(-2px)!important;border-color:#A8BCAB!important;box-shadow:0 12px 27px rgba(23,57,38,.07)!important}
+.pb-plan-detail .proposal-type,.pb-plan-detail .pb-proposal-confirmed{background:#E4EFDD!important;color:#1F4D3A!important;border-radius:999px!important}
+.pb-plan-detail .proposal-map-link,.pb-plan-detail .proposal-ideal-view{color:#236345!important}
+.pb-plan-detail .proposal-actions .button{background:#F5F3EB!important;border-color:#E8DFD4!important;color:#1F4D3A!important}
+.pb-plan-detail .proposal-actions .button--danger-quiet{color:#A34D51!important}
+.pb-plan-detail .pb-proposals-empty,.pb-plan-detail .proposal-ideal-action{background:#FFFDF8!important;border-color:#E8DFD4!important}
+.pb-plan-detail .pb-proposals-empty>span,.pb-plan-detail .pb-ideal-action-symbol{color:#1F4D3A!important;background:#FFF0BE!important}
+.pb-plan-detail .proposal-ideal-action .button{color:#1F4D3A!important;background:#E4EFDD!important;border-color:#B7CFBA!important}
+.pb-app-shell .proposal-ideal-dialog .proposal-ideal-budget{background:#E4EFDD!important}
+.pb-plan-detail :is(a,button,summary,input,select):focus-visible{outline:3px solid #A7C957!important;outline-offset:3px}
+html[data-theme='dark'] body:has(.pb-app-shell .pb-plan-detail),html[data-theme='dark'] .pb-app-shell:has(.pb-plan-detail),html[data-theme='dark'] .pb-app-shell:has(.pb-plan-detail) .pb-app-content{background:#192B21!important;background-image:none!important;color:#FAF7F0}
+html[data-theme='dark'] .pb-app-shell:has(.pb-plan-detail){--sd-ink:#FAF7F0;--sd-muted:#C1D1C2;--sd-panel:#253D2F;--glass-border:#3D5846;--blue:#F4D06F;--text:#FAF7F0;--muted:#C2D2C4;--canvas:#192B21;--white:#263E30}
+html[data-theme='dark'] .pb-app-shell:has(.pb-plan-detail) .social-sidebar{background:#1E3025!important;border-right-color:#3D5846!important}
+html[data-theme='dark'] .pb-app-shell:has(.pb-plan-detail) .social-side-nav a{color:#D4E1D5!important}
+html[data-theme='dark'] .pb-app-shell:has(.pb-plan-detail) .social-side-nav a.social-side-active,html[data-theme='dark'] .pb-app-shell:has(.pb-plan-detail) .social-side-nav a:hover{background:#355840!important;color:#FFFDF8!important}
+html[data-theme='dark'] .pb-app-shell:has(.pb-plan-detail) .social-side-bottom{background:#F4D06F!important;color:#1F4D3A!important}
+html[data-theme='dark'] .pb-app-shell:has(.pb-plan-detail) .pb-theme-sidebar-control{background:#253D2F;border-color:#3D5846}
+html[data-theme='dark'] .pb-app-shell .pb-plan-back{color:#B8D5B8}
+html[data-theme='dark'] .pb-plan-detail .pb-plan-title-row h1{color:#FAF7F0!important}
+html[data-theme='dark'] .pb-plan-detail>.group-description{color:#C1D2C4!important}
+html[data-theme='dark'] .pb-plan-detail .plan-icon-button,html[data-theme='dark'] .pb-plan-detail .group-meta>div{background:#263E30!important;border-color:#46614C!important}
+html[data-theme='dark'] .pb-plan-detail .group-meta>div:first-child{background:#365B44!important}
+html[data-theme='dark'] .pb-plan-detail .group-meta{border-color:#3D5846!important}
+html[data-theme='dark'] .pb-plan-detail .group-meta dt{color:#B9D2BC!important}
+html[data-theme='dark'] .pb-plan-detail .group-meta dd,html[data-theme='dark'] .pb-plan-detail .group-meta dd a{color:#FAF7F0!important}
+html[data-theme='dark'] .pb-plan-detail .pb-decision-panel{background:#365B44!important;border-color:#4A7154!important}
+html[data-theme='dark'] .pb-plan-detail .pb-decision-panel h2,html[data-theme='dark'] .pb-plan-detail .pb-decision-panel p{color:#FAF7F0!important}
+html[data-theme='dark'] .pb-plan-detail .pb-decision-badge{background:#203528!important;border-color:#5D8562!important;color:#F4D06F!important}
+html[data-theme='dark'] .pb-plan-detail .pb-decision-meta a{color:#F4D06F!important}
+html[data-theme='dark'] .pb-plan-detail .pb-climate-planner,html[data-theme='dark'] .pb-plan-detail .pb-proposal-card,html[data-theme='dark'] .pb-plan-detail .pb-proposals-empty{background:#253D2F!important;border-color:#45614C!important}
+html[data-theme='dark'] .pb-plan-detail .pb-schedule-summary{background:#5A5137!important;border-color:#786B46!important}
+html[data-theme='dark'] .pb-plan-detail .pb-schedule-summary h2,html[data-theme='dark'] .pb-plan-detail .pb-climate-head h2,html[data-theme='dark'] .pb-plan-detail .pb-proposals-heading h2,html[data-theme='dark'] .pb-plan-detail .proposal-election-heading h3{color:#FAF7F0!important}
+html[data-theme='dark'] .pb-plan-detail .proposal-election{background:#4D4332!important;border-color:#6E6044!important}
+html[data-theme='dark'] .pb-plan-detail .proposal-method-active{background:#2A4233!important;color:#FAF7F0!important;border-color:#59725D!important}
+html[data-theme='dark'] .pb-plan-detail .proposal-type{background:#385B44!important;color:#E2EFDD!important}
+html[data-theme='dark'] .pb-plan-detail .pb-proposals-count{color:#1F4D3A!important}
+html[data-theme='dark'] .pb-plan-detail .pb-proposal-card:hover{border-color:#82A68A!important}
+html[data-theme='dark'] .pb-plan-detail .proposal-map-link,html[data-theme='dark'] .pb-plan-detail .proposal-ideal-view{color:#F4D06F!important}
+html[data-theme='dark'] .pb-plan-detail .proposal-actions .button{background:#304939!important;border-color:#536F59!important;color:#FAF7F0!important}
+@media(max-width:800px){.pb-plan-detail .group-meta{grid-template-columns:1fr 1fr}.pb-plan-detail .pb-plan-title-row h1{font-size:clamp(36px,7vw,56px)!important}}
+@media(max-width:570px){.pb-plan-detail .group-meta{grid-template-columns:1fr!important;gap:8px!important}.pb-plan-detail .pb-plan-title-row{align-items:flex-start}.pb-plan-detail .pb-plan-title-row h1{font-size:clamp(34px,10vw,47px)!important}.pb-plan-detail .pb-decision-panel{padding:20px!important}.pb-plan-detail .pb-plan-proposals{margin-top:35px!important}}
+@media(prefers-reduced-motion:reduce){.pb-plan-detail .plan-icon-button:hover,.pb-plan-detail .pb-proposals-heading .button:hover,.pb-plan-detail .pb-proposal-card:hover{transform:none!important}}
+
+
+/* Etapa 19.1 — Ajustes finos de espaciado y acentos */
+.pb-plan-detail .pb-decision-badge{display:inline-flex!important;align-items:center!important;gap:8px!important;width:fit-content!important;max-width:100%!important;padding:6px 12px!important;border-radius:999px!important;line-height:1.1!important;letter-spacing:.08em!important;font-size:12px!important;font-weight:800!important;margin:0 0 14px!important}
+.pb-plan-detail .proposal-election{padding:clamp(18px,2vw,28px)!important}
+.pb-plan-detail .proposal-election-heading{display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:16px!important;margin:0 0 10px!important}
+.pb-plan-detail .proposal-election-heading > div{min-width:0!important}
+.pb-plan-detail .proposal-election-heading .eyebrow{display:block!important;margin:0 0 8px!important}
+.pb-plan-detail .proposal-election-heading h3{margin:0!important;line-height:1.15!important}
+.pb-plan-detail .proposal-method-active{align-self:flex-start!important;white-space:nowrap!important}
+.pb-plan-detail .proposal-method-note{margin:10px 0 0!important;color:var(--muted)!important;line-height:1.55!important}
+/* El <li> es la propia tarjeta .pb-proposal-card: conservar su padding. */
+.pb-plan-detail .pb-proposals-grid > li.pb-proposal-card{list-style:none!important;margin:0!important;padding:clamp(19px,2.2vw,29px)!important;border-top-width:5px!important;border-top-style:solid!important}
+.pb-plan-detail .pb-proposals-grid > li.pb-proposal-card:nth-child(3n+1){border-top-color:#A7C957!important}
+.pb-plan-detail .pb-proposals-grid > li.pb-proposal-card:nth-child(3n+2){border-top-color:#F4D06F!important}
+.pb-plan-detail .pb-proposals-grid > li.pb-proposal-card:nth-child(3n){border-top-color:#C7B3EE!important}
+@media(max-width:520px){.pb-plan-detail .pb-proposals-grid > li.pb-proposal-card{padding:16px!important}}
+@media(max-width:700px){.pb-plan-detail .proposal-election-heading{flex-direction:column!important}.pb-plan-detail .proposal-method-active{align-self:flex-start!important}}
+
+
+/* Plan B — Etapa 20: propuestas y elecciones.
+   Mismos nodos HTML, nombres, formularios, datasets y permisos.
+   No se altera geometría interna de <li.pb-proposal-card> ni mapas. */
+.pb-plan-detail .proposal-election{position:relative;overflow:hidden}
+.pb-plan-detail .proposal-election-heading h3{font-size:clamp(23px,2.15vw,30px)!important;letter-spacing:-.035em!important}
+.pb-plan-detail .proposal-election .eyebrow{color:#765819!important;letter-spacing:.11em!important;font-weight:800!important}
+.pb-plan-detail .proposal-method-picker{margin-top:18px!important}
+.pb-plan-detail .proposal-method-picker>summary{cursor:pointer;display:flex;align-items:center;justify-content:space-between;min-height:42px;gap:12px;padding:10px 14px!important;border-radius:12px!important;color:#1F4D3A!important;background:rgba(255,253,248,.72)!important;border:1px solid #D9C992!important;font-weight:750!important}
+.pb-plan-detail .proposal-method-options{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:11px!important;margin-top:13px!important}
+.pb-plan-detail .proposal-method-option{min-width:0!important;min-height:123px!important;padding:17px!important;text-align:left!important;background:#FFFDF8!important;color:#1F4D3A!important;border:1px solid #E8DFD4!important;box-shadow:none!important;transition:border-color .18s ease,background-color .18s ease,transform .18s ease!important}
+.pb-plan-detail .proposal-method-option strong{display:block!important;font-size:15px!important;line-height:1.3!important;margin-bottom:9px!important}
+.pb-plan-detail .proposal-method-option span{display:block!important;font-size:12px!important;line-height:1.5!important;color:#647366!important}
+.pb-plan-detail .proposal-method-option:hover{transform:translateY(-2px)!important;border-color:#91AE8E!important;background:#F6F9F0!important}
+.pb-plan-detail .proposal-method-option.is-active{border-color:#719B75!important;background:#E4EFDD!important}
+.pb-plan-detail .proposal-leaderboard{padding:clamp(20px,2vw,28px)!important;border:1px solid #E8DFD4!important;border-radius:23px!important;background:#FFFDF8!important;box-shadow:none!important;margin:19px 0 24px!important}
+.pb-plan-detail .proposal-leaderboard-heading h3{color:#1F4D3A!important;letter-spacing:-.03em!important;font-size:clamp(22px,2.2vw,29px)!important}
+.pb-plan-detail .proposal-leaderboard-heading p{color:#67796C!important}
+.pb-plan-detail .proposal-ranking{margin:18px 0 0!important;padding:0!important;display:grid!important;gap:8px!important;list-style:none!important}
+.pb-plan-detail .proposal-ranking>li{display:flex!important;align-items:center!important;gap:12px!important;border:1px solid #E8DFD4!important;border-radius:14px!important;padding:12px 15px!important;background:#FAF7F0!important;min-width:0!important}
+.pb-plan-detail .proposal-ranking>li.is-champion{background:#E4EFDD!important;border-color:#BED3B5!important}
+.pb-plan-detail .proposal-ranking-place{display:grid!important;place-items:center!important;flex:none!important;min-width:30px!important;height:30px!important;border-radius:10px!important;background:#E1E9D7!important;color:#1F4D3A!important}
+.pb-plan-detail .proposal-ranking-name{flex:1!important;min-width:0!important;overflow-wrap:anywhere!important}
+.pb-plan-detail .proposal-ranking-name small{display:block!important;margin-top:3px!important;color:#718174!important}
+.pb-plan-detail .proposal-champion,.pb-plan-detail .proposal-election-score{border-radius:13px!important;padding:12px 15px!important;background:#E4EFDD!important;color:#1F4D3A!important;border:1px solid #CFDEC6!important}
+.pb-plan-detail .pb-proposal-card .proposal-heading h3{font-size:clamp(20px,1.65vw,26px)!important;letter-spacing:-.03em!important;line-height:1.2!important}
+.pb-plan-detail .pb-proposal-card .proposal-author{font-size:13px!important;line-height:1.5!important}
+.pb-plan-detail .pb-proposal-card .proposal-meta{gap:12px!important}
+.pb-plan-detail .pb-proposal-card .proposal-meta>div{min-width:0!important}
+.pb-plan-detail .pb-proposal-card .proposal-map-preview{border-radius:15px!important}
+.pb-plan-detail .pb-proposal-card .proposal-actions .button:hover{border-color:#9EB99C!important;background:#E4EFDD!important}
+.pb-plan-detail .pb-proposal-card .pb-weather{border-radius:17px!important}
+.pb-plan-detail .proposal-combat-game{border-radius:18px!important;overflow:hidden;min-width:0!important}
+.pb-plan-detail .proposal-combat-canvas{max-width:100%!important}
+html[data-theme='dark'] .pb-plan-detail .proposal-election .eyebrow{color:#F4D06F!important}
+html[data-theme='dark'] .pb-plan-detail .proposal-method-picker>summary{background:#3D4B38!important;color:#FAF7F0!important;border-color:#75664B!important}
+html[data-theme='dark'] .pb-plan-detail .proposal-method-option{background:#304738!important;color:#FAF7F0!important;border-color:#536B57!important}
+html[data-theme='dark'] .pb-plan-detail .proposal-method-option span{color:#C4D3C4!important}
+html[data-theme='dark'] .pb-plan-detail .proposal-method-option:hover{background:#395741!important;border-color:#8CAF8D!important}
+html[data-theme='dark'] .pb-plan-detail .proposal-method-option.is-active{background:#365B44!important;border-color:#9ABD91!important}
+html[data-theme='dark'] .pb-plan-detail .proposal-leaderboard{background:#253D2F!important;border-color:#45614C!important}
+html[data-theme='dark'] .pb-plan-detail .proposal-leaderboard-heading h3{color:#FAF7F0!important}
+html[data-theme='dark'] .pb-plan-detail .proposal-leaderboard-heading p{color:#C4D3C4!important}
+html[data-theme='dark'] .pb-plan-detail .proposal-ranking>li{background:#304638!important;border-color:#506B53!important}
+html[data-theme='dark'] .pb-plan-detail .proposal-ranking>li.is-champion{background:#355B43!important;border-color:#7DA881!important}
+html[data-theme='dark'] .pb-plan-detail .proposal-ranking-place{background:#476A4E!important;color:#FAF7F0!important}
+html[data-theme='dark'] .pb-plan-detail .proposal-ranking-name small{color:#B8CDB9!important}
+html[data-theme='dark'] .pb-plan-detail .proposal-champion,html[data-theme='dark'] .pb-plan-detail .proposal-election-score{background:#365B44!important;color:#FAF7F0!important;border-color:#54785B!important}
+@media(max-width:1000px){.pb-plan-detail .proposal-method-options{grid-template-columns:1fr!important}.pb-plan-detail .proposal-method-option{min-height:0!important}}
+@media(max-width:580px){.pb-plan-detail .proposal-ranking>li{flex-wrap:wrap!important}.pb-plan-detail .pb-proposal-card .proposal-meta{flex-direction:column!important}}
+@media(prefers-reduced-motion:reduce){.pb-plan-detail .proposal-method-option:hover{transform:none!important}}
+
+
+/* Etapa 20.1: contraste, compactación informativa y propuesta ganadora. */
+.pb-plan-detail .pb-decision-panel .pb-decision-meta,
+.pb-plan-detail .pb-decision-panel .pb-decision-meta span {color:#1F4D3A!important;font-weight:700}
+html[data-theme='dark'] .pb-plan-detail .pb-decision-panel .pb-decision-meta,
+html[data-theme='dark'] .pb-plan-detail .pb-decision-panel .pb-decision-meta span {color:#FAF7F0!important}
+.pb-plan-detail .proposal-election:has(.proposal-method-note):not(:has(.proposal-method-picker)){padding:20px 24px!important}
+.pb-plan-detail .proposal-election:has(.proposal-method-note):not(:has(.proposal-method-picker)) .proposal-election-heading{margin-bottom:6px!important}
+.pb-plan-detail .proposal-election:has(.proposal-method-note):not(:has(.proposal-method-picker)) .proposal-method-note{margin:6px 0 0!important}
+.pb-plan-detail .proposal-ranking>li.is-champion{border-left:4px solid #A7C957!important;padding-left:12px!important}
+.pb-plan-detail .proposal-ranking>li.is-champion .proposal-ranking-name{font-weight:800!important}
+html[data-theme='dark'] .pb-plan-detail .proposal-ranking>li.is-champion{border-left-color:#F4D06F!important}
+@media(max-width:600px){.pb-plan-detail .proposal-election:has(.proposal-method-note):not(:has(.proposal-method-picker)){padding:18px!important}}
+
+
+/* ETAPA 21 — estados editoriales del encuentro. Solo representación. */
+.pb-plan-detail .pb-decision-panel {position:relative;overflow:hidden;isolation:isolate;}
+.pb-plan-detail .pb-decision-panel::before {content:"";position:absolute;inset:0 auto 0 0;width:5px;background:#A7C957;pointer-events:none;}
+.pb-plan-detail .pb-decision-panel--organizing::before {background:#F4D06F;}
+.pb-plan-detail .pb-decision-panel--confirmed::before {background:#A7C957;}
+.pb-plan-detail .pb-decision-panel--finished::before {background:#A8B7A8;}
+.pb-plan-detail .pb-decision-panel--inactive::before {background:#C7B3EE;}
+.pb-plan-detail .pb-decision-panel--confirmed {background:#E4EFDD!important;border-color:#BED6B8!important;}
+.pb-plan-detail .pb-decision-panel--organizing {background:#F1EBD4!important;border-color:#E4D9B1!important;}
+.pb-plan-detail .pb-decision-panel--finished {background:#EBEEE7!important;border-color:#D8DFD5!important;}
+.pb-plan-detail .pb-decision-panel--inactive {background:#F0EBF3!important;border-color:#E2D9E8!important;}
+.pb-plan-detail .pb-decision-panel--finished .pb-decision-badge {background:#F8FAF5!important;border-color:#C8D2C6!important;color:#456552!important;}
+.pb-plan-detail .pb-decision-panel--inactive .pb-decision-badge {background:#FFFDF8!important;border-color:#D6C5E3!important;color:#5B526A!important;}
+.pb-plan-detail .pb-decision-panel .pb-decision-meta {display:flex;align-items:center;flex-wrap:wrap;gap:12px 18px;margin-top:14px;}
+.pb-plan-detail .pb-phase-actions {display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:22px;}
+.pb-plan-detail .pb-phase-actions form {margin:0;}
+.pb-plan-detail .pb-phase-actions .button {border-radius:12px!important;min-height:42px;}
+.pb-plan-detail .pb-phase-actions .button--primary {background:#1F4D3A!important;color:#FFFDF8!important;border-color:#1F4D3A!important;}
+.pb-plan-detail .pb-phase-actions .button--quiet {background:transparent!important;border:1px solid #AFC5AE!important;color:#1F4D3A!important;}
+html[data-theme='dark'] .pb-plan-detail .pb-decision-panel--organizing {background:#4C4734!important;border-color:#685F41!important;}
+html[data-theme='dark'] .pb-plan-detail .pb-decision-panel--confirmed {background:#365B44!important;border-color:#4A7154!important;}
+html[data-theme='dark'] .pb-plan-detail .pb-decision-panel--finished {background:#304339!important;border-color:#4C6251!important;}
+html[data-theme='dark'] .pb-plan-detail .pb-decision-panel--inactive {background:#3A383F!important;border-color:#5A5363!important;}
+html[data-theme='dark'] .pb-plan-detail .pb-decision-panel .pb-decision-badge {color:#F4D06F!important;background:#203528!important;border-color:#5D8562!important;}
+html[data-theme='dark'] .pb-plan-detail .pb-decision-panel--finished .pb-decision-badge {color:#D7E3D8!important;border-color:#668073!important;}
+html[data-theme='dark'] .pb-plan-detail .pb-decision-panel--inactive .pb-decision-badge {color:#E7D9F1!important;border-color:#81748B!important;}
+html[data-theme='dark'] .pb-plan-detail .pb-phase-actions .button--quiet {color:#FAF7F0!important;border-color:#78927A!important;}
+html[data-theme='dark'] .pb-plan-detail .pb-phase-actions .button--primary {color:#1F4D3A!important;background:#F4D06F!important;border-color:#F4D06F!important;}
+@media(max-width:570px){.pb-plan-detail .pb-decision-panel .pb-decision-meta {align-items:flex-start;flex-direction:column;gap:10px;}.pb-plan-detail .pb-phase-actions .button {max-width:100%;}}
+
+
+/* Etapa 22 — cierre visual: contraste del comparador de clima. */
+.pb-app-shell .pb-plan-detail .pb-weather-compare-toggle,
+.pb-app-shell .pb-plan-detail .pb-weather-compare-main,
+.pb-app-shell .pb-plan-detail .pb-weather-compare-hint {color:#1F4D3A!important;}
+html[data-theme="dark"] .pb-app-shell .pb-plan-detail .pb-weather-compare-toggle,
+html[data-theme="dark"] .pb-app-shell .pb-plan-detail .pb-weather-compare-main,
+html[data-theme="dark"] .pb-app-shell .pb-plan-detail .pb-weather-compare-hint {color:#F4F4EA!important;}
+html[data-theme="dark"] .pb-app-shell .pb-plan-detail .pb-weather-compare-toggle:focus-visible {outline:3px solid #F4D06F;outline-offset:3px;}
