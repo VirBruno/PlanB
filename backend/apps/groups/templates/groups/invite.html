@@ -1,6 +1,7 @@
 {% extends 'components/authenticated_base.html' %}
 {% load static %}
 {% block title %}Invitar integrante · Plan B{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'users/css/forms-social.css' %}?v=28">{% endblock %}
 {% block workspace %}
 <a class="back-link pb-sprint-back" href="{% url 'groups:detail' group.id %}">← {{ group.name }}</a>
 <section class="group-panel pb-sprint-panel pb-sprint-invite" aria-labelledby="invite-title">

@@ -1,5 +1,7 @@
 {% extends 'components/authenticated_base.html' %}
+{% load static %}
 {% block title %}Eliminar grupo · Plan B{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'users/css/forms-social.css' %}?v=27">{% endblock %}
 {% block workspace %}
 <a class="back-link pb-sprint-back" href="{% url 'groups:detail' group.id %}">← Volver al grupo</a>
 <section class="group-panel group-panel--danger pb-sprint-panel pb-sprint-danger" data-group-surface style="--group-surface: group-{{ group.id }};" aria-labelledby="group-title">

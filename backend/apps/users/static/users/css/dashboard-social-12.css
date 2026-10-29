@@ -567,3 +567,13 @@ html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-group-card:hove
   .pb-app-shell:has(.pb-home-hero) .social-group-grid {grid-template-columns:1fr}
   .pb-app-shell:has(.pb-home-hero) .social-group-card {min-height:182px}
 }
+
+/* Etapa 28: navegación activa consistente con la identidad Plan B. */
+html body .pb-app-shell .social-sidebar .social-side-nav a.social-side-active,
+html body .pb-app-shell .social-sidebar .social-side-nav a.social-side-active:hover { background:#E1ECD8!important; color:#1F4D3A!important; }
+html body .pb-app-shell .social-sidebar .social-side-nav a.social-side-active .pb-nav-label,
+html body .pb-app-shell .social-sidebar .social-side-nav a.social-side-active > span { color:#1F4D3A!important; }
+html[data-theme='dark'] body .pb-app-shell .social-sidebar .social-side-nav a.social-side-active,
+html[data-theme='dark'] body .pb-app-shell .social-sidebar .social-side-nav a.social-side-active:hover { background:#355840!important; color:#FAF7F0!important; }
+html[data-theme='dark'] body .pb-app-shell .social-sidebar .social-side-nav a.social-side-active .pb-nav-label,
+html[data-theme='dark'] body .pb-app-shell .social-sidebar .social-side-nav a.social-side-active > span { color:#FAF7F0!important; }

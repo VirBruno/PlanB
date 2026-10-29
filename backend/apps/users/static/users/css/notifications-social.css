@@ -48,3 +48,73 @@ html[data-theme="dark"] .pb-notifications__status--accepted { color:#87ddbd !imp
 html[data-theme="dark"] .pb-notifications__actions .pb-notifications__secondary { border-color:rgba(180,176,220,.27); color:#e9e7f5; }
 @media(max-width:700px){ .pb-notifications { margin:20px auto 90px; } .pb-notifications__card { padding:18px; gap:12px; border-radius:19px; } .pb-notifications__icon { flex-basis:42px; width:42px; height:42px; border-radius:13px; font-size:19px; } .pb-notifications__card h2 { font-size:18px; } .pb-notifications__header { margin-bottom:20px; } }
 @media(prefers-reduced-motion:reduce){ .pb-notifications * { scroll-behavior:auto !important; transition:none !important; } }
+
+
+/* Etapa 26 — Notificaciones: identidad cálida de Plan B.
+   No altera estructura, enlaces, formularios ni eventos. */
+.pb-app-shell:has(.pb-notifications),
+.pb-app-shell:has(.pb-notifications) .pb-app-content{background:#FAF7F0!important;background-image:none!important;color:#1F4D3A}
+.pb-app-shell:has(.pb-notifications) .social-sidebar{background:#FFFDF8!important;background-image:none!important;border-right:1px solid #E8DFD4!important}
+.pb-app-shell:has(.pb-notifications) .social-side-nav a{color:#526957!important}
+.pb-app-shell:has(.pb-notifications) .social-side-nav a.social-side-active{background:#E1ECD8!important;color:#1F4D3A!important}
+.pb-app-shell:has(.pb-notifications) .social-side-bottom{background:#F4E6B7!important;background-image:none!important;color:#1F4D3A!important}
+.pb-notifications{width:min(100%,1120px);margin:30px auto 88px;color:#1F4D3A}
+.pb-notifications__header{margin-bottom:33px;padding-bottom:23px;border-bottom:1px solid #E8DFD4}
+.pb-notifications__eyebrow{color:#638665;font-size:12px;letter-spacing:.12em}
+.pb-notifications__header h1{font-size:clamp(42px,5vw,68px);line-height:1.04;letter-spacing:-.065em;color:#1F4D3A;margin-bottom:13px}
+.pb-notifications__lead{font-size:16px;color:#687A6C}
+.pb-notifications__list{gap:15px}
+.pb-notifications__card{padding:clamp(20px,2.3vw,30px);gap:18px;background:#FFFDF8;border:1px solid #E8DFD4;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;border-radius:23px;color:#1F4D3A;transition:border-color .18s ease,box-shadow .18s ease}
+.pb-notifications__card:hover{border-color:#A8BFA7;box-shadow:0 8px 25px rgba(31,77,58,.055)}
+.pb-notifications__card--unread{background:#E4EFDD;border-color:#BCD7B9;border-left:4px solid #A7C957}
+.pb-notifications__icon,.pb-notifications__empty-icon{background:#F4D06F;color:#1F4D3A;border-radius:15px;font-size:23px}
+.pb-notifications__card:not(.pb-notifications__card--unread) .pb-notifications__icon{background:#ECE9E2}
+.pb-notifications__card h2{color:#1F4D3A;font-size:clamp(19px,2vw,24px);letter-spacing:-.04em}
+.pb-notifications__card p{color:#68796C;font-size:14px}
+.pb-notifications__card p strong{color:#1F4D3A}
+.pb-notifications__card .pb-notifications__kind{color:#608260;font-size:11px}
+.pb-notifications__unread{background:#FFFDF8;color:#1F4D3A;border:1px solid #C7DCC4}
+.pb-notifications__actions .button{border-radius:12px;min-height:42px}
+.pb-notifications__actions .button--primary,.pb-notifications__empty .button--primary,.pb-notifications__alert .button--primary{background:#1F4D3A;color:#FFFDF8;border-color:#1F4D3A;background-image:none;box-shadow:none}
+.pb-notifications__actions .button--primary:hover{background:#32684F}
+.pb-notifications__actions .pb-notifications__secondary{background:#FFFDF8;border:1px solid #BFCFBF;color:#1F4D3A}
+.pb-notifications__actions .pb-notifications__secondary:hover{background:#F1F5EC}
+.pb-notifications__meta{border-top-color:#DCE5D9;color:#708172}
+.pb-notifications__mark{color:#32684F}
+.pb-notifications__status{color:#647669!important}
+.pb-notifications__status--accepted{color:#27664B!important}
+.pb-notifications__empty,.pb-notifications__alert{background:#FFFDF8;border-color:#E8DFD4;color:#1F4D3A;box-shadow:none}
+.pb-notifications__empty p,.pb-notifications__alert p{color:#68796C}
+.pb-notifications__pagination a{color:#1F4D3A}
+.pb-notifications :is(a,button):focus-visible{outline:3px solid #A7C957;outline-offset:3px}
+html[data-theme="dark"] .pb-app-shell:has(.pb-notifications),
+html[data-theme="dark"] .pb-app-shell:has(.pb-notifications) .pb-app-content{background:#192B21!important;background-image:none!important;color:#FAF7F0}
+html[data-theme="dark"] .pb-app-shell:has(.pb-notifications) .social-sidebar{background:#1E3025!important;border-color:#3D5846!important}
+html[data-theme="dark"] .pb-app-shell:has(.pb-notifications) .social-side-nav a{color:#D4E1D5!important}
+html[data-theme="dark"] .pb-app-shell:has(.pb-notifications) .social-side-nav a.social-side-active{background:#355840!important;color:#FFFDF8!important}
+html[data-theme="dark"] .pb-app-shell:has(.pb-notifications) .social-side-bottom{background:#F4D06F!important;color:#1F4D3A!important}
+html[data-theme="dark"] .pb-notifications{color:#FAF7F0}
+html[data-theme="dark"] .pb-notifications__header{border-color:#3E5846}
+html[data-theme="dark"] .pb-notifications__header h1{color:#FAF7F0}
+html[data-theme="dark"] .pb-notifications__lead{color:#C1D1C2}
+html[data-theme="dark"] .pb-notifications__eyebrow{color:#B6D3A0}
+html[data-theme="dark"] .pb-notifications__card,html[data-theme="dark"] .pb-notifications__empty,html[data-theme="dark"] .pb-notifications__alert{background:#253D2F;border-color:#44614B;color:#FAF7F0;box-shadow:none}
+html[data-theme="dark"] .pb-notifications__card:hover{border-color:#7B9E81;box-shadow:0 8px 23px #00000020}
+html[data-theme="dark"] .pb-notifications__card--unread{background:#365840;border-color:#719375;border-left:4px solid #F4D06F}
+html[data-theme="dark"] .pb-notifications__icon{background:#F4D06F;color:#1F4D3A}
+html[data-theme="dark"] .pb-notifications__card:not(.pb-notifications__card--unread) .pb-notifications__icon{background:#42614D;color:#FAF7F0}
+html[data-theme="dark"] .pb-notifications__card h2,html[data-theme="dark"] .pb-notifications__card p strong{color:#FAF7F0}
+html[data-theme="dark"] .pb-notifications__card p,html[data-theme="dark"] .pb-notifications__empty p,html[data-theme="dark"] .pb-notifications__alert p{color:#C5D2C5}
+html[data-theme="dark"] .pb-notifications__card .pb-notifications__kind{color:#C6DDA6}
+html[data-theme="dark"] .pb-notifications__unread{background:#23402E;color:#F4D06F;border-color:#5F8766}
+html[data-theme="dark"] .pb-notifications__actions .button--primary,html[data-theme="dark"] .pb-notifications__empty .button--primary,html[data-theme="dark"] .pb-notifications__alert .button--primary{background:#F4D06F;color:#1F4D3A;border-color:#F4D06F}
+html[data-theme="dark"] .pb-notifications__actions .pb-notifications__secondary{background:#2C4837;border-color:#60806A;color:#FAF7F0}
+html[data-theme="dark"] .pb-notifications__actions .pb-notifications__secondary:hover{background:#3E604B}
+html[data-theme="dark"] .pb-notifications__meta{border-top-color:#52715A;color:#BFCFBF}
+html[data-theme="dark"] .pb-notifications__mark{color:#F4D06F}
+html[data-theme="dark"] .pb-notifications__status{color:#C4D3C5!important}
+html[data-theme="dark"] .pb-notifications__status--accepted{color:#C9E6B5!important}
+html[data-theme="dark"] .pb-notifications__pagination a{color:#FAF7F0}
+@media(max-width:700px){.pb-notifications{margin:22px auto 105px}.pb-notifications__header h1{font-size:clamp(36px,9vw,48px)}.pb-notifications__card{padding:18px 15px;gap:12px}.pb-notifications__icon{flex-basis:42px;width:42px;height:42px}.pb-notifications__card-top{gap:8px}.pb-notifications__actions .button{min-height:44px}}
+@media(max-width:400px){.pb-notifications__card{gap:10px}.pb-notifications__actions{gap:8px}.pb-notifications__actions .button{padding:9px 11px}}
+@media(prefers-reduced-motion:reduce){.pb-notifications__card{transition:none}}

@@ -23,3 +23,67 @@ html[data-theme=dark] .pf-aside{background:linear-gradient(135deg,rgba(37,76,71,
 @media(max-width:850px){.pf-layout{grid-template-columns:minmax(0,1fr)}.pf-aside{min-height:0;padding:24px}.pf-aside-symbol{display:none}.pf-aside-steps{grid-template-columns:repeat(3,minmax(0,1fr))}.pf-aside-steps div{font-size:11px}}
 @media(max-width:540px){.dashboard-main:has(.pf-workspace){padding:20px 14px 50px}.pf-main{padding:23px 18px;border-radius:21px}.pf-aside{border-radius:21px}.pf-aside-steps{grid-template-columns:1fr}.pf-form .group-actions{flex-direction:column;align-items:stretch}.pf-form .group-actions .button{width:100%;justify-content:center}}
 @media(prefers-reduced-motion:reduce){.pf-form .group-actions .button,.pf-form .field input,.pf-form .field textarea{transition:none}}
+
+
+/* Etapa 27 — Identidad aprobada: formularios y gestión de grupos. */
+body:has(.pf-workspace) .pb-app-shell,body:has(.pf-workspace) .pb-app-content,
+body:has(.pb-sprint-invite) .pb-app-shell,body:has(.pb-sprint-invite) .pb-app-content,
+body:has(.pb-sprint-danger) .pb-app-shell,body:has(.pb-sprint-danger) .pb-app-content,
+body:has(.pb-group-join-27) .pb-app-shell,body:has(.pb-group-join-27) .pb-app-content{background:#FAF7F0!important;background-image:none!important;color:#1F4D3A}
+body:has(.pf-workspace) .social-sidebar,body:has(.pb-sprint-invite) .social-sidebar,body:has(.pb-sprint-danger) .social-sidebar,body:has(.pb-group-join-27) .social-sidebar{background:#FFFDF8!important;background-image:none!important;border-right-color:#E8DFD4!important}
+body:has(.pf-workspace) .social-side-nav a.social-side-active,body:has(.pb-sprint-invite) .social-side-nav a.social-side-active,body:has(.pb-sprint-danger) .social-side-nav a.social-side-active,body:has(.pb-group-join-27) .social-side-nav a.social-side-active{color:#1F4D3A!important;background:#E1ECD8!important}
+.pf-workspace{--pf-surface:#FFFDF8;--pf-strong:#F7F5EF;--pf-line:#E8DFD4;--pf-ink:#1F4D3A;--pf-muted:#637866;--pf-shadow:none}
+.pf-workspace .pf-main{background:transparent;border:0;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;padding:clamp(12px,2.2vw,30px) 0}
+.pf-workspace .pf-aside{background:#E4EFDD;border:1px solid #D1E3CF;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;min-height:0}
+.pf-workspace .pf-eyebrow,.pf-workspace .pf-aside-kicker{color:#648768}
+.pf-workspace .pf-sparkle{color:#D5A740}
+.pf-workspace .pf-heading h1{font-size:clamp(38px,4.6vw,62px);line-height:1.06;letter-spacing:-.06em}
+.pf-workspace .pf-form-wrap{padding:clamp(18px,2.5vw,28px);border:1px solid #E8DFD4;border-radius:24px;background:#FFFDF8}
+.pf-workspace .pf-group-note{background:#E4EFDD;color:#1F4D3A}
+.pf-workspace .pf-form .field :is(input,textarea,select){background:#F7F5EF!important;border-color:#DADFD3!important;color:#1F4D3A!important}
+.pf-workspace .pf-form .field :is(input,textarea,select):focus-visible{border-color:#6B9A71!important;box-shadow:0 0 0 3px #A7C95744!important}
+.pf-workspace .pf-form .group-actions .button--primary{background:#1F4D3A!important;color:#FFFDF8!important;box-shadow:none!important}
+.pf-workspace .pf-form .group-actions .button--quiet{background:#F7F5EF!important;border-color:#E8DFD4!important;color:#1F4D3A!important}
+.pf-workspace .pf-aside-symbol{color:#1F4D3A}.pf-workspace .pf-aside-symbol span:last-child{color:#D0A844}
+.pf-workspace .pf-aside-steps div{background:#FFFDF8;border-color:#D5E2D0;color:#1F4D3A}
+.pf-workspace .pf-aside-steps span{color:#457A55}
+.pb-sprint-invite,.pb-sprint-danger,.pb-group-join-27{max-width:1000px;margin-inline:auto;background:#FFFDF8!important;border:1px solid #E8DFD4!important;border-radius:25px!important;box-shadow:none!important;padding:clamp(22px,3.1vw,40px)!important;color:#1F4D3A!important}
+:is(.pb-sprint-invite,.pb-sprint-danger,.pb-group-join-27) :is(h1,h2){color:#1F4D3A!important;letter-spacing:-.045em}
+:is(.pb-sprint-invite,.pb-sprint-danger,.pb-group-join-27) .eyebrow{color:#5D8661!important}
+:is(.pb-sprint-invite,.pb-sprint-danger,.pb-group-join-27) .panel-description{color:#65796B!important}
+:is(.pb-sprint-invite,.pb-sprint-danger,.pb-group-join-27) .button--primary{background:#1F4D3A!important;background-image:none!important;color:#FFFDF8!important;border-color:#1F4D3A!important;box-shadow:none!important}
+:is(.pb-sprint-invite,.pb-sprint-danger,.pb-group-join-27) .button--quiet{background:#E4EFDD!important;color:#1F4D3A!important;border-color:#BCD2BB!important}
+.pb-sprint-invite .invitation-search,.pb-sprint-invite .invite-link-notice{padding:clamp(16px,2vw,24px);background:#E4EFDD;border:1px solid #D4E3D0;border-radius:18px;margin-block:18px}
+.pb-sprint-invite .invite-candidate{border:1px solid #E8DFD4;border-radius:16px;padding:16px;margin-block:10px;background:#FAF7F0}
+.pb-sprint-invite :is(input,select,textarea){max-width:100%;background:#FFFDF8!important;color:#1F4D3A!important;border-color:#CADAC7!important}
+.pb-sprint-invite .invite-link-actions{display:flex;gap:10px;flex-wrap:wrap}
+.pb-sprint-danger{background:#FFF8F0!important;border-color:#E9D3C4!important}
+.pb-sprint-danger .button--danger{background:#A34D51!important;color:#FFFDF8!important;border-color:#A34D51!important}
+html[data-theme='dark'] body:has(.pf-workspace) .pb-app-shell,html[data-theme='dark'] body:has(.pf-workspace) .pb-app-content,
+html[data-theme='dark'] body:has(.pb-sprint-invite) .pb-app-shell,html[data-theme='dark'] body:has(.pb-sprint-invite) .pb-app-content,
+html[data-theme='dark'] body:has(.pb-sprint-danger) .pb-app-shell,html[data-theme='dark'] body:has(.pb-sprint-danger) .pb-app-content,
+html[data-theme='dark'] body:has(.pb-group-join-27) .pb-app-shell,html[data-theme='dark'] body:has(.pb-group-join-27) .pb-app-content{background:#192B21!important;background-image:none!important;color:#FAF7F0!important}
+html[data-theme='dark'] body:has(.pf-workspace) .social-sidebar,html[data-theme='dark'] body:has(.pb-sprint-invite) .social-sidebar,html[data-theme='dark'] body:has(.pb-sprint-danger) .social-sidebar,html[data-theme='dark'] body:has(.pb-group-join-27) .social-sidebar{background:#1E3025!important;border-color:#3D5846!important}
+html[data-theme='dark'] .pf-workspace{--pf-surface:#253D2F;--pf-strong:#304A3A;--pf-line:#46614C;--pf-ink:#FAF7F0;--pf-muted:#B9CDBC;--pf-shadow:none}
+html[data-theme='dark'] .pf-workspace .pf-form-wrap,html[data-theme='dark'] .pf-workspace .pf-aside{background:#253D2F;border-color:#46614C}
+html[data-theme='dark'] .pf-workspace .pf-form .field :is(input,textarea,select){background:#304A3A!important;color:#FAF7F0!important;border-color:#52705A!important}
+html[data-theme='dark'] .pf-workspace .pf-form .group-actions .button--primary{background:#F4D06F!important;color:#1F4D3A!important}
+html[data-theme='dark'] .pf-workspace .pf-form .group-actions .button--quiet{background:#304A3A!important;color:#FAF7F0!important;border-color:#55705A!important}
+html[data-theme='dark'] .pf-workspace .pf-aside-steps div{background:#304A3A;color:#FAF7F0;border-color:#55705A}
+html[data-theme='dark'] .pf-workspace .pf-aside-symbol{color:#F4D06F}
+html[data-theme='dark'] :is(.pb-sprint-invite,.pb-sprint-danger,.pb-group-join-27){background:#253D2F!important;border-color:#46614C!important;color:#FAF7F0!important}
+html[data-theme='dark'] :is(.pb-sprint-invite,.pb-sprint-danger,.pb-group-join-27) :is(h1,h2){color:#FAF7F0!important}
+html[data-theme='dark'] :is(.pb-sprint-invite,.pb-sprint-danger,.pb-group-join-27) .panel-description{color:#BECEBF!important}
+html[data-theme='dark'] :is(.pb-sprint-invite,.pb-sprint-danger,.pb-group-join-27) .button--primary{background:#F4D06F!important;color:#1F4D3A!important;border-color:#F4D06F!important}
+html[data-theme='dark'] :is(.pb-sprint-invite,.pb-sprint-danger,.pb-group-join-27) .button--quiet{background:#365640!important;color:#FAF7F0!important;border-color:#53715B!important}
+html[data-theme='dark'] .pb-sprint-invite :is(.invitation-search,.invite-link-notice,.invite-candidate){background:#304A3A;border-color:#53715B}
+html[data-theme='dark'] .pb-sprint-invite :is(input,select,textarea){background:#263F30!important;color:#FAF7F0!important;border-color:#53715B!important}
+html[data-theme='dark'] .pb-sprint-danger{background:#3B302B!important;border-color:#725549!important}
+@media(max-width:760px){.pf-workspace .pf-layout{grid-template-columns:minmax(0,1fr)}.pf-workspace .pf-aside{padding:22px}.pb-sprint-invite .invitation-search{display:flex;flex-wrap:wrap;gap:10px}}
+@media(max-width:520px){.pf-workspace .pf-form-wrap{padding:18px 15px}.pf-workspace .pf-main{padding:8px 0}.pf-workspace .pf-heading h1{font-size:clamp(33px,10vw,44px)}.pf-workspace .pf-form .group-actions .button{width:100%}.pb-sprint-invite,.pb-sprint-danger,.pb-group-join-27{padding:20px 16px!important}.pb-sprint-invite .invitation-search>*{min-width:0;max-width:100%}}
+
+/* Etapa 28: enlace secundario de regreso en la invitación. */
+.pb-app-shell a.back-link.pb-sprint-back {color:#326A4B!important;text-decoration:none;}
+.pb-app-shell a.back-link.pb-sprint-back:hover {color:#1F4D3A!important;text-decoration:underline;text-underline-offset:4px;}
+html[data-theme='dark'] .pb-app-shell a.back-link.pb-sprint-back {color:#D8E8BF!important;}
+html[data-theme='dark'] .pb-app-shell a.back-link.pb-sprint-back:hover {color:#F4D06F!important;}
