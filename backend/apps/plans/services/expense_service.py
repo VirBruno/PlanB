@@ -1,4 +1,4 @@
-"""Gastos históricos con JWT/RLS; dinero decimal y saldos derivados en memoria."""
+"""Gastos históricos con JWT/RLS; Decimal y transferencias de la fuente SQL común."""
 from decimal import Decimal, InvalidOperation
 from uuid import UUID
 
@@ -47,21 +47,42 @@ def money(value, *, positive=False):
         raise InvalidExpense() from None
 
 
-def settle_balances(balances):
-    """UUID ascendente para ambos lados; cada transferencia agota al menos un saldo."""
+def derived_money(value):
+    """Un saldo agregado puede superar el máximo de un gasto individual."""
+    if not isinstance(value, (str, Decimal)):
+        raise ValueError
+    try:
+        amount = Decimal(value)
+        if not amount.is_finite() or amount <= 0 or amount.as_tuple().exponent < -2:
+            raise ValueError
+        return amount.quantize(CENT)
+    except InvalidOperation:
+        raise ValueError from None
+
+
+def validate_transfers(balances, rows):
+    """Valida conservación y referencias; el cálculo único vive en PostgreSQL."""
     if sum(balances.values(), ZERO) != ZERO:
         raise ValueError("Los balances no cierran en cero.")
-    creditors = [[uid, amount] for uid, amount in sorted(balances.items()) if amount > 0]
-    debtors = [[uid, -amount] for uid, amount in sorted(balances.items()) if amount < 0]
+    if not isinstance(rows, list):
+        raise ValueError
+    remaining = balances.copy()
     transfers = []
-    i = j = 0
-    while i < len(debtors) and j < len(creditors):
-        amount = min(debtors[i][1], creditors[j][1])
-        transfers.append({"from_id": debtors[i][0], "to_id": creditors[j][0], "amount": amount})
-        debtors[i][1] -= amount
-        creditors[j][1] -= amount
-        i += debtors[i][1] == ZERO
-        j += creditors[j][1] == ZERO
+    previous = None
+    for row in rows:
+        debtor, creditor = canonical_id(row["from_id"]), canonical_id(row["to_id"])
+        pair = (debtor, creditor)
+        amount = derived_money(row["amount"])
+        if (debtor == creditor or (previous is not None and pair <= previous)
+                or remaining[debtor] >= 0 or remaining[creditor] <= 0
+                or amount > -remaining[debtor] or amount > remaining[creditor]):
+            raise ValueError
+        remaining[debtor] += amount
+        remaining[creditor] -= amount
+        previous = pair
+        transfers.append({"from_id": debtor, "to_id": creditor, "amount": amount})
+    if any(remaining.values()):
+        raise ValueError("Las transferencias no saldan todos los balances.")
     return transfers
 
 
@@ -118,7 +139,8 @@ def summarize(snapshot, actor_id):
         person["current_member"] = uid in member_ids
         person["balance"] = person["paid"] - person["share"]
         balances[uid] = person["balance"]
-    transfers = settle_balances(balances)
+    # Sin fallback a un algoritmo local: popup y autorización consumen la misma fuente.
+    transfers = validate_transfers(balances, snapshot["transfers"])
     for transfer in transfers:
         transfer["debtor"] = people[transfer["from_id"]]["username"]
         transfer["creditor"] = people[transfer["to_id"]]["username"]

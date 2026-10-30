@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 import re
 import subprocess
+import sys
 import tempfile
 from threading import Thread
 import time
@@ -106,6 +107,66 @@ window.addEventListener('load', async () => {
 </script>
 """
 
+DEBT_HARNESS = r"""
+<script>
+window.addEventListener('load', async () => {
+  const checks = [];
+  const assert = (value, label) => { if (!value) throw Error(label); checks.push(label); };
+  const wait = async predicate => {
+    for (let i = 0; i < 200; i++) {
+      if (predicate()) return;
+      await new Promise(resolve => setTimeout(resolve, 25));
+    }
+    throw Error('Tiempo de espera: ' + predicate.toString());
+  };
+  const dialog = document.querySelector('[data-expenses-dialog]');
+  const content = document.querySelector('[data-expenses-content]');
+  try {
+    await wait(() => content.querySelector('[data-debt-reminder-form]'));
+    assert(dialog.open, 'Deep-link abre el popup automáticamente');
+    assert(content.querySelectorAll('[data-debt-reminder-form]').length === 2, 'Acreedor ve ambos botones');
+    const form = [...content.querySelectorAll('[data-debt-reminder-form]')].find(f => f.textContent.includes('Facundo'));
+    const button = form.querySelector('button');
+    const feedback = form.querySelector('[data-debt-reminder-status]');
+    assert([...new FormData(form).keys()].sort().join(',') === 'csrfmiddlewaretoken,debtor_id', 'Aviso envía sólo deudor y CSRF');
+    const before = {url: location.href, node: document.querySelector('#plan-title')};
+    const realFetch = window.fetch;
+    let sends = 0;
+    window.fetch = (...args) => { sends++; return realFetch(...args); };
+    form.requestSubmit(); form.requestSubmit();
+    assert(button.disabled, 'Botón deshabilitado durante el envío');
+    await wait(() => !button.disabled);
+    assert(sends === 1, 'Doble submit no dispara dos requests');
+    assert(feedback.textContent.includes('Notificación enviada a Facundo'), 'Feedback de creación');
+    form.requestSubmit(); await wait(() => !button.disabled);
+    assert(feedback.textContent.includes('recordatorio pendiente'), 'Retry informa pendiente actualizado');
+    assert(dialog.open && location.href === before.url && document.querySelector('#plan-title') === before.node, 'Avisar conserva popup y detalle');
+    window.fetch = async () => new Response(JSON.stringify({message:'La transferencia ya no está disponible. Actualizá los gastos.'}), {status:409, headers:{'Content-Type':'application/json'}});
+    form.requestSubmit(); await wait(() => !button.disabled);
+    assert(feedback.textContent.includes('ya no está disponible'), 'Deuda obsoleta muestra rechazo');
+    window.fetch = async () => { throw Error('Sin red'); };
+    form.requestSubmit(); await wait(() => !button.disabled);
+    assert(feedback.textContent.includes('no se duplican'), 'Fallo incierto permite retry seguro');
+    window.fetch = realFetch;
+    document.documentElement.dataset.theme = 'light';
+    const light = getComputedStyle(dialog).backgroundColor;
+    document.documentElement.dataset.theme = 'dark';
+    assert(getComputedStyle(dialog).backgroundColor !== light, 'Avisos adaptados al tema');
+    assert(dialog.scrollWidth <= dialog.clientWidth + 1, 'Avisos sin desborde horizontal');
+    dialog.querySelector('[data-close-expenses]').click();
+    await wait(() => !dialog.open && !new URL(location.href).searchParams.has('open'));
+    assert(location.search === '?keep=1' && location.hash === '#x', 'Cerrar consume sólo el parámetro de apertura');
+    document.querySelector('[data-open-expenses]').click();
+    const result = document.createElement('pre'); result.id = 'browser-results';
+    result.textContent = JSON.stringify({ok:true, width:innerWidth, checks}); document.body.append(result);
+  } catch(error) {
+    const result = document.createElement('pre'); result.id = 'browser-results';
+    result.textContent = JSON.stringify({ok:false, width:innerWidth, checks, error:error.message}); document.body.append(result);
+  }
+});
+</script>
+"""
+
 
 def main():
     from websockets.sync.client import connect  # Dependencia existente de Supabase.
@@ -115,7 +176,17 @@ def main():
         raise SystemExit("Chrome no encontrado. Indicá la ruta con PLANB_CHROME.")
     output = Path(tempfile.mkdtemp(prefix="planb-expenses-browser-"))
     rows = []
+    debt_mode = "--debts" in sys.argv
+    pending = set()
     client = Client(enforce_csrf_checks=True)
+
+    def notify(token, **kwargs):
+        assert token == "browser-jwt" and str(kwargs["plan_id"]) == PLAN_ID
+        assert kwargs["debtor_id"] in (USER_ID, "00000000-0000-0000-0000-000000000002")
+        created = kwargs["debtor_id"] not in pending
+        pending.add(kwargs["debtor_id"])
+        return {"notification_id": EXPENSE, "created": created, "amount": Decimal("10000.00"),
+                "debtor_username": "Facundo" if kwargs["debtor_id"] == USER_ID else "Martina"}
 
     def create(token, **kwargs):
         assert token == "browser-jwt" and kwargs["all_group"] and not kwargs["participants"]
@@ -140,11 +211,14 @@ def main():
             cookie = None
             if path == "/fixture":
                 rows.clear()
-                response = client.get(f"/planes/{PLAN_ID}/")
+                pending.clear()
+                if debt_mode:
+                    rows.append(expense())
+                response = client.get(f"/planes/{PLAN_ID}/" + ("?open=expenses" if debt_mode else ""))
                 body = re.sub(r'<script\b[^>]*src="([^"]+)"[^>]*>\s*</script>',
                               lambda m: m[0] if "plan-expenses.js" in m[1] else "", response.content.decode())
                 body = re.sub(r'<link\b[^>]*href="https?://[^>]+>', "", body)
-                data = body.replace("</body>", HARNESS + "</body>").encode()
+                data = body.replace("</body>", (DEBT_HARNESS if debt_mode else HARNESS) + "</body>").encode()
                 kind = "text/html; charset=utf-8"
             elif path.startswith("/static/"):
                 asset = finders.find(path.removeprefix("/static/"))
@@ -153,7 +227,7 @@ def main():
                     return
                 data = Path(asset).read_bytes()
                 kind = "text/css" if path.endswith(".css") else "application/javascript"
-            elif path == f"/planes/{PLAN_ID}/gastos/":
+            elif path in (f"/planes/{PLAN_ID}/gastos/", f"/planes/{PLAN_ID}/gastos/notificar/"):
                 if self.command == "POST":
                     body = self.rfile.read(int(self.headers["Content-Length"]))
                     response = client.post(path, body, content_type=self.headers["Content-Type"])
@@ -180,7 +254,7 @@ def main():
 
     with ExitStack() as stack:
         fixtures = {
-            "apps.users.services.session_service.current_user": {"id": USER_ID, "username": "Facundo"},
+            "apps.users.services.session_service.current_user": {"id": JUAN if debt_mode else USER_ID, "username": "Juan" if debt_mode else "Facundo"},
             "apps.users.services.session_service.get_access_token": "browser-jwt",
             "apps.notifications.services.unread_count": 0,
             "apps.plans.views.plan_service.get_plan": plan_row(),
@@ -191,8 +265,9 @@ def main():
         for name, value in fixtures.items():
             stack.enter_context(patch(name, return_value=value))
         stack.enter_context(patch("apps.plans.expense_views.expense_service.get_summary",
-                                  side_effect=lambda *a, **kw: summarize(snapshot(*rows), USER_ID)))
+                                  side_effect=lambda *a, **kw: summarize(snapshot(*rows), kw["actor_id"])))
         stack.enter_context(patch("apps.plans.expense_views.expense_service.create_expense", side_effect=create))
+        stack.enter_context(patch("apps.plans.expense_views.debts.notify", side_effect=notify))
         # Cualquier servicio externo olvidado falla: sólo se permite el servidor local del navegador.
         stack.enter_context(patch("apps.users.services.clients.http_client", side_effect=AssertionError("HTTP externo prohibido")))
         server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
@@ -230,7 +305,7 @@ def main():
                                 return reply.get("result", {})
 
                     cdp("Emulation.setDeviceMetricsOverride", {"width": width, "height": 900, "deviceScaleFactor": 1, "mobile": False})
-                    cdp("Page.navigate", {"url": f"http://127.0.0.1:{server.server_port}/fixture"})
+                    cdp("Page.navigate", {"url": f"http://127.0.0.1:{server.server_port}/fixture" + ("?open=expenses&keep=1#x" if debt_mode else "")})
                     raw = None
                     for _ in range(300):
                         raw = cdp("Runtime.evaluate", {"expression": "document.getElementById('browser-results')?.textContent", "returnByValue": True})["result"].get("value")

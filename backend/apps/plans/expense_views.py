@@ -2,11 +2,12 @@
 from django.http import Http404, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.debug import sensitive_variables
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.groups.services.exceptions import GroupNotFound, GroupUnavailable, InvalidGroup
 from apps.users.decorators import private_page, supabase_login_required
 from apps.users.services import session_service
+from apps.notifications import debts
 from .expense_forms import ExpenseForm
 from .services import expense_service
 from .services.exceptions import PlanNotFound, PlanUnavailable
@@ -43,4 +44,41 @@ def expenses(request, plan_id):
                 # La lectura posterior va en otro GET: un fallo al refrescar no reenvía el gasto.
                 return JsonResponse({"saved": True}, status=201)
         return render(request, "plans/expenses/form.html", {"form": form, "plan": plan}, status=400)
+    member_ids = {p["id"] for p in summary["members"]}
+    for transfer in summary["transfers"]:
+        transfer["can_notify"] = (transfer["to_id"] == request.planb_user["id"]
+                                  and transfer["from_id"] in member_ids)
     return render(request, "plans/expenses/panel.html", {"summary": summary, "form": form, "plan": plan})
+
+
+@private_page
+@require_POST
+@supabase_login_required
+@sensitive_variables()
+def notify_debt(request, plan_id):
+    if set(request.POST) - {"debtor_id", "csrfmiddlewaretoken"} or len(request.POST.getlist("debtor_id")) != 1:
+        return JsonResponse({"message": "Enviá únicamente el integrante a notificar."}, status=400)
+    token = session_service.get_access_token(request)
+    try:
+        _plan_and_group(request, plan_id)
+        debtor_id = expense_service.canonical_id(request.POST.get("debtor_id"))
+        summary = expense_service.get_summary(token, plan_id=plan_id, actor_id=request.planb_user["id"])
+        members = {p["id"] for p in summary["members"]}
+        if debtor_id not in members or not any(
+            t["from_id"] == debtor_id and t["to_id"] == request.planb_user["id"]
+            for t in summary["transfers"]
+        ):
+            return JsonResponse({"message": "Sólo el acreedor de una transferencia pendiente puede notificarla."}, status=403)
+        # La RPC revalida bajo locks: la deuda pudo cambiar desde la lectura anterior.
+        result = debts.notify(token, plan_id=plan_id, debtor_id=debtor_id)
+    except (PlanNotFound, GroupNotFound):
+        raise Http404("No encontramos ese plan.") from None
+    except (expense_service.InvalidExpense, debts.InvalidDebtReminder):
+        return JsonResponse({"message": "La transferencia ya no está disponible. Actualizá los gastos."}, status=409)
+    except (PlanUnavailable, GroupUnavailable, InvalidGroup, expense_service.ExpenseUnavailable,
+            debts.DebtReminderUnavailable):
+        return JsonResponse({"message": "No pudimos confirmar el aviso. Podés reintentar; los pendientes no se duplican."}, status=503)
+    name = result["debtor_username"]
+    message = (f"Notificación enviada a {name}." if result["created"] else
+               f"{name} ya tiene un recordatorio pendiente; se actualizó con el monto actual.")
+    return JsonResponse({"message": message, "created": result["created"]})

@@ -61,6 +61,11 @@
   dialog.querySelector("[data-close-expenses]").addEventListener("click", () => dialog.close());
   dialog.addEventListener("close", () => {
     document.body.style.overflow = previousOverflow;
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("open") === "expenses") {
+      url.searchParams.delete("open");
+      history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+    }
     opener.focus({preventScroll: true});
   });
   retry.addEventListener("click", () => load());
@@ -81,6 +86,29 @@
     }
   });
   content.addEventListener("submit", async event => {
+    const reminder = event.target.closest("[data-debt-reminder-form]");
+    if (reminder) {
+      event.preventDefault();
+      const button = reminder.querySelector("button[type='submit']");
+      if (button.disabled) return;
+      button.disabled = true;
+      reminder.setAttribute("aria-busy", "true");
+      const feedback = reminder.querySelector("[data-debt-reminder-status]");
+      feedback.textContent = "Enviando recordatorio…";
+      try {
+        const response = await fetch(reminder.action, {method: "POST", body: new FormData(reminder), credentials: "same-origin"});
+        if (response.redirected) throw new Error();
+        const result = await response.json();
+        if (typeof result.message !== "string") throw new Error();
+        feedback.textContent = result.message;
+      } catch {
+        feedback.textContent = "No pudimos confirmar el aviso. Podés reintentar; los pendientes no se duplican.";
+      } finally {
+        button.disabled = false;
+        reminder.removeAttribute("aria-busy");
+      }
+      return;
+    }
     const form = event.target.closest("[data-expense-form]");
     if (!form) return;
     event.preventDefault();
@@ -118,4 +146,5 @@
     }
     if (saved) await load(true);
   });
+  if (dialog.hasAttribute("data-auto-open")) opener.click();
 })();

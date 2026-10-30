@@ -12,17 +12,29 @@ from apps.groups.services.invitation_service import (
 )
 from apps.users.services import clients
 from apps.users.services.exceptions import SessionExpired
+from apps.plans.services.expense_service import derived_money
 
 PAGE_SIZE = 12
 
 
-def _plan_notification(row):
+def _plan_reference(row):
     item = {'plan_id': str(UUID(row['plan_id'])), 'plan_name': row['plan_name'],
             'plan_available': row['plan_available']}
-    scheduled = parse_datetime(row['scheduled_at'])
     if (not isinstance(item['plan_name'], str) or not item['plan_name']
-            or type(item['plan_available']) is not bool
-            or scheduled is None or timezone.is_naive(scheduled)):
+            or type(item['plan_available']) is not bool):
+        raise ValueError
+    if item['plan_available']:
+        item['group_id'] = str(UUID(row['group_id']))
+        item['group_name'] = row['group_name']
+        if not isinstance(item['group_name'], str):
+            raise ValueError
+    return item
+
+
+def _plan_notification(row):
+    item = _plan_reference(row)
+    scheduled = parse_datetime(row['scheduled_at'])
+    if scheduled is None or timezone.is_naive(scheduled):
         raise ValueError
     item['scheduled_at'] = timezone.localtime(scheduled)
     today = timezone.localdate()
@@ -30,11 +42,6 @@ def _plan_notification(row):
     item['day_label'] = ('Hoy' if day == today else
                          'Mañana' if day == today + timedelta(days=1) else
                          item['scheduled_at'].strftime('%d/%m/%Y'))
-    if item['plan_available']:
-        item['group_id'] = str(UUID(row['group_id']))
-        item['group_name'] = row['group_name']
-        if not isinstance(item['group_name'], str):
-            raise ValueError
     return item
 
 
@@ -84,6 +91,13 @@ def list_notifications(access_token, *, page=1):
                     raise ValueError
             elif item['type'] in ('plan_reminder', 'plan_confirmed'):
                 item.update(_plan_notification(row))
+            elif item['type'] == 'expense_debt_reminder':
+                item.update(_plan_reference(row))
+                item['creditor_id'] = str(UUID(row['creditor_id']))
+                item['creditor_username'] = row['creditor_username']
+                item['expense_amount'] = derived_money(row['expense_amount'])
+                if not isinstance(item['creditor_username'], str) or not item['creditor_username']:
+                    raise ValueError
             items.append(item)
         return {'items': items, 'page': page,
                 'previous_page': page - 1 if page > 1 else None,

@@ -1,5 +1,5 @@
 {% extends 'components/authenticated_base.html' %}
-{% load static %}
+{% load static expense_money %}
 {% block title %}Notificaciones · Plan B{% endblock %}
 {% block page_css %}<link rel="stylesheet" href="{% static 'users/css/notifications-social.css' %}?v=26">{% endblock %}
 {% block workspace %}
@@ -26,8 +26,8 @@
           <div class="pb-notifications__content">
             <div class="pb-notifications__card-top">
               <div>
-                <p class="pb-notifications__kind">{% if notification.type == 'group_invitation' %}INVITACIÓN A UN GRUPO{% elif notification.type == 'plan_reminder' %}RECORDATORIO{% elif notification.type == 'plan_confirmed' %}CONFIRMACIÓN{% else %}NOVEDAD{% endif %}</p>
-                <h2>{% if notification.type == 'group_invitation' %}{{ notification.group_name }}{% elif notification.type == 'plan_reminder' %}{{ notification.day_label }} · {{ notification.plan_name }}{% elif notification.type == 'plan_confirmed' %}Plan confirmado · {{ notification.plan_name }}{% else %}Nueva notificación{% endif %}</h2>
+                <p class="pb-notifications__kind">{% if notification.type == 'group_invitation' %}INVITACIÓN A UN GRUPO{% elif notification.type == 'plan_reminder' %}RECORDATORIO{% elif notification.type == 'plan_confirmed' %}CONFIRMACIÓN{% elif notification.type == 'expense_debt_reminder' %}GASTOS COMPARTIDOS{% else %}NOVEDAD{% endif %}</p>
+                <h2>{% if notification.type == 'group_invitation' %}{{ notification.group_name }}{% elif notification.type == 'plan_reminder' %}{{ notification.day_label }} · {{ notification.plan_name }}{% elif notification.type == 'plan_confirmed' %}Plan confirmado · {{ notification.plan_name }}{% elif notification.type == 'expense_debt_reminder' %}Saldo pendiente · {{ notification.plan_name }}{% else %}Nueva notificación{% endif %}</h2>
               </div>
               {% if not notification.read_at %}<span class="pb-notifications__unread">Sin leer</span>{% endif %}
             </div>
@@ -45,6 +45,15 @@
               {% else %}
                 <p class="pb-notifications__status">Invitación rechazada</p>
               {% endif %}
+            {% elif notification.type == 'expense_debt_reminder' %}
+              <p>Tenés pendiente pagar <strong>{{ notification.expense_amount|expense_money }}</strong> a <strong>{{ notification.creditor_username }}</strong>.</p>
+              <p class="pb-notifications__status">Saldo al momento del aviso. Consultá los gastos para ver las cuentas actuales.</p>
+              {% if notification.plan_available %}
+                <p>{{ notification.group_name }}</p>
+                <div class="pb-notifications__actions"><a class="button button--primary" href="{% url 'plans:detail' notification.plan_id %}?open=expenses">Ver gastos ↗</a></div>
+              {% else %}
+                <p class="pb-notifications__status">Ya no tenés acceso a este plan.</p>
+              {% endif %}
             {% elif notification.type == 'plan_reminder' or notification.type == 'plan_confirmed' %}
               {% if notification.type == 'plan_confirmed' %}
                 <p>El encuentro quedó confirmado para el <time datetime="{{ notification.scheduled_at|date:'c' }}">{{ notification.scheduled_at|date:'j \d\e F \d\e Y' }} a las {{ notification.scheduled_at|date:'H:i' }}</time>.</p>
@@ -61,7 +70,7 @@
             <div class="pb-notifications__meta">
               <time datetime="{{ notification.created_at|date:'c' }}" title="{{ notification.created_at|date:'d/m/Y H:i' }}">Hace {{ notification.created_at|timesince }}</time>
               {% if not notification.read_at %}
-                <form method="post" action="{% url 'notifications:mark_read' notification.id %}">{% csrf_token %}<button class="pb-notifications__mark" type="submit">Marcar como leída<span class="sr-only">: {% if notification.type == 'plan_reminder' or notification.type == 'plan_confirmed' %}{{ notification.plan_name }}{% else %}{{ notification.group_name }}{% endif %}</span></button></form>
+                <form method="post" action="{% url 'notifications:mark_read' notification.id %}">{% csrf_token %}<button class="pb-notifications__mark" type="submit">Marcar como leída<span class="sr-only">: {% if notification.plan_id %}{{ notification.plan_name }}{% else %}{{ notification.group_name }}{% endif %}</span></button></form>
               {% endif %}
             </div>
           </div>

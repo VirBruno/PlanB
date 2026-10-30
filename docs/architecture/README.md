@@ -41,6 +41,8 @@ OAuth, invitaciones, propuestas, preferencias ni algoritmo de compatibilidad.
 - [Validación](../testing/autenticacion.md): suite offline y límites de mocks/SQLite.
 - [Gastos compartidos](gastos-compartidos.md): modelo, reparto exacto, RPC/RLS,
   historial y popup; [prueba manual](../testing/gastos-compartidos.md).
+- [Notificaciones de deudas](notificaciones-deudas.md): acreedor real, fuente
+  común de transferencias, pendientes únicos y deep-link al popup.
 
 La suite offline no aplica SQL ni modifica infraestructura remota. Las pruebas
 reales de correo, Auth, RLS y concurrencia PostgreSQL se ejecutan únicamente en

@@ -23,7 +23,18 @@
     </tbody></table></div>
   </section>
   <section class="pb-expenses-settle"><h3>Para saldar</h3>
-    {% for transfer in summary.transfers %}<p><strong>{{ transfer.debtor }}</strong> debe <strong>{{ transfer.amount|expense_money }}</strong> a <strong>{{ transfer.creditor }}</strong></p>{% empty %}<p>¡Las cuentas están saldadas!</p>{% endfor %}
+    {% for transfer in summary.transfers %}
+    <div class="pb-expense-transfer">
+      <p><strong>{{ transfer.debtor }}</strong> debe <strong>{{ transfer.amount|expense_money }}</strong> a <strong>{{ transfer.creditor }}</strong></p>
+      {% if transfer.can_notify %}
+      <form method="post" action="{% url 'plans:notify_expense_debt' plan.id %}" data-debt-reminder-form>
+        {% csrf_token %}<input type="hidden" name="debtor_id" value="{{ transfer.from_id }}">
+        <button type="submit" class="button button--quiet">Notificar a {{ transfer.debtor }}</button>
+        <span role="status" aria-live="polite" data-debt-reminder-status></span>
+      </form>
+      {% endif %}
+    </div>
+    {% empty %}<p>¡Las cuentas están saldadas!</p>{% endfor %}
   </section>
   {% endif %}
 </div>

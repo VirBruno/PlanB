@@ -26,8 +26,25 @@ MEMBERS = [{"id": JUAN, "username": "Juan"}, {"id": MARTINA, "username": "Martin
 
 
 def snapshot(*expenses):
+    # Oráculo de fixtures del algoritmo anterior, sólo en tests. Producción usa SQL.
+    balances = {p["id"]: Decimal("0.00") for p in MEMBERS}
+    for row in expenses:
+        balances[row["paid_by"]] += Decimal(str(row["amount"]))
+        for part in row["participants"]:
+            balances[part["user_id"]] -= Decimal(part["share_amount"])
+    creditors = [[uid, value] for uid, value in sorted(balances.items()) if value > 0]
+    debtors = [[uid, -value] for uid, value in sorted(balances.items()) if value < 0]
+    transfers = []
+    i = j = 0
+    while i < len(debtors) and j < len(creditors):
+        value = min(debtors[i][1], creditors[j][1])
+        transfers.append({"from_id": debtors[i][0], "to_id": creditors[j][0], "amount": str(value)})
+        debtors[i][1] -= value
+        creditors[j][1] -= value
+        i += debtors[i][1] == 0
+        j += creditors[j][1] == 0
     return {"people": deepcopy(MEMBERS), "members": [{"id": p["id"]} for p in MEMBERS],
-            "expenses": list(expenses)}
+            "expenses": list(expenses), "transfers": transfers}
 
 
 def expense(amount="30000.00", payer=JUAN, parts=None, eid=EXPENSE, **kwargs):
@@ -111,8 +128,11 @@ class ExpenseCalculationTests(SimpleTestCase):
     def test_multiple_creditors_debtors_settle_deterministically(self):
         balances = {JUAN: Decimal("15000.00"), MARTINA: Decimal("5000.00"),
                     USER_ID: Decimal("-12000.00"), OUTSIDER: Decimal("-8000.00")}
-        transfers = service.settle_balances(balances)
-        self.assertEqual(transfers, service.settle_balances(dict(reversed(list(balances.items())))))
+        rows = [{"from_id": OUTSIDER, "to_id": JUAN, "amount": "8000.00"},
+                {"from_id": USER_ID, "to_id": JUAN, "amount": "7000.00"},
+                {"from_id": USER_ID, "to_id": MARTINA, "amount": "5000.00"}]
+        transfers = service.validate_transfers(balances, rows)
+        self.assertEqual(transfers, service.validate_transfers(dict(reversed(list(balances.items()))), rows))
         remaining = balances.copy()
         for transfer in transfers:
             remaining[transfer["from_id"]] += transfer["amount"]
@@ -123,7 +143,10 @@ class ExpenseCalculationTests(SimpleTestCase):
     def test_settlement_does_not_lose_cents(self):
         balances = {JUAN: Decimal("0.02"), MARTINA: Decimal("0.01"),
                     USER_ID: Decimal("-0.02"), OUTSIDER: Decimal("-0.01")}
-        self.assertEqual(sum(t["amount"] for t in service.settle_balances(balances)), Decimal("0.03"))
+        rows = [{"from_id": OUTSIDER, "to_id": JUAN, "amount": "0.01"},
+                {"from_id": USER_ID, "to_id": JUAN, "amount": "0.01"},
+                {"from_id": USER_ID, "to_id": MARTINA, "amount": "0.01"}]
+        self.assertEqual(sum(t["amount"] for t in service.validate_transfers(balances, rows)), Decimal("0.03"))
 
     def test_zero_part_is_valid_for_one_cent_split_three_ways(self):
         result = self.summary(expense("0.01", parts=[(JUAN, "0.01"), (MARTINA, "0.00"), (USER_ID, "0.00")]))
@@ -139,7 +162,7 @@ class ExpenseCalculationTests(SimpleTestCase):
 
     def test_unbalanced_settlement_is_rejected(self):
         with self.assertRaises(ValueError):
-            service.settle_balances({JUAN: Decimal("0.01")})
+            service.validate_transfers({JUAN: Decimal("0.01")}, [])
 
     def test_money_rejects_invalid_nonfinite_overflow_and_float(self):
         for value in ("NaN", "Infinity", "-Infinity", "0", "-1", "1000000000000", "0.001", "1.000", 0.1, True):

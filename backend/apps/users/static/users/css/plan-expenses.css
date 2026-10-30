@@ -44,6 +44,8 @@
 .pb-expenses-dialog th:first-child { text-align: left; }
 .pb-expenses-dialog th small { display: block; color: var(--muted); font-weight: 400; }
 .pb-expenses-settle p { background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 15px; }
+.pb-expense-transfer form { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 0 0 20px; }
+.pb-expense-transfer [data-debt-reminder-status] { color: var(--muted); font-size: .86rem; }
 .pb-expense-positive { color: #197554; }
 .pb-expense-negative { color: #aa4937; }
 html[data-theme='dark'] .pb-expense-positive { color: #8ae0bd; }

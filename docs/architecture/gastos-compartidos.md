@@ -13,9 +13,9 @@ membresías sólo expone la propia fila; las RPC pueden devolver las identidades
 del grupo tras verificar acceso. El detalle ya usa `<dialog>` para propuesta
 ideal; conserva calendario, propuestas, clima, decisiones y notificaciones.
 
-El MVP agrega crear, listar, calcular balances y proponer transferencias dentro
-de un popup. No agrega pantallas, edición, eliminación de gastos, estados del
-plan, pagos ni notificaciones de deuda.
+El primer bloque agrega crear, listar, calcular balances y proponer transferencias
+dentro de un popup. No agrega pantallas, edición, eliminación de gastos, estados
+del plan ni pagos. El segundo bloque agrega [notificaciones de deuda](notificaciones-deudas.md).
 
 ## Modelo y migración
 
@@ -86,7 +86,10 @@ no presenta un fallo como si no hubiera gastos. Acumula `Decimal`:
 - Balance = pagado − parte consumida. Positivo: tiene a favor; negativo: debe.
 - La suma de balances debe ser exactamente 0,00; si no, rechaza el resumen.
 
-Para saldar se ordenan deudores y acreedores por UUID ascendente. Se transfiere
+Desde el segundo bloque, Para saldar usa la fuente común de PostgreSQL
+`planb_private.plan_expense_transfers`, también usada para autorizar avisos.
+Python valida conservación de saldos sin producir otra solución. Se ordenan
+deudores y acreedores por UUID ascendente. Se transfiere
 el mínimo del saldo pendiente del deudor y del acreedor; se resta de ambos y se
 avanza cuando alguno queda en cero. Nadie paga ni recibe de más. Se conservan
 centavos y se llega exactamente a cero. Es determinístico; no busca el mínimo
@@ -131,8 +134,8 @@ operación. El formulario requiere JavaScript y un navegador con `<dialog>`.
 
 La lectura devuelve todo el historial del plan, sin truncado por el límite de
 filas de Data API al usar un único JSON. Para volúmenes grandes convendrá
-paginar el listado separando los agregados. No hay botón de notificación,
-edición, eliminación ni registro de saldos pagados en este MVP.
+paginar el listado separando los agregados. El segundo bloque permite avisos
+manuales sólo al acreedor; no hay edición, eliminación ni registro de saldos pagados.
 
 ## Archivos de implementación y pruebas
 
