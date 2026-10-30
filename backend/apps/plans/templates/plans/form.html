@@ -12,7 +12,7 @@
         <span class="pf-eyebrow"><span class="pf-sparkle" aria-hidden="true">✳</span> TODO EMPIEZA CON UNA IDEA</span>
         <h1 id="pf-heading">{% if is_edit %}Editá tu plan{% else %}¿Qué vamos a hacer?{% endif %}</h1>
         <p>{% if is_edit %}Actualizá los detalles para que tu grupo pueda organizarse.{% else %}Contá tu idea, elegí cuándo y dónde, y descubrí qué clima los espera.{% endif %}</p>
-        <span class="pf-group-note">Grupo: {{ group.name }}</span>
+        <span class="pf-group-note">{% include 'components/group_label.html' with group_id=group.id group_name=group.name only %}</span>
       </div>
       <div class="pf-form-wrap">
         <form method="post" class="auth-form pf-form pb-create-form" data-submit-form data-plan-create-form>

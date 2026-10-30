@@ -5,7 +5,7 @@
 </button>
 <dialog id="plan-expenses" class="pb-expenses-dialog" data-expenses-dialog data-url="{% url 'plans:expenses' plan.id %}" {% if request.GET.open == 'expenses' %}data-auto-open{% endif %} aria-labelledby="expenses-title">
   <header class="pb-expenses-header">
-    <div><span class="pb-expenses-kicker">CUENTAS CLARAS</span><h2 id="expenses-title">Gastos compartidos</h2><p>{{ plan.name }} · Grupo: {{ group.name }}</p></div>
+    <div><span class="pb-expenses-kicker">CUENTAS CLARAS</span><h2 id="expenses-title">Gastos compartidos</h2><p>{{ plan.name }} · {% include 'components/group_label.html' with group_id=group.id group_name=group.name only %}</p></div>
     <button type="button" class="pb-expenses-close" data-close-expenses aria-label="Cerrar gastos compartidos">×</button>
   </header>
   <p data-expenses-status role="status" aria-live="polite"></p>

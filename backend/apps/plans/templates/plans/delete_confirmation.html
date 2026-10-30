@@ -5,7 +5,7 @@
 <section class="group-panel pb-sprint-panel pb-sprint-danger" aria-labelledby="delete-title">
   <p class="eyebrow eyebrow--blue">CONFIRMAR CAMBIO</p>
   <h1 id="delete-title">¿Eliminar “{{ plan.name }}”?</h1>
-  <p class="pb-plan-group">Grupo: {{ group.name }}</p>
+  <p class="pb-plan-group">{% include 'components/group_label.html' with group_id=group.id group_name=group.name only %}</p>
   <p class="panel-description">Esta acción no se puede deshacer.</p>
   {% if error %}<div class="notice notice--error" role="alert">{{ error }}</div>{% endif %}
   <form method="post" action="{% url 'plans:delete' plan.id %}" class="group-actions">

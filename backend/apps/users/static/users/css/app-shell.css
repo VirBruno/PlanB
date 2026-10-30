@@ -15,6 +15,11 @@
 .pb-expenses-dialog .pb-user-avatar { width: 28px; height: 28px; flex-basis: 28px; font-size: 10px; margin-right: 5px; }
 .pb-expenses-dialog th .pb-user-avatar { width: 32px; height: 32px; }
 .pb-app-shell .pb-group-art { display: block; width: 86%; height: 86%; overflow: hidden; }
+.pb-app-shell .pb-group-mark { display: inline-grid; place-items: center; flex-shrink: 0; vertical-align: middle; overflow: hidden; }
+.pb-app-shell .pb-group-mark--inline { width: 24px; height: 24px; border-radius: 7px; background: #F1F3E8; margin-right: 4px; }
+.pb-app-shell .pb-group-mark--inline .pb-group-art { width: 100%; height: 100%; }
+.pb-app-shell .pb-calendar-event-group .pb-group-mark--inline { width: 16px; height: 16px; margin-right: 2px; }
+html[data-theme='dark'] .pb-app-shell .pb-group-mark--inline { background: #E7EBD9; }
 .pb-app-shell .pb-plan-group { display: block; width: fit-content; max-width: 100%;
   padding: 5px 9px; border: 1px solid #DDE5D6; border-radius: 9px;
   background: #F0F4EA; color: #355A42; font-size: 12px; font-weight: 700; overflow-wrap: anywhere; }

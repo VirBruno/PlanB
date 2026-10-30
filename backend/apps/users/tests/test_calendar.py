@@ -31,7 +31,7 @@ def meeting(**changes):
 def event(**changes):
     return {
         "id": PLAN_ID, "name": "Mates en el parque", "phase": "confirmed",
-        "status_label": "Confirmado", "group_name": "Amigos",
+        "status_label": "Confirmado", "group_name": "Amigos", "group_id": GROUP_ID,
         "starts_at": timezone.localtime(datetime(2026, 10, 26, 18, 30,
                                                 tzinfo=datetime_timezone.utc)),
         **changes,

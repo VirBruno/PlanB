@@ -1,7 +1,7 @@
 {% extends 'components/authenticated_base.html' %}
 {% load static %}
 {% block title %}{% if group %}{{ group.name }}{% else %}Tu grupo{% endif %} · Plan B{% endblock %}
-{% block page_css %}<link rel="stylesheet" href="{% static 'users/css/group-social.css' %}?v=12.3"><link rel="stylesheet" href="{% static 'users/css/plan-meet-cards.css' %}?v=5"><link rel="stylesheet" href="{% static 'users/css/meeting-agenda.css' %}?v=7"><link rel="stylesheet" href="{% static 'users/css/plan-phases.css' %}?v=9"><link rel="stylesheet" href="{% static 'users/css/grupos-editorial-16.css' %}?v=17">{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'users/css/group-social.css' %}?v=12.3"><link rel="stylesheet" href="{% static 'users/css/plan-meet-cards.css' %}?v=5"><link rel="stylesheet" href="{% static 'users/css/meeting-agenda.css' %}?v=7"><link rel="stylesheet" href="{% static 'users/css/plan-phases.css' %}?v=9"><link rel="stylesheet" href="{% static 'users/css/grupos-editorial-16.css' %}?v=18">{% endblock %}
 {% block breadcrumbs %}
   <a href="{% url 'users:dashboard' %}">Mi espacio</a><span aria-hidden="true">/</span>
   <a href="{% url 'groups:index' %}">Mis grupos</a><span aria-hidden="true">/</span>
@@ -13,21 +13,33 @@
     {% if unavailable %}
     <section class="group-social-panel group-social-error" aria-labelledby="group-title"><h1 id="group-title">No pudimos cargar el grupo.</h1><p>Esperá unos minutos y volvé a intentar.</p><a class="button button--primary" href="{{ retry_url|default:request.path }}">Volver a intentar</a></section>
     {% else %}
-    <header class="group-social-hero" aria-labelledby="group-title">
-      <div class="group-social-hero-main"><div class="group-social-avatar" aria-hidden="true">{{ group.name|first|upper }}</div><div class="group-social-identity"><span class="group-social-eyebrow">✦ TU COMUNIDAD</span><h1 id="group-title">{{ group.name }}</h1><p>{% if group.description %}{{ group.description }}{% else %}Un espacio para crear buenos momentos juntos.{% endif %}</p><div class="group-social-meta"><span>Tu rol: {{ group.role_label }}</span><span>Creado el {{ group.created_at|date:"d/m/Y" }}</span></div>
-      {% if not members_unavailable and members %}
-      <div class="pb-group-crew" aria-label="Personas que integran este grupo">
-        <span class="pb-group-crew__avatars" aria-hidden="true">
-          {% for person in members|slice:":4" %}{% include 'components/user_avatar.html' with user_id=person.id username=person.username scope='group' scope_id=group.id avatar_class='pb-group-crew__avatar' only %}{% endfor %}
-        </span>
-        <span class="pb-group-crew__caption">
-          <strong>{{ members|length }} {% if members|length == 1 %}integrante{% else %}integrantes{% endif %}</strong>
-          Tu gente, en un lugar
-        </span>
-        <a class="pb-group-crew__link" href="#integrantes-grupo">Ver integrantes <span aria-hidden="true">↗</span></a>
+    <header class="group-social-hero pb-group-header" aria-labelledby="group-title">
+      <div class="group-social-hero-main">
+        {% include 'components/group_identity.html' with group_id=group.id mark_class='group-social-avatar' only %}
+        <div class="group-social-identity">
+          <span class="group-social-eyebrow">TU COMUNIDAD</span>
+          <h1 id="group-title">{{ group.name }}</h1>
+          <p>{% if group.description %}{{ group.description }}{% else %}Un espacio para crear buenos momentos juntos.{% endif %}</p>
+        </div>
       </div>
-      {% endif %}</div></div>
-      <a class="group-social-primary" href="{% url 'groups:plan_create' group.id %}"><span aria-hidden="true">＋</span> Nuevo plan</a>
+      <div class="pb-group-header-footer">
+        <div class="pb-group-header-details">
+          {% if not members_unavailable %}
+          <div class="pb-group-crew" aria-label="Personas que integran este grupo">
+            <span class="pb-group-crew__avatars" aria-hidden="true">{% for person in members|slice:":4" %}{% include 'components/user_avatar.html' with user_id=person.id username=person.username scope='group' scope_id=group.id avatar_class='pb-group-crew__avatar' only %}{% endfor %}</span>
+            <span class="pb-group-crew__caption"><strong>{{ members|length }} {% if members|length == 1 %}integrante{% else %}integrantes{% endif %}</strong></span>
+          </div>
+          {% else %}<p class="pb-group-header-status">Integrantes no disponibles</p>{% endif %}
+          <dl class="pb-group-facts">
+            <div><dt>Tu rol</dt><dd>{{ group.role_label|default:'Miembro' }}</dd></div>
+            <div><dt>Creado el</dt><dd>{{ group.created_at|date:"d/m/Y" }}</dd></div>
+          </dl>
+        </div>
+        <div class="pb-group-header-actions">
+          <a class="group-social-primary" href="{% url 'groups:plan_create' group.id %}"><span aria-hidden="true">＋</span> Nuevo plan</a>
+          <a class="pb-group-crew__link" href="#integrantes-grupo">Ver integrantes <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
     </header>
     <nav class="group-social-tabs" aria-label="Contenido del grupo"><a class="is-current" href="#planes-grupo">Planes</a><a href="#integrantes-grupo">Integrantes</a>{% if group.role == 'owner' %}<a href="#administracion-grupo">Administración</a>{% endif %}</nav>
     <div class="group-social-columns">

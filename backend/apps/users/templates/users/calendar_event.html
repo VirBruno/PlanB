@@ -2,5 +2,5 @@
   <time datetime="{{ event.starts_at|date:'c' }}">{{ event.starts_at|date:"H:i" }}</time>
   <strong>{{ event.name }}</strong>
   <span class="pb-calendar-event-status">{{ event.status_label }}</span>
-  <span class="pb-calendar-event-group">Grupo: {{ event.group_name }}</span>
+  <span class="pb-calendar-event-group">{% include 'components/group_label.html' with group_id=event.group_id group_name=event.group_name only %}</span>
 {% if calendar_selectable %}</span>{% else %}</a>{% endif %}

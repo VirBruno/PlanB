@@ -1,4 +1,5 @@
-<svg class="pb-group-art" viewBox="0 0 48 48" fill="none" aria-hidden="true" focusable="false">
+{% load group_identity %}{% with variant=group_id|group_variant %}
+<svg class="pb-group-art" data-group-variant="{{ variant }}" viewBox="0 0 48 48" fill="none" aria-hidden="true" focusable="false">
   {% if variant|divisibleby:3 %}
   <path d="M8 10h17v17H8z" fill="#C7B3EE"/><circle cx="29" cy="29" r="12" fill="#F4D06F"/><path d="m10 35 24-24" stroke="#1F4D3A" stroke-width="5" stroke-linecap="round"/>
   {% elif variant|divisibleby:2 %}
@@ -7,3 +8,4 @@
   <circle cx="17" cy="18" r="11" fill="#A7C957"/><rect x="25" y="7" width="15" height="28" rx="7" fill="#C7B3EE"/><path d="M8 32h32" stroke="#1F4D3A" stroke-width="5" stroke-linecap="round"/><circle cx="30" cy="33" r="7" fill="#F4D06F"/>
   {% endif %}
 </svg>
+{% endwith %}
