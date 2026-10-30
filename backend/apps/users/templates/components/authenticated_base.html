@@ -1,9 +1,10 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block extra_css %}<link rel="stylesheet" href="{% static 'users/css/group-transitions.css' %}">{% endblock %}
-{% block shell_css %}<link rel="stylesheet" href="{% static 'users/css/dashboard-social.css' %}"><link rel="stylesheet" href="{% static 'users/css/app-shell.css' %}?v=13"><link rel="stylesheet" href="{% static 'users/css/workspace-polish.css' %}?v=30_1"><link rel="stylesheet" href="{% static 'users/css/responsive-polish.css' %}?v=13"><link rel="stylesheet" href="{% static 'users/css/ui-finish.css' %}?v=13"><link rel="stylesheet" href="{% static 'users/css/sprint1-finish.css' %}?v=1"><link rel="stylesheet" href="{% static 'users/css/planb-ux-states.css' %}?v=1"><link rel="stylesheet" href="{% static 'users/css/theme-switch-sidebar.css' %}?v=24_4"><link rel="stylesheet" href="{% static 'users/css/identity-brand.css' %}?v=1"><link rel="stylesheet" href="{% static 'users/css/dashboard-social-12.css' %}?v=29">{% endblock %}
+{% block shell_css %}<link rel="stylesheet" href="{% static 'users/css/dashboard-social.css' %}"><link rel="stylesheet" href="{% static 'users/css/app-shell.css' %}?v=14"><link rel="stylesheet" href="{% static 'users/css/workspace-polish.css' %}?v=30_1"><link rel="stylesheet" href="{% static 'users/css/responsive-polish.css' %}?v=13"><link rel="stylesheet" href="{% static 'users/css/ui-finish.css' %}?v=13"><link rel="stylesheet" href="{% static 'users/css/sprint1-finish.css' %}?v=1"><link rel="stylesheet" href="{% static 'users/css/planb-ux-states.css' %}?v=1"><link rel="stylesheet" href="{% static 'users/css/theme-switch-sidebar.css' %}?v=24_4"><link rel="stylesheet" href="{% static 'users/css/identity-brand.css' %}?v=1"><link rel="stylesheet" href="{% static 'users/css/dashboard-social-12.css' %}?v=29">{% endblock %}
 {% block body %}
-<div class="social-dashboard social-dashboard-v2 pb-app-shell">
+<script src="{% static 'users/js/avatars.js' %}?v=1" defer></script>
+<div class="social-dashboard social-dashboard-v2 pb-app-shell" data-avatar-endpoint="{% url 'users:avatars' %}">
   {% include 'components/app_sidebar.html' %}
   <main class="dashboard-main social-dashboard-content pb-app-content" id="contenido">
     <div class="social-topbar pb-app-topbar">
@@ -19,7 +20,7 @@
       </nav>
       <div class="pb-header-actions">
         <a href="{% url 'notifications:index' %}" aria-label="{% if notifications_badge_unavailable %}Notificaciones (contador no disponible){% elif notifications_unread %}Notificaciones: {{ notifications_unread }} sin leer{% else %}Notificaciones{% endif %}" title="Notificaciones"><svg class="pb-header-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>{% if notifications_unread %}<span class="pb-notification-dot" aria-hidden="true"></span>{% endif %}</a>
-        <a href="{% url 'users:profile' %}" aria-label="Mi perfil" title="Mi perfil"><svg class="pb-header-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="9" r="3"/><path d="M5.6 19a7 7 0 0 1 12.8 0"/></svg></a>
+        <a href="{% url 'users:profile' %}" aria-label="Mi perfil" title="Mi perfil · {{ planb_user.username }}">{% include 'components/user_avatar.html' with username=planb_user.username scope='self' avatar_class='pb-user-avatar--header' only %}</a>
       </div>
     </div>
     {% include 'components/messages.html' %}

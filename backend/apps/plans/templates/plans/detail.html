@@ -256,7 +256,7 @@
       {% if champion_id %}<p class="proposal-champion">Propuesta campeona: <strong>{{ leaderboard.0.tittle }}</strong></p>{% endif %}
       <ol class="proposal-ranking">
         {% for proposal in leaderboard %}
-        <li{% if proposal.id == champion_id %} class="is-champion"{% endif %}><span class="proposal-ranking-place">{{ forloop.counter }}</span><span class="proposal-ranking-name">{{ proposal.tittle }}<small>{{ proposal.creator_username }}</small></span><strong>{{ proposal.votes }} voto{{ proposal.votes|pluralize }}</strong></li>
+        <li{% if proposal.id == champion_id %} class="is-champion"{% endif %}><span class="proposal-ranking-place">{{ forloop.counter }}</span><span class="proposal-ranking-name">{{ proposal.tittle }}<small>{% include 'components/user_avatar.html' with user_id=proposal.created_by username=proposal.creator_username scope='plan' scope_id=plan.id only %} {{ proposal.creator_username }}</small></span><strong>{{ proposal.votes }} voto{{ proposal.votes|pluralize }}</strong></li>
         {% endfor %}
       </ol>
     </section>
@@ -266,7 +266,7 @@
       {% if champion_id %}<p class="proposal-champion">Propuesta campeona: <strong>{{ leaderboard.0.tittle }}</strong></p>{% endif %}
       <ol class="proposal-ranking">
         {% for proposal in leaderboard %}
-        <li{% if proposal.id == champion_id %} class="is-champion"{% endif %}><span class="proposal-ranking-place">{{ forloop.counter }}</span><span class="proposal-ranking-name">{{ proposal.tittle }}<small>{{ proposal.creator_username }}</small></span><strong>{% if election_method == 'votes' %}{{ proposal.votes }} voto{{ proposal.votes|pluralize }}{% else %}{{ proposal.Score }} pts{% endif %}</strong></li>
+        <li{% if proposal.id == champion_id %} class="is-champion"{% endif %}><span class="proposal-ranking-place">{{ forloop.counter }}</span><span class="proposal-ranking-name">{{ proposal.tittle }}<small>{% include 'components/user_avatar.html' with user_id=proposal.created_by username=proposal.creator_username scope='plan' scope_id=plan.id only %} {{ proposal.creator_username }}</small></span><strong>{% if election_method == 'votes' %}{{ proposal.votes }} voto{{ proposal.votes|pluralize }}{% else %}{{ proposal.Score }} pts{% endif %}</strong></li>
         {% endfor %}
       </ol>
       {% if election_method == 'combat' %}
@@ -294,7 +294,7 @@
           <div>
             <span class="proposal-type">{{ proposal.type|capfirst }}</span>
             <h3>{{ proposal.tittle }}</h3>
-            <p class="proposal-author">Propuesta por <strong>{{ proposal.creator_username }}</strong></p>
+            <p class="proposal-author">{% include 'components/user_avatar.html' with user_id=proposal.created_by username=proposal.creator_username scope='plan' scope_id=plan.id only %} Propuesta por <strong>{{ proposal.creator_username }}</strong></p>
           </div>
           {% if proposal.can_manage and not plan.selected_proposal_id %}
           <div class="proposal-actions">

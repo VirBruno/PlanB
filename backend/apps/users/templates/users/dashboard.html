@@ -21,7 +21,7 @@
         <div class="pb-hero-group-list">
           {% for group in groups_page.items|slice:":2" %}
             <a class="pb-hero-group-link" href="{% url 'groups:detail' group.id %}">
-              <span class="pb-hero-group-initial" aria-hidden="true">{{ group.name|first|upper }}</span>
+              <span class="pb-hero-group-initial" aria-hidden="true">{% include 'components/group_art.html' with variant=forloop.counter only %}</span>
               <span class="pb-hero-group-name">{{ group.name }}</span>
               <span class="pb-hero-group-chevron" aria-hidden="true">↗</span>
             </a>
@@ -50,7 +50,7 @@
       {% for group in groups_page.items %}
         <li class="social-group-item">
           <a class="social-group-card" href="{% url 'groups:detail' group.id %}" aria-label="Abrir grupo {{ group.name }}">
-            <span class="social-group-avatar" aria-hidden="true">{{ group.name|first|upper }}</span>
+            <span class="social-group-avatar" aria-hidden="true">{% include 'components/group_art.html' with variant=forloop.counter only %}</span>
             <span class="social-group-content"><strong>{{ group.name }}</strong><span>{% if group.description %}{{ group.description|truncatechars:105 }}{% else %}Un espacio para compartir nuevos planes.{% endif %}</span><small>Creado el {{ group.created_at|date:"d/m/Y" }}</small></span>
             <span class="social-group-chevron" aria-hidden="true">↗</span><span class="pb-card-entry" aria-hidden="true">Entrar al grupo</span>
           </a>

@@ -22,7 +22,7 @@
     <ul class="pb-notifications__list">
       {% for notification in notifications_page.items %}
         <li class="pb-notifications__card{% if not notification.read_at %} pb-notifications__card--unread{% endif %}">
-          <div class="pb-notifications__icon" aria-hidden="true">{% if notification.type == 'group_invitation' %}✉{% else %}✦{% endif %}</div>
+          <div class="pb-notifications__icon" aria-hidden="true">{% if notification.type == 'group_invitation' %}{% include 'components/user_avatar.html' with scope='notification' scope_id=notification.id username=notification.inviter_username avatar_class='pb-user-avatar--notice' only %}{% elif notification.type == 'expense_debt_reminder' %}{% include 'components/user_avatar.html' with scope='notification' scope_id=notification.id username=notification.creditor_username avatar_class='pb-user-avatar--notice' only %}{% else %}✦{% endif %}</div>
           <div class="pb-notifications__content">
             <div class="pb-notifications__card-top">
               <div>
@@ -31,6 +31,7 @@
               </div>
               {% if not notification.read_at %}<span class="pb-notifications__unread">Sin leer</span>{% endif %}
             </div>
+            {% if notification.plan_id %}<p class="pb-plan-group">Grupo: {{ notification.group_name|default:'No disponible' }}</p>{% endif %}
             {% if notification.type == 'group_invitation' %}
               {% if notification.status == 'pending' %}
                 <p><strong>{{ notification.inviter_username }}</strong> te invitó a unirte al grupo. ¿Te sumás?</p>
@@ -49,7 +50,6 @@
               <p>Tenés pendiente pagar <strong>{{ notification.expense_amount|expense_money }}</strong> a <strong>{{ notification.creditor_username }}</strong>.</p>
               <p class="pb-notifications__status">Saldo al momento del aviso. Consultá los gastos para ver las cuentas actuales.</p>
               {% if notification.plan_available %}
-                <p>{{ notification.group_name }}</p>
                 <div class="pb-notifications__actions"><a class="button button--primary" href="{% url 'plans:detail' notification.plan_id %}?open=expenses">Ver gastos ↗</a></div>
               {% else %}
                 <p class="pb-notifications__status">Ya no tenés acceso a este plan.</p>
@@ -61,7 +61,6 @@
                 <p>El encuentro es a las <time datetime="{{ notification.scheduled_at|date:'c' }}">{{ notification.scheduled_at|date:'H:i' }}</time>.</p>
               {% endif %}
               {% if notification.plan_available %}
-                <p>{{ notification.group_name }}</p>
                 <div class="pb-notifications__actions"><a class="button button--primary" href="{% url 'plans:detail' notification.plan_id %}">Ver plan ↗</a></div>
               {% else %}
                 <p class="pb-notifications__status">Ya no tenés acceso a este plan.</p>

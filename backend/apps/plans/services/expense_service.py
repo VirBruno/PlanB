@@ -126,13 +126,13 @@ def summarize(snapshot, actor_id):
             seen.add(uid)
             share = money(part["share_amount"])
             people[uid]["share"] += share
-            shares.append({"username": people[uid]["username"], "share_amount": share})
+            shares.append({"user_id": uid, "username": people[uid]["username"], "share_amount": share})
         if not seen or sum((part["share_amount"] for part in shares), ZERO) != amount:
             raise ValueError
         people[payer]["paid"] += amount
         total += amount
         expenses.append({"id": eid, "description": description, "amount": amount,
-                         "payer": people[payer]["username"], "created_at": created_at,
+                         "payer": people[payer]["username"], "payer_id": payer, "created_at": created_at,
                          "participants": shares})
     balances = {}
     for uid, person in people.items():

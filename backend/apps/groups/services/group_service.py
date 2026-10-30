@@ -13,6 +13,30 @@ PAGE_SIZE = 12
 COLUMNS = "id,name,description,created_by,created_at,updated_at"
 
 
+@sensitive_variables()
+def names_for_ids(access_token, group_ids):
+    """Una lectura por lote con JWT/RLS para contextualizar planes fuera del grupo."""
+    if not access_token:
+        raise SessionExpired()
+    try:
+        ids = sorted({str(UUID(str(value))) for value in group_ids if value})
+        if not ids:
+            return {}
+        with clients.public_client(access_token=access_token) as client:
+            rows = client.table("groups").select("id,name").in_("id", ids).execute().data
+        if not isinstance(rows, list):
+            raise ValueError
+        result = {}
+        for row in rows:
+            uid = str(UUID(row["id"]))
+            if uid not in ids or not isinstance(row["name"], str):
+                raise ValueError
+            result[uid] = row["name"]
+        return result
+    except Exception as error:
+        _translate(error)
+
+
 def _group(row):
     # Lista explícita: no entregar respuestas arbitrarias del proveedor al template.
     result = {key: row[key] for key in COLUMNS.split(",")}

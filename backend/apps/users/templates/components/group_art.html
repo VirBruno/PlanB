@@ -1,0 +1,9 @@
+<svg class="pb-group-art" viewBox="0 0 48 48" fill="none" aria-hidden="true" focusable="false">
+  {% if variant|divisibleby:3 %}
+  <path d="M8 10h17v17H8z" fill="#C7B3EE"/><circle cx="29" cy="29" r="12" fill="#F4D06F"/><path d="m10 35 24-24" stroke="#1F4D3A" stroke-width="5" stroke-linecap="round"/>
+  {% elif variant|divisibleby:2 %}
+  <path d="M7 31C15 12 24 44 41 18M7 21C15 2 24 34 41 8" stroke="#1F4D3A" stroke-width="5" stroke-linecap="round"/><path d="M7 41C15 22 24 54 41 28" stroke="#A7C957" stroke-width="5" stroke-linecap="round"/>
+  {% else %}
+  <circle cx="17" cy="18" r="11" fill="#A7C957"/><rect x="25" y="7" width="15" height="28" rx="7" fill="#C7B3EE"/><path d="M8 32h32" stroke="#1F4D3A" stroke-width="5" stroke-linecap="round"/><circle cx="30" cy="33" r="7" fill="#F4D06F"/>
+  {% endif %}
+</svg>

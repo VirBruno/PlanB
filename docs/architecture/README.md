@@ -34,6 +34,9 @@ OAuth, invitaciones, propuestas, preferencias ni algoritmo de compatibilidad.
 
 ## Decisiones y guías
 
+- [Avatares visibles y contexto de grupo](avatares-visibles.md): fotos privadas
+  compartidas entre identidades autorizadas, carga por lotes y etiquetas de grupo.
+
 - [Autenticación con Supabase](autenticacion-supabase.md): privilegios, clientes,
   confirmación, login, logout y configuración manual de passwords.
 - [Esquema de datos](esquema-datos.md): constraints, grants, RLS, sesiones,

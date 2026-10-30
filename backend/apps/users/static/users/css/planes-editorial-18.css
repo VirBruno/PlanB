@@ -42,6 +42,7 @@
 .pb-app-shell .pb-plans-wrap .pb-plan-info{display:flex;flex-direction:column;gap:8px;min-width:0;flex:1}
 .pb-app-shell .pb-plans-wrap .pb-plan-info strong{font-size:clamp(19px,2vw,27px);letter-spacing:-.04em;line-height:1.2;color:#1F4D3A;overflow-wrap:anywhere}
 .pb-app-shell .pb-plans-wrap .pb-plan-info>span{font-size:13px;line-height:1.5;color:#526E5C}
+.pb-app-shell .pb-plans-wrap .pb-plan-info .pb-plan-group{display:block;overflow:visible;white-space:normal;-webkit-line-clamp:unset;line-clamp:unset}
 .pb-app-shell .pb-plans-wrap .pb-plan-info small{margin-top:auto;padding-top:13px;color:#63786A;font-size:11px}
 .pb-app-shell .pb-plans-wrap .pb-plan-card-end{display:flex;flex-direction:column;align-items:flex-end;gap:15px;flex-shrink:0}
 .pb-app-shell .pb-plans-wrap .pb-plan-card-arrow{color:#1F4D3A;font-size:20px}
@@ -74,6 +75,12 @@ html[data-theme=dark] .pb-app-shell .pb-plans-wrap .pb-plan-meet-chip{background
 @media(max-width:900px){.pb-app-shell .pb-plans-wrap .pb-plan-overview{grid-template-columns:repeat(2,minmax(0,1fr))}.pb-app-shell .pb-plans-wrap .pb-plan-grid{grid-template-columns:1fr 1fr}.pb-app-shell .pb-plans-wrap .pb-plan-card{padding:20px}.pb-app-shell .pb-plans-wrap .pb-plan-card-end{flex-direction:column}.pb-app-shell .pb-plans-wrap .pb-plan-info strong{font-size:20px}}
 @media(max-width:650px){.pb-app-shell .pb-plans-heading{align-items:start;flex-direction:column;min-height:0;padding-bottom:24px;gap:16px}.pb-app-shell .pb-plans-heading h1{font-size:48px}.pb-app-shell .pb-plans-wrap .pb-plan-overview{grid-template-columns:1fr 1fr;gap:10px}.pb-app-shell .pb-plan-overview-item{grid-template-columns:1fr;min-height:110px;padding:16px;gap:7px}.pb-app-shell .pb-plan-overview-item:last-child{grid-column:1/-1;min-height:0}.pb-app-shell .pb-overview-symbol{display:none}.pb-app-shell .pb-plan-overview-item small{grid-column:1}.pb-app-shell .pb-plans-wrap .pb-plan-filter-toolbar{padding:13px}.pb-app-shell .pb-plans-wrap .pb-plan-grid{grid-template-columns:1fr}.pb-app-shell .pb-plans-wrap .pb-plan-card{min-height:180px;padding:19px;flex-wrap:wrap}.pb-app-shell .pb-plans-wrap .pb-plan-card-end{margin-left:auto}.pb-app-shell .pb-plan-state-heading{align-items:start}.pb-app-shell .pb-plan-state-heading p{width:100%}.pb-app-shell .pb-plans-wrap .pb-plan-filter-buttons>button[data-plan-filter]{flex:0 0 auto;padding:10px}.pb-app-shell .pb-plans-wrap .pb-plan-info strong{font-size:21px}}
 @media(prefers-reduced-motion:reduce){.pb-app-shell .pb-plans-wrap .pb-plan-card,.pb-app-shell .pb-plans-heading .pb-soft-action{transition:none}.pb-app-shell .pb-plans-wrap .pb-plan-card:hover,.pb-app-shell .pb-plans-heading .pb-soft-action:hover{transform:none}}
+@media(max-width:650px){
+  .pb-app-shell .pb-plans-wrap .pb-plan-card{display:grid;grid-template-columns:36px minmax(0,1fr);gap:12px;align-content:start}
+  .pb-app-shell .pb-plans-wrap .pb-plan-icon{width:36px;height:36px;font-size:20px;border-radius:12px}
+  .pb-app-shell .pb-plans-wrap .pb-plan-info{grid-column:2;width:100%}
+  .pb-app-shell .pb-plans-wrap .pb-plan-card-end{grid-column:1/-1;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between;margin:4px 0 0;width:100%}
+}
 
 
 /* Etapa 18.1 — Alineación del lienzo y navegación con la identidad aprobada.

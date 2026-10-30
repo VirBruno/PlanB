@@ -1,0 +1,1 @@
+<span class="pb-user-avatar {{ avatar_class }}" data-user-avatar data-avatar-scope="{{ scope|default:'self' }}" data-avatar-context="{{ scope_id|default:'' }}" data-avatar-user="{{ user_id|default:'' }}" {% if scope == 'search' %}data-avatar-username="{{ username }}"{% endif %} aria-hidden="true"><span data-avatar-fallback>{{ username|default:'?'|slice:':2'|upper }}</span></span>
