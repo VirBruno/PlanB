@@ -1,0 +1,18 @@
+<form method="post" action="{% url 'plans:expenses' plan.id %}" data-expense-form>
+  {% csrf_token %}
+  <h3>Agregar gasto</h3>
+  {% if form.errors %}<div class="pb-expenses-errors" role="alert" tabindex="-1" data-expense-errors>Revisá los datos del gasto.{{ form.non_field_errors }}</div>{% endif %}
+  <div class="pb-expense-fields">
+    <div><label for="{{ form.description.id_for_label }}">Concepto</label>{{ form.description }}{{ form.description.errors }}</div>
+    <div><label for="{{ form.amount.id_for_label }}">Monto</label>{{ form.amount }}{{ form.amount.errors }}<small>Pesos argentinos. Ej.: 30.000 o 30.000,50.</small></div>
+    <div><label for="{{ form.paid_by.id_for_label }}">Pagó</label>{{ form.paid_by }}{{ form.paid_by.errors }}</div>
+  </div>
+  <fieldset class="pb-expense-participants">
+    <legend>Se divide entre</legend>
+    <label class="pb-expense-all">{{ form.all_group }} TODO EL GRUPO</label>
+    <p>Incluye a todos los integrantes actuales, incluido el administrador.</p>
+    {{ form.participants }}{{ form.participants.errors }}
+  </fieldset>
+  <p class="pb-expenses-note">En partes iguales. Quien paga puede no participar del reparto.</p>
+  <div class="pb-expenses-actions"><button type="button" class="button button--quiet" data-cancel-expense>Cancelar</button><button type="submit" class="button button--primary">Guardar gasto</button></div>
+</form>

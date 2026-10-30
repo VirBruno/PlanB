@@ -1,0 +1,29 @@
+{% load expense_money %}
+<div data-expense-summary="{{ summary.total|expense_money }} gastados · {{ summary.count }} gasto{{ summary.count|pluralize:'s' }} registrado{{ summary.count|pluralize:'s' }}">
+  <div class="pb-expenses-overview">
+    <div><span>Total gastado</span><strong>{{ summary.total|expense_money }}</strong></div>
+    <div><span>Tu balance</span><strong class="{% if summary.own_balance > 0 %}pb-expense-positive{% elif summary.own_balance < 0 %}pb-expense-negative{% endif %}">{{ summary.own_balance|expense_balance }}</strong><small>{% if summary.own_balance > 0 %}Tenés dinero a favor{% elif summary.own_balance < 0 %}Te corresponde saldar{% else %}Estás al día{% endif %}</small></div>
+  </div>
+  <section data-expense-editor hidden>{% include 'plans/expenses/form.html' %}</section>
+  <section class="pb-expenses-list" data-expense-list>
+    <div class="pb-expenses-section-head"><h3>Gastos <small>{{ summary.count }}</small></h3><button type="button" class="button button--primary" data-add-expense>+ {% if summary.count %}Agregar gasto{% else %}Agregar primer gasto{% endif %}</button></div>
+    {% if not summary.count %}<p class="pb-expenses-empty">Aún no hay gastos compartidos en este plan.</p>{% endif %}
+    {% for expense in summary.expenses %}
+    <article class="pb-expenses-row">
+      <div><h4>{{ expense.description }}</h4><p>Pagó {{ expense.payer }} · {{ expense.created_at|date:'d/m/Y H:i' }}</p>
+        <details><summary>Ver reparto</summary><ul>{% for participant in expense.participants %}<li>{{ participant.username }} <strong>{{ participant.share_amount|expense_money }}</strong></li>{% endfor %}</ul></details>
+      </div><strong>{{ expense.amount|expense_money }}</strong>
+    </article>
+    {% endfor %}
+  </section>
+  {% if summary.count %}
+  <section class="pb-expenses-people"><h3>Pagado por y balances</h3><p class="pb-expenses-note">Balance = pagado − parte que le correspondía. Positivo: tiene a favor; negativo: debe saldar.</p>
+    <div class="pb-expenses-table-scroll"><table><thead><tr><th>Integrante</th><th>Pagado</th><th>Le correspondía</th><th>Balance</th></tr></thead><tbody>
+      {% for person in summary.people %}<tr><th scope="row">{{ person.username }}{% if not person.current_member %}<small>Exintegrante</small>{% endif %}</th><td>{{ person.paid|expense_money }}</td><td>{{ person.share|expense_money }}</td><td class="{% if person.balance > 0 %}pb-expense-positive{% elif person.balance < 0 %}pb-expense-negative{% endif %}">{{ person.balance|expense_balance }}</td></tr>{% endfor %}
+    </tbody></table></div>
+  </section>
+  <section class="pb-expenses-settle"><h3>Para saldar</h3>
+    {% for transfer in summary.transfers %}<p><strong>{{ transfer.debtor }}</strong> debe <strong>{{ transfer.amount|expense_money }}</strong> a <strong>{{ transfer.creditor }}</strong></p>{% empty %}<p>¡Las cuentas están saldadas!</p>{% endfor %}
+  </section>
+  {% endif %}
+</div>

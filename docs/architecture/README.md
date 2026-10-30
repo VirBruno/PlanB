@@ -39,6 +39,8 @@ OAuth, invitaciones, propuestas, preferencias ni algoritmo de compatibilidad.
 - [Esquema de datos](esquema-datos.md): constraints, grants, RLS, sesiones,
   aislamiento del esquema y orden de migraciones.
 - [Validación](../testing/autenticacion.md): suite offline y límites de mocks/SQLite.
+- [Gastos compartidos](gastos-compartidos.md): modelo, reparto exacto, RPC/RLS,
+  historial y popup; [prueba manual](../testing/gastos-compartidos.md).
 
 La suite offline no aplica SQL ni modifica infraestructura remota. Las pruebas
 reales de correo, Auth, RLS y concurrencia PostgreSQL se ejecutan únicamente en

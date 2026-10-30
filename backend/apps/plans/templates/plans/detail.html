@@ -14,8 +14,10 @@
   <link rel="stylesheet" href="{% static 'users/css/plan-detail-weather-focus.css' %}?v=6">
   <link rel="stylesheet" href="{% static 'users/css/planb-proposals-polish.css' %}?v=3">
   <link rel="stylesheet" href="{% static 'users/css/plan-detail-social.css' %}?v=27">
+  <link rel="stylesheet" href="{% static 'users/css/plan-expenses.css' %}?v=1">
 {% endblock %}
 {% block extra_js %}
+  <script src="{% static 'users/js/plan-expenses.js' %}?v=1" defer></script>
   <script src="{% static 'users/js/plan-weather-planner.js' %}?v=1" defer></script>
   <script src="{% static 'users/js/plan-schedule.js' %}?v=1" defer></script>
   {% if proposals %}
@@ -181,6 +183,7 @@
       {% if plan.scheduled_at %}<p class="pb-decision-note">La fecha y localidad del plan son una <strong>preferencia tentativa</strong>, no una decisión del grupo.</p>{% endif %}
     {% endif %}
   </section>
+  {% include 'plans/expenses/modal.html' %}
   <section class="proposals-section pb-plan-proposals" aria-labelledby="proposals-title">
     <div class="section-heading pb-proposals-heading">
       <div><p class="pb-proposals-kicker">IDEAS DEL GRUPO</p><h2 id="proposals-title">Propuestas <span class="pb-proposals-count">{{ proposals|length }}</span></h2><p class="pb-proposals-subtitle">{% if plan.selected_proposal_id %}El encuentro está confirmado; reabrí la decisión para cambiar alternativas.{% else %}Explorá las alternativas que compartieron los integrantes.{% endif %}</p></div>

@@ -1,0 +1,15 @@
+<button type="button" class="pb-expense-card" data-open-expenses aria-haspopup="dialog" aria-controls="plan-expenses">
+  <span class="pb-expense-card-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><ellipse cx="9" cy="6" rx="6" ry="3"/><path d="M3 6v4c0 1.7 2.7 3 6 3m-6-3v4c0 1.7 2.7 3 6 3m6-11v3"/><ellipse cx="15" cy="12" rx="6" ry="3"/><path d="M9 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg></span>
+  <span><strong>Gastos compartidos</strong><small data-expense-card-summary>Gastos, balances y cuentas claras entre todos</small></span>
+  <span aria-hidden="true">↗</span>
+</button>
+<dialog id="plan-expenses" class="pb-expenses-dialog" data-expenses-dialog data-url="{% url 'plans:expenses' plan.id %}" aria-labelledby="expenses-title">
+  <header class="pb-expenses-header">
+    <div><span class="pb-expenses-kicker">CUENTAS CLARAS</span><h2 id="expenses-title">Gastos compartidos</h2><p>{{ plan.name }}</p></div>
+    <button type="button" class="pb-expenses-close" data-close-expenses aria-label="Cerrar gastos compartidos">×</button>
+  </header>
+  <p data-expenses-status role="status" aria-live="polite"></p>
+  <button type="button" class="button button--quiet" data-reload-expenses hidden>Actualizar gastos</button>
+  <div data-expenses-content></div>
+</dialog>
+<noscript><p>Activá JavaScript para abrir los gastos compartidos dentro de este plan.</p></noscript>
