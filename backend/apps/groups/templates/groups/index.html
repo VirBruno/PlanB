@@ -2,6 +2,7 @@
 {% load static %}
 {% block title %}Mis grupos · Plan B{% endblock %}
 {% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'users/css/groups-index.css' %}">{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'users/css/grupos-editorial-16.css' %}?v=17">{% endblock %}
 {% block workspace %}
 <section class="pb-groups-index" aria-labelledby="groups-index-title">
   <header class="pb-groups-heading">
@@ -23,6 +24,7 @@
               <span>{% if group.description %}{{ group.description|truncatechars:125 }}{% else %}Un espacio para organizar planes con tu gente.{% endif %}</span>
               <small>Creado el {{ group.created_at|date:"d/m/Y" }}</small>
             </span>
+            <span class="pb-groups-entry">Entrar al grupo <span aria-hidden="true">↗</span></span>
             <span class="pb-groups-arrow" aria-hidden="true">↗</span>
           </a>
         </li>

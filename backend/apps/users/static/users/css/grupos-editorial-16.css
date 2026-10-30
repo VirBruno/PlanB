@@ -1,0 +1,823 @@
+/* Plan B · Frontend 13 | Mis grupos + detalle.
+   La identidad visual se conserva; las reglas están limitadas a las dos pantallas.
+   Paleta: bosque #1F4D3A, salvia #A7C957, amarillo #F4D06F,
+           lavanda #C7B3EE, crema #FAF7F0 y beige #E8DFD4. */
+
+/* ------ MIS GRUPOS ------ */
+.pb-app-shell .pb-groups-index {
+  --g13-ink:#1F4D3A;--g13-muted:#677769;--g13-line:#E8DFD4;
+  max-width:1300px;padding:10px 0 75px;
+  color:var(--g13-ink);
+}
+.pb-app-shell .pb-groups-heading {
+  position:relative;isolation:isolate;overflow:hidden;align-items:center;
+  padding:clamp(26px,3.3vw,46px);margin:10px 0 26px;min-height:210px;
+  border-radius:32px;border:1px solid rgba(31,77,58,.065);
+  background:linear-gradient(115deg,#FFF0BC 4%,#FAF7F0 60%,#EEE3FC 100%);
+  box-shadow:0 16px 40px rgba(55,56,42,.055);
+}
+.pb-app-shell .pb-groups-heading .social-section-caption,
+.pb-app-shell .pb-groups-index .social-section-caption {
+  color:#597E57;font-weight:800;font-size:11px;letter-spacing:.11em;
+}
+.pb-app-shell .pb-groups-heading h1 {
+  margin:8px 0 8px;font-size:clamp(36px,4.2vw,54px);letter-spacing:-.055em;
+  line-height:1.08;color:#1F4D3A;
+}
+.pb-app-shell .pb-groups-heading p {font-size:15px;max-width:480px;line-height:1.6;color:#536D60}
+.pb-app-shell .pb-groups-heading .social-cta {
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:50px;padding:13px 23px;border-radius:17px;
+  background:#1F4D3A;color:#FAF7F0!important;
+  border:0;box-shadow:0 10px 23px rgba(31,77,58,.14);font-weight:800;
+  transition:transform .18s ease,box-shadow .18s ease;
+}
+.pb-app-shell .pb-groups-heading .social-cta:hover {transform:translateY(-2px);box-shadow:0 14px 27px rgba(31,77,58,.2)}
+.pb-app-shell .pb-groups-grid {grid-template-columns:repeat(3,minmax(0,1fr));gap:17px}
+.pb-app-shell .pb-groups-grid > li {min-width:0}
+.pb-app-shell .pb-groups-card {
+  align-items:flex-start;flex-direction:column;gap:18px;
+  min-height:232px;padding:25px 24px 22px;
+  border:1px solid rgba(31,77,58,.07);border-radius:28px;
+  color:#1F4D3A!important;background:#E5F0DD;
+  box-shadow:0 12px 26px rgba(44,56,38,.055);
+  transition:transform .2s ease,box-shadow .2s ease;
+}
+.pb-app-shell .pb-groups-grid > li:nth-child(3n + 2) .pb-groups-card {background:#FFF0BF}
+.pb-app-shell .pb-groups-grid > li:nth-child(3n + 3) .pb-groups-card {background:#ECE2F9}
+.pb-app-shell .pb-groups-card:hover {transform:translateY(-4px);box-shadow:0 17px 32px rgba(44,56,38,.105);border-color:rgba(31,77,58,.14)}
+.pb-app-shell .pb-groups-card .pb-groups-avatar {
+  display:grid;place-items:center;width:53px;height:53px;flex:0 0 53px;
+  border:0;border-radius:17px;background:#FAF7F0;
+  color:#1F4D3A;font-size:24px;font-weight:800;
+}
+.pb-app-shell .pb-groups-grid > li:nth-child(3n + 2) .pb-groups-avatar {background:#F4D06F}
+.pb-app-shell .pb-groups-grid > li:nth-child(3n + 3) .pb-groups-avatar {background:#D9C7F5}
+.pb-app-shell .pb-groups-info {display:flex;flex:1;flex-direction:column;padding:0;gap:7px;min-width:0;width:100%}
+.pb-app-shell .pb-groups-info strong {font-size:clamp(17px,1.45vw,20px);letter-spacing:-.025em;line-height:1.3;color:#1F4D3A;padding-right:14px}
+.pb-app-shell .pb-groups-info>span {font-size:13px;line-height:1.5;color:#526B5F}
+.pb-app-shell .pb-groups-info small {padding-top:12px;margin-top:auto;font-size:11px;font-weight:600;color:#66786A}
+.pb-app-shell .pb-groups-arrow {top:23px;right:23px;color:#1F4D3A;font-size:20px}
+.pb-app-shell .pb-groups-new {
+  min-height:232px;border-radius:28px;border:1.5px dashed rgba(31,77,58,.24);
+  background:rgba(167,201,87,.13);color:#1F4D3A!important;box-shadow:none;
+}
+.pb-app-shell .pb-groups-new>span {background:#E1EBCF;color:#1F4D3A}
+.pb-app-shell .pb-groups-new strong {font-size:18px;color:#1F4D3A}
+.pb-app-shell .pb-groups-new small {color:#657B68}
+.pb-app-shell .pb-groups-empty {border:1px solid #E8DFD4;background:#FAF7F0;color:#1F4D3A;box-shadow:0 12px 35px rgba(40,58,43,.06)}
+.pb-app-shell .pb-groups-empty-icon {color:#1F4D3A}
+.pb-app-shell .pb-groups-empty .social-cta {background:#1F4D3A;color:#FAF7F0!important}
+.pb-app-shell .pb-groups-pagination {color:#536E60}
+.pb-app-shell .pb-groups-pagination a {color:#1F4D3A;font-weight:800}
+
+/* ------ DETALLE DE GRUPO ------ */
+.pb-app-shell .group-social-shell {
+  --g13-ink:#1F4D3A;--g13-muted:#617569;
+  row-gap:19px;color:var(--g13-ink);
+}
+.pb-app-shell .group-social-hero {
+  background:linear-gradient(108deg,#FFF0BF 0%,#FAF7F0 63%,#E9DDF7 100%);
+  border:1px solid rgba(31,77,58,.08);border-radius:31px;
+  padding:clamp(23px,3vw,38px);box-shadow:0 14px 30px rgba(54,60,39,.055);
+  backdrop-filter:none;-webkit-backdrop-filter:none;
+}
+.pb-app-shell .group-social-hero-main {align-items:center;gap:22px}
+.pb-app-shell .group-social-avatar {
+  width:84px;height:84px;flex:0 0 84px;border-radius:24px;
+  color:#1F4D3A;background:#DCCBF3;font-size:38px;font-weight:800;
+}
+.pb-app-shell .group-social-hero h1 {font-size:clamp(29px,3.3vw,47px);letter-spacing:-.048em;color:#1F4D3A;line-height:1.09;margin-bottom:10px}
+.pb-app-shell .group-social-eyebrow {letter-spacing:.1em;font-size:10px;font-weight:800;color:#567D59}
+.pb-app-shell .group-social-identity>p {color:#536E60;font-size:14px;line-height:1.55;max-width:630px}
+.pb-app-shell .group-social-meta {gap:8px;margin-top:14px}
+.pb-app-shell .group-social-meta>span {background:rgba(250,247,240,.7);color:#486657;border:1px solid rgba(31,77,58,.09);font-size:11px;padding:7px 12px}
+.pb-app-shell .group-social-primary {
+  background:#1F4D3A;color:#FAF7F0!important;border-radius:16px;
+  box-shadow:0 10px 22px rgba(31,77,58,.14);padding:14px 22px;
+  transition:transform .18s ease,box-shadow .18s ease;
+}
+.pb-app-shell .group-social-primary:hover {box-shadow:0 15px 26px rgba(31,77,58,.2)}
+.pb-app-shell .group-social-tabs {gap:8px;border:0;padding:0 0 2px;min-height:46px;scrollbar-width:thin}
+.pb-app-shell .group-social-tabs a {
+  padding:11px 18px;border:1px solid transparent;border-radius:14px;
+  text-decoration:none;color:#5F7568;background:transparent;
+  transition:background .18s ease,color .18s ease;
+}
+.pb-app-shell .group-social-tabs a.is-current,
+.pb-app-shell .group-social-tabs a:hover {background:#E5F0DD;color:#1F4D3A;border-color:rgba(31,77,58,.07)}
+.pb-app-shell .group-social-columns {grid-template-columns:minmax(0,1.6fr) minmax(290px,.95fr);gap:18px}
+.pb-app-shell .group-social-panel {
+  padding:clamp(19px,2.2vw,29px);border-radius:27px;
+  border:1px solid #E8DFD4;box-shadow:0 10px 28px rgba(39,54,41,.038);
+  background:#FFFCF7;color:#1F4D3A;backdrop-filter:none;-webkit-backdrop-filter:none;
+}
+.pb-app-shell .group-social-heading h2 {font-size:clamp(21px,2vw,25px);color:#1F4D3A;letter-spacing:-.036em}
+.pb-app-shell .group-social-heading p {font-size:13px;color:#67786E}
+.pb-app-shell .group-social-small-action {color:#1F4D3A;font-size:12px;font-weight:800;text-decoration:underline;text-underline-offset:4px}
+.pb-app-shell .group-social-plans {background:#FFFCF7}
+.pb-app-shell .group-social-date h3 {color:#758672;font-size:11px;letter-spacing:.075em}
+.pb-app-shell .group-social-plan-card {
+  min-height:84px;gap:14px;padding:14px 15px;
+  border-radius:18px;border:1px solid rgba(31,77,58,.09);
+  background:#F6F5EE;color:#1F4D3A!important;
+  transition:transform .18s ease,background .18s ease,border-color .18s ease;
+}
+.pb-app-shell .group-social-plan-list li:nth-child(2n) .group-social-plan-card {background:#F4F0F9}
+.pb-app-shell .group-social-plan-card:hover {background:#EAF1E1;border-color:rgba(31,77,58,.18);transform:translateY(-2px)}
+.pb-app-shell .group-social-plan-icon {
+  width:44px;height:44px;flex:0 0 44px;border-radius:14px;
+  color:#1F4D3A;background:#D9E8CF;font-size:23px;
+}
+.pb-app-shell .group-social-plan-list li:nth-child(2n) .group-social-plan-icon {background:#E1D3F5}
+.pb-app-shell .group-social-plan-info strong {font-size:14px;line-height:1.4;color:#1F4D3A}
+.pb-app-shell .group-social-plan-info small {font-size:12px;color:#6B796D}
+.pb-app-shell .group-social-plan-date {color:#718074;font-size:11px}
+.pb-app-shell .group-social-plan-status {
+  font-size:10px;font-weight:800;background:#E8DFD4;color:#4F6055;border-radius:999px;
+  padding:7px 10px;white-space:nowrap;
+}
+.pb-app-shell .group-social-plan-status.is-active {color:#1F4D3A;background:#D6E9CC}
+.pb-app-shell .group-social-plan-status.pb-phase-chip--confirmed {color:#1F4D3A;background:#BFE2CD}
+.pb-app-shell .group-social-arrow {color:#527460;font-size:19px}
+.pb-app-shell .group-social-members {background:#F1EAF9;border-color:#E7DDF2}
+.pb-app-shell .group-social-people li {gap:11px;padding:10px 0;border-bottom:1px solid rgba(31,77,58,.06)}
+.pb-app-shell .group-social-people li:last-child {border-bottom:0}
+.pb-app-shell .group-social-person-avatar {
+  background:#D6C4F1;color:#1F4D3A;width:38px;height:38px;flex:0 0 38px;
+  font-size:12px;font-weight:800;
+}
+.pb-app-shell .group-social-people li:nth-child(2n) .group-social-person-avatar {background:#F4D06F}
+.pb-app-shell .group-social-person-name {font-size:13px;color:#1F4D3A}
+.pb-app-shell .group-social-role {background:rgba(250,247,240,.8);color:#566D5D;font-size:10px}
+.pb-app-shell .group-social-side-note {background:#FFF0BC;border-color:#F3E3A9;gap:9px}
+.pb-app-shell .group-social-side-note>span {color:#1F4D3A;font-size:23px}
+.pb-app-shell .group-social-side-note strong {font-size:20px;max-width:280px;line-height:1.27;color:#1F4D3A}
+.pb-app-shell .group-social-side-note p {font-size:13px;line-height:1.53;color:#55705F}
+.pb-app-shell .group-social-admin {background:#FAF7F0}
+.pb-app-shell .group-social-admin-actions a {border-color:#E8DFD4;background:#FFFDF9;color:#1F4D3A;border-radius:14px;padding:13px}
+.pb-app-shell .group-social-admin-actions a:hover {background:#E8F1E4}
+.pb-app-shell .group-social-admin-actions a.is-danger {color:#A44646}
+.pb-app-shell .group-social-empty h3 {color:#1F4D3A}
+.pb-app-shell .group-social-empty p {color:#6A776D}
+.pb-app-shell .group-social-shell a:focus-visible,
+.pb-app-shell .pb-groups-index a:focus-visible {outline:3px solid #A7C957;outline-offset:3px}
+
+/* ------ MODO OSCURO: misma identidad, contrastes legibles ------ */
+html[data-theme="dark"] .pb-app-shell .pb-groups-index {--g13-ink:#F4F0E8;--g13-muted:#C9D5C7;color:#F4F0E8}
+html[data-theme="dark"] .pb-app-shell .pb-groups-heading {background:linear-gradient(115deg,#294A38 0%,#2C4339 61%,#514466 100%);border-color:rgba(250,247,240,.13)}
+html[data-theme="dark"] .pb-app-shell .pb-groups-heading h1 {color:#FAF7F0}
+html[data-theme="dark"] .pb-app-shell .pb-groups-heading p {color:#D0E1CE}
+html[data-theme="dark"] .pb-app-shell .pb-groups-heading .social-section-caption {color:#F4D06F}
+html[data-theme="dark"] .pb-app-shell .pb-groups-heading .social-cta {background:#F4D06F;color:#1F4D3A!important;box-shadow:none}
+html[data-theme="dark"] .pb-app-shell .pb-groups-card {background:#2C5341;border-color:rgba(255,255,255,.1);color:#FAF7F0!important;box-shadow:none}
+html[data-theme="dark"] .pb-app-shell .pb-groups-grid > li:nth-child(3n + 2) .pb-groups-card {background:#625537}
+html[data-theme="dark"] .pb-app-shell .pb-groups-grid > li:nth-child(3n + 3) .pb-groups-card {background:#534366}
+html[data-theme="dark"] .pb-app-shell .pb-groups-card .pb-groups-avatar {background:#DCE9D4;color:#1F4D3A}
+html[data-theme="dark"] .pb-app-shell .pb-groups-grid > li:nth-child(3n + 2) .pb-groups-avatar {background:#F4D06F}
+html[data-theme="dark"] .pb-app-shell .pb-groups-grid > li:nth-child(3n + 3) .pb-groups-avatar {background:#C7B3EE}
+html[data-theme="dark"] .pb-app-shell .pb-groups-info strong {color:#FAF7F0}
+html[data-theme="dark"] .pb-app-shell .pb-groups-info>span,
+html[data-theme="dark"] .pb-app-shell .pb-groups-info small {color:#E0E8DB}
+html[data-theme="dark"] .pb-app-shell .pb-groups-arrow {color:#F4D06F}
+html[data-theme="dark"] .pb-app-shell .pb-groups-new {background:#244534;color:#FAF7F0!important;border-color:#6E856C}
+html[data-theme="dark"] .pb-app-shell .pb-groups-new strong {color:#FAF7F0}
+html[data-theme="dark"] .pb-app-shell .pb-groups-new small {color:#D0DED2}
+html[data-theme="dark"] .pb-app-shell .pb-groups-new>span {background:#3B624C;color:#F4D06F}
+html[data-theme="dark"] .pb-app-shell .pb-groups-pagination,
+html[data-theme="dark"] .pb-app-shell .pb-groups-pagination a {color:#D9E9D4}
+html[data-theme="dark"] .pb-app-shell .pb-groups-empty {background:#263F31;color:#FAF7F0;border-color:#3E5F4B}
+html[data-theme="dark"] .pb-app-shell .pb-groups-empty h2 {color:#FAF7F0}
+html[data-theme="dark"] .pb-app-shell .pb-groups-empty p {color:#CAD9C7}
+html[data-theme="dark"] .pb-app-shell .pb-groups-empty .social-cta {background:#F4D06F;color:#1F4D3A!important}
+html[data-theme="dark"] .pb-app-shell .group-social-shell {--g13-ink:#F4F0E8;color:#F4F0E8}
+html[data-theme="dark"] .pb-app-shell .group-social-hero {background:linear-gradient(110deg,#315541 0%,#2E493C 62%,#534365 100%);border-color:#41604B;box-shadow:none}
+html[data-theme="dark"] .pb-app-shell .group-social-hero h1 {color:#FAF7F0}
+html[data-theme="dark"] .pb-app-shell .group-social-avatar {background:#F4D06F;color:#1F4D3A}
+html[data-theme="dark"] .pb-app-shell .group-social-eyebrow {color:#F4D06F}
+html[data-theme="dark"] .pb-app-shell .group-social-identity>p {color:#DCE7D9}
+html[data-theme="dark"] .pb-app-shell .group-social-meta span {background:#3C5547;color:#D8E4D3;border-color:#5B715E}
+html[data-theme="dark"] .pb-app-shell .group-social-primary {background:#F4D06F;color:#1F4D3A!important;box-shadow:none}
+html[data-theme="dark"] .pb-app-shell .group-social-tabs a {color:#C0D0C0}
+html[data-theme="dark"] .pb-app-shell .group-social-tabs a.is-current,
+html[data-theme="dark"] .pb-app-shell .group-social-tabs a:hover {color:#FAF7F0;background:#355543;border-color:#476A54}
+html[data-theme="dark"] .pb-app-shell .group-social-panel {background:#223A2F;color:#FAF7F0;border-color:#41604C;box-shadow:none}
+html[data-theme="dark"] .pb-app-shell .group-social-heading h2,
+html[data-theme="dark"] .pb-app-shell .group-social-plan-info strong,
+html[data-theme="dark"] .pb-app-shell .group-social-person-name {color:#FAF7F0}
+html[data-theme="dark"] .pb-app-shell .group-social-heading p {color:#C6D7C6}
+html[data-theme="dark"] .pb-app-shell .group-social-small-action {color:#F4D06F}
+html[data-theme="dark"] .pb-app-shell .group-social-date h3 {color:#C4D3C0}
+html[data-theme="dark"] .pb-app-shell .group-social-plan-card {background:#2A4939;border-color:#486B55;color:#FAF7F0!important}
+html[data-theme="dark"] .pb-app-shell .group-social-plan-list li:nth-child(2n) .group-social-plan-card {background:#3B3950}
+html[data-theme="dark"] .pb-app-shell .group-social-plan-card:hover {background:#345B44}
+html[data-theme="dark"] .pb-app-shell .group-social-plan-info small,
+html[data-theme="dark"] .pb-app-shell .group-social-plan-date {color:#D1DDD0}
+html[data-theme="dark"] .pb-app-shell .group-social-plan-icon {background:#A7C957;color:#1F4D3A}
+html[data-theme="dark"] .pb-app-shell .group-social-plan-list li:nth-child(2n) .group-social-plan-icon {background:#C7B3EE;color:#1F4D3A}
+html[data-theme="dark"] .pb-app-shell .group-social-plan-status {background:#49534D;color:#F4F0E8}
+html[data-theme="dark"] .pb-app-shell .group-social-plan-status.is-active {background:#BBD5AD;color:#1F4D3A}
+html[data-theme="dark"] .pb-app-shell .group-social-plan-status.pb-phase-chip--confirmed {background:#BFE2CD;color:#1F4D3A}
+html[data-theme="dark"] .pb-app-shell .group-social-arrow {color:#F4D06F}
+html[data-theme="dark"] .pb-app-shell .group-social-members {background:#433955;border-color:#65567A}
+html[data-theme="dark"] .pb-app-shell .group-social-people li {border-color:rgba(255,255,255,.1)}
+html[data-theme="dark"] .pb-app-shell .group-social-person-avatar {background:#C7B3EE;color:#1F4D3A}
+html[data-theme="dark"] .pb-app-shell .group-social-person-avatar:nth-child(2n) {background:#F4D06F}
+html[data-theme="dark"] .pb-app-shell .group-social-role {background:#5B506B;color:#FAF7F0}
+html[data-theme="dark"] .pb-app-shell .group-social-side-note {background:#F4D06F;color:#1F4D3A;border-color:#E4BD56}
+html[data-theme="dark"] .pb-app-shell .group-social-side-note>span,
+html[data-theme="dark"] .pb-app-shell .group-social-side-note strong {color:#1F4D3A}
+html[data-theme="dark"] .pb-app-shell .group-social-side-note p {color:#44604A}
+html[data-theme="dark"] .pb-app-shell .group-social-admin {background:#253D30}
+html[data-theme="dark"] .pb-app-shell .group-social-admin-actions a {background:#2D4938;color:#F4F0E8;border-color:#536956}
+html[data-theme="dark"] .pb-app-shell .group-social-admin-actions a.is-danger {color:#FFBEB0}
+html[data-theme="dark"] .pb-app-shell .group-social-empty h3 {color:#FAF7F0}
+html[data-theme="dark"] .pb-app-shell .group-social-empty p {color:#CEDACA}
+
+/* ------ RESPONSIVE ------ */
+@media (max-width:1150px) {
+  .pb-app-shell .pb-groups-grid {grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pb-app-shell .group-social-columns {grid-template-columns:minmax(0,1fr) minmax(240px,.85fr)}
+}
+@media (max-width:900px) {
+  .pb-app-shell .group-social-columns {grid-template-columns:1fr}
+  .pb-app-shell .group-social-right {grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pb-app-shell .group-social-admin {grid-column:1/-1}
+}
+@media (max-width:700px) {
+  .pb-app-shell .pb-groups-index {padding:0 0 90px}
+  .pb-app-shell .pb-groups-heading {align-items:flex-start;gap:18px;flex-direction:column;border-radius:24px;min-height:0;padding:25px;margin:6px 0 20px}
+  .pb-app-shell .pb-groups-heading h1 {font-size:37px}
+  .pb-app-shell .pb-groups-heading .social-cta {width:100%}
+  .pb-app-shell .pb-groups-grid {grid-template-columns:1fr;gap:13px}
+  .pb-app-shell .pb-groups-card,.pb-app-shell .pb-groups-new {min-height:200px;border-radius:23px}
+  .pb-app-shell .group-social-shell {row-gap:14px}
+  .pb-app-shell .group-social-hero {border-radius:23px;padding:22px 19px;gap:18px}
+  .pb-app-shell .group-social-avatar {width:58px;height:58px;flex-basis:58px;font-size:28px;border-radius:17px}
+  .pb-app-shell .group-social-hero-main {gap:14px;align-items:flex-start}
+  .pb-app-shell .group-social-hero h1 {font-size:29px}
+  .pb-app-shell .group-social-primary {width:100%}
+  .pb-app-shell .group-social-tabs {gap:4px}
+  .pb-app-shell .group-social-tabs a {padding:10px 13px;font-size:12px}
+  .pb-app-shell .group-social-right {grid-template-columns:1fr}
+  .pb-app-shell .group-social-panel {padding:19px;border-radius:22px}
+  .pb-app-shell .group-social-plan-card {flex-wrap:wrap;gap:10px;align-items:flex-start}
+  .pb-app-shell .group-social-plan-icon {order:0;align-self:flex-start}
+  .pb-app-shell .group-social-plan-info {order:1;flex:1 1 calc(100% - 58px);min-width:0}
+  .pb-app-shell .group-social-plan-info small {display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+  .pb-app-shell .group-social-plan-card::before {content:"";order:2;flex-basis:100%;height:0}
+  .pb-app-shell .group-social-plan-status {display:inline-flex;align-items:center;order:3;margin-left:54px}
+  .pb-app-shell .group-social-arrow {order:4;margin-left:auto}
+}
+@media (prefers-reduced-motion:reduce) {
+  .pb-app-shell .pb-groups-card,.pb-app-shell .pb-groups-new,
+  .pb-app-shell .group-social-plan-card,.pb-app-shell .group-social-primary {transition:none}
+}
+
+/* Frontend 14 · Corrección de la capa de fondo y navegación en Mis grupos.
+   Se añade al final de grupos-identidad-13.css.
+   No afecta el dashboard, login, registro, planes ni lógica de negocio.
+   Paleta aprobada: bosque #1F4D3A, salvia #A7C957, amarillo #F4D06F,
+   lavanda #C7B3EE, crema #FAF7F0 y beige #E8DFD4. */
+
+/* El fondo violeta procedía de body::before y del canvas del tema anterior.
+   El selector :has limita el reemplazo exclusivamente a las dos páginas. */
+body:has(.pb-app-shell .pb-groups-index),
+body:has(.pb-app-shell .group-social-shell) {
+  background: #FAF7F0 !important;
+  background-image: none !important;
+  color: #1F4D3A;
+}
+body:has(.pb-app-shell .pb-groups-index)::before,
+body:has(.pb-app-shell .group-social-shell)::before {
+  content: none !important;
+  background: none !important;
+  display: none !important;
+}
+
+.pb-app-shell:has(.pb-groups-index),
+.pb-app-shell:has(.group-social-shell) {
+  --sd-ink: #1F4D3A;
+  --sd-muted: #68786C;
+  --sd-stroke: #E8DFD4;
+  --sd-panel: #FFFDF8;
+  --sd-shadow: 0 10px 26px rgba(31,77,58,.045);
+  background: #FAF7F0 !important;
+  color: #1F4D3A;
+  min-height: 100dvh;
+}
+.pb-app-shell:has(.pb-groups-index) .pb-app-content,
+.pb-app-shell:has(.group-social-shell) .pb-app-content {
+  background: #FAF7F0 !important;
+  background-image: none !important;
+  min-height: 100dvh;
+}
+
+/* Compartir con el dashboard la misma navegación cálida. */
+.pb-app-shell:has(.pb-groups-index) .social-sidebar,
+.pb-app-shell:has(.group-social-shell) .social-sidebar {
+  background: #FFFDF8 !important;
+  border-right: 1px solid #E8DFD4;
+  color: #1F4D3A;
+}
+.pb-app-shell:has(.pb-groups-index) .social-side-nav a,
+.pb-app-shell:has(.group-social-shell) .social-side-nav a {
+  color: #536A5A !important;
+  border-radius: 15px;
+}
+.pb-app-shell:has(.pb-groups-index) .social-side-nav a:hover,
+.pb-app-shell:has(.group-social-shell) .social-side-nav a:hover {
+  color: #1F4D3A !important;
+  background: #F0F3E8 !important;
+}
+.pb-app-shell:has(.pb-groups-index) .social-side-nav a.social-side-active,
+.pb-app-shell:has(.group-social-shell) .social-side-nav a.social-side-active {
+  color: #1F4D3A !important;
+  background: #E2EDD8 !important;
+}
+.pb-app-shell:has(.pb-groups-index) .social-side-nav a.social-side-active .pb-nav-label,
+.pb-app-shell:has(.group-social-shell) .social-side-nav a.social-side-active .pb-nav-label {
+  color: #1F4D3A;
+}
+.pb-app-shell:has(.pb-groups-index) .social-side-bottom,
+.pb-app-shell:has(.group-social-shell) .social-side-bottom {
+  background: #F4E8BC;
+  border-color: #E8DFD4;
+  color: #1F4D3A;
+  box-shadow: none;
+}
+.pb-app-shell:has(.pb-groups-index) .social-side-bottom-icon,
+.pb-app-shell:has(.group-social-shell) .social-side-bottom-icon {
+  color: #1F4D3A;
+}
+.pb-app-shell:has(.pb-groups-index) .social-side-bottom small,
+.pb-app-shell:has(.group-social-shell) .social-side-bottom small {
+  color: #627362;
+}
+.pb-app-shell:has(.pb-groups-index) .pb-theme-sidebar-control,
+.pb-app-shell:has(.group-social-shell) .pb-theme-sidebar-control {
+  background: #FFFDF8;
+  border-color: #E8DFD4;
+  color: #1F4D3A;
+}
+.pb-app-shell:has(.pb-groups-index) .pb-theme-sidebar-copy strong,
+.pb-app-shell:has(.group-social-shell) .pb-theme-sidebar-copy strong { color: #1F4D3A; }
+.pb-app-shell:has(.pb-groups-index) .pb-theme-sidebar-copy small,
+.pb-app-shell:has(.group-social-shell) .pb-theme-sidebar-copy small { color: #68786C; }
+.pb-app-shell:has(.pb-groups-index) button.pb-theme-sidebar-switch,
+.pb-app-shell:has(.group-social-shell) button.pb-theme-sidebar-switch {
+  background: #DCE7D4;
+  border-color: #B9CBB0;
+}
+.pb-app-shell:has(.pb-groups-index) button.pb-theme-sidebar-switch:focus-visible,
+.pb-app-shell:has(.group-social-shell) button.pb-theme-sidebar-switch:focus-visible {
+  outline-color: #1F4D3A;
+}
+.pb-app-shell:has(.pb-groups-index) .pb-breadcrumbs,
+.pb-app-shell:has(.group-social-shell) .pb-breadcrumbs,
+.pb-app-shell:has(.pb-groups-index) .pb-breadcrumbs a,
+.pb-app-shell:has(.group-social-shell) .pb-breadcrumbs a { color: #69776C; }
+.pb-app-shell:has(.pb-groups-index) .pb-breadcrumbs a:hover,
+.pb-app-shell:has(.group-social-shell) .pb-breadcrumbs a:hover { color: #1F4D3A; }
+.pb-app-shell:has(.pb-groups-index) .pb-header-actions > a,
+.pb-app-shell:has(.group-social-shell) .pb-header-actions > a {
+  color: #1F4D3A;
+  background: #FFFDF8;
+  border-color: #E8DFD4;
+}
+.pb-app-shell:has(.pb-groups-index) .pb-notification-dot,
+.pb-app-shell:has(.group-social-shell) .pb-notification-dot { background: #C7B3EE; }
+
+/* Modo oscuro: mismos valores que el dashboard social, sin el violeta heredado. */
+html[data-theme="dark"] body:has(.pb-app-shell .pb-groups-index),
+html[data-theme="dark"] body:has(.pb-app-shell .group-social-shell) {
+  background: #1B2921 !important;
+  color: #FAF7F0;
+}
+html[data-theme="dark"] .pb-app-shell:has(.pb-groups-index),
+html[data-theme="dark"] .pb-app-shell:has(.group-social-shell) {
+  --sd-ink: #FAF7F0;
+  --sd-muted: #B9CABB;
+  --sd-stroke: #405443;
+  --sd-panel: #283B2F;
+  --sd-shadow: none;
+  background: #1B2921 !important;
+  color: #FAF7F0;
+}
+html[data-theme="dark"] .pb-app-shell:has(.pb-groups-index) .pb-app-content,
+html[data-theme="dark"] .pb-app-shell:has(.group-social-shell) .pb-app-content {
+  background: #1B2921 !important;
+  color: #FAF7F0;
+}
+html[data-theme="dark"] .pb-app-shell:has(.pb-groups-index) .social-sidebar,
+html[data-theme="dark"] .pb-app-shell:has(.group-social-shell) .social-sidebar {
+  background: #202D24 !important;
+  border-color: #405443;
+  color: #FAF7F0;
+}
+html[data-theme="dark"] .pb-app-shell:has(.pb-groups-index) .social-side-nav a,
+html[data-theme="dark"] .pb-app-shell:has(.group-social-shell) .social-side-nav a {
+  color: #DAE3D7 !important;
+}
+html[data-theme="dark"] .pb-app-shell:has(.pb-groups-index) .social-side-nav a:hover,
+html[data-theme="dark"] .pb-app-shell:has(.group-social-shell) .social-side-nav a:hover {
+  color: #FAF7F0 !important;
+  background: #304735 !important;
+}
+html[data-theme="dark"] .pb-app-shell:has(.pb-groups-index) .social-side-nav a.social-side-active,
+html[data-theme="dark"] .pb-app-shell:has(.group-social-shell) .social-side-nav a.social-side-active {
+  color: #FAF7F0 !important;
+  background: #3A5740 !important;
+}
+html[data-theme="dark"] .pb-app-shell:has(.pb-groups-index) .social-side-nav a.social-side-active .pb-nav-label,
+html[data-theme="dark"] .pb-app-shell:has(.group-social-shell) .social-side-nav a.social-side-active .pb-nav-label {
+  color: #FAF7F0;
+}
+html[data-theme="dark"] .pb-app-shell:has(.pb-groups-index) .social-side-bottom,
+html[data-theme="dark"] .pb-app-shell:has(.group-social-shell) .social-side-bottom {
+  background: #F4D06F;
+  border-color: #F4D06F;
+  color: #1F4D3A;
+}
+html[data-theme="dark"] .pb-app-shell:has(.pb-groups-index) .social-side-bottom small,
+html[data-theme="dark"] .pb-app-shell:has(.group-social-shell) .social-side-bottom small,
+html[data-theme="dark"] .pb-app-shell:has(.pb-groups-index) .social-side-bottom-icon,
+html[data-theme="dark"] .pb-app-shell:has(.group-social-shell) .social-side-bottom-icon {
+  color: #1F4D3A;
+}
+html[data-theme="dark"] .pb-app-shell:has(.pb-groups-index) .pb-theme-sidebar-control,
+html[data-theme="dark"] .pb-app-shell:has(.group-social-shell) .pb-theme-sidebar-control {
+  background: #283B2F;
+  border-color: #425A46;
+  color: #FAF7F0;
+}
+html[data-theme="dark"] .pb-app-shell:has(.pb-groups-index) .pb-theme-sidebar-copy strong,
+html[data-theme="dark"] .pb-app-shell:has(.group-social-shell) .pb-theme-sidebar-copy strong {
+  color: #FAF7F0;
+}
+html[data-theme="dark"] .pb-app-shell:has(.pb-groups-index) .pb-theme-sidebar-copy small,
+html[data-theme="dark"] .pb-app-shell:has(.group-social-shell) .pb-theme-sidebar-copy small {
+  color: #B9CABB;
+}
+html[data-theme="dark"] .pb-app-shell:has(.pb-groups-index) button.pb-theme-sidebar-switch,
+html[data-theme="dark"] .pb-app-shell:has(.group-social-shell) button.pb-theme-sidebar-switch {
+  background: #A7C957;
+  border-color: #C8DE95;
+}
+html[data-theme="dark"] .pb-app-shell:has(.pb-groups-index) .pb-breadcrumbs,
+html[data-theme="dark"] .pb-app-shell:has(.group-social-shell) .pb-breadcrumbs,
+html[data-theme="dark"] .pb-app-shell:has(.pb-groups-index) .pb-breadcrumbs a,
+html[data-theme="dark"] .pb-app-shell:has(.group-social-shell) .pb-breadcrumbs a {
+  color: #B9CABB;
+}
+html[data-theme="dark"] .pb-app-shell:has(.pb-groups-index) .pb-header-actions > a,
+html[data-theme="dark"] .pb-app-shell:has(.group-social-shell) .pb-header-actions > a {
+  color: #FAF7F0;
+  background: #283B2F;
+  border-color: #405443;
+}
+@media (max-width:700px) {
+  .pb-app-shell:has(.pb-groups-index) .social-sidebar,
+  .pb-app-shell:has(.group-social-shell) .social-sidebar {
+    border-right:0;
+    border-top:1px solid #E8DFD4;
+  }
+  html[data-theme="dark"] .pb-app-shell:has(.pb-groups-index) .social-sidebar,
+  html[data-theme="dark"] .pb-app-shell:has(.group-social-shell) .social-sidebar {
+    border-top-color:#405443;
+  }
+}
+
+/* Plan B · Frontend 16 — ritmo editorial, sin movimiento literal.
+   Mantener identidad: bosque, crema, salvia, amarillo y lavanda.
+   Una tarjeta principal, otras secundarias; jerarquía tipográfica y espacio.
+*/
+
+/* Índice: encabezado editorial, sin un rectángulo gigante. */
+.pb-app-shell .pb-groups-index {max-width:1240px;padding-top:16px}
+.pb-app-shell .pb-groups-heading {
+  min-height:0!important;margin:6px 0 30px!important;
+  padding:20px 0 26px!important;border-radius:0!important;
+  background:transparent!important;box-shadow:none!important;
+  border:0!important;border-bottom:1px solid #DEDCCF!important;
+  display:flex;align-items:flex-end;gap:28px;
+}
+.pb-app-shell .pb-groups-heading h1 {font-size:clamp(47px,5.1vw,72px);font-weight:800;line-height:1.03;letter-spacing:-.067em;margin:10px 0 12px}
+.pb-app-shell .pb-groups-heading p {max-width:590px;font-size:15px;line-height:1.6;margin-bottom:0}
+.pb-app-shell .pb-groups-heading .social-cta {
+  flex:none;margin-left:auto;border-radius:999px;padding:13px 25px;min-height:48px;
+  box-shadow:none!important;transform:none!important;transition:none!important
+}
+.pb-app-shell .pb-groups-heading .social-cta:hover {background:#35694C}
+
+/* Una tarjeta fuerte junto a dos entradas compactas. No una cuadrícula de clones. */
+.pb-app-shell .pb-groups-grid {display:grid;grid-template-columns:minmax(0,1.32fr) minmax(0,.88fr);gap:15px;align-items:stretch}
+.pb-app-shell .pb-groups-grid > li {min-width:0}
+.pb-app-shell .pb-groups-grid:has(> li:nth-child(3)) > li:first-child:not(:last-child) {grid-row:span 2}
+.pb-app-shell .pb-groups-card {
+  min-height:150px;height:100%;width:100%;padding:22px 26px;
+  background:#FFFDF9!important;color:#1F4D3A!important;
+  border:1px solid #E3DED3;border-radius:22px!important;
+  box-shadow:0 3px 12px rgba(36,53,42,.035)!important;
+  display:grid;grid-template-columns:49px minmax(0,1fr) 20px;
+  grid-template-rows:auto;align-items:center;column-gap:17px;row-gap:0;
+  transform:none!important;animation:none!important;transition:none!important;
+}
+.pb-app-shell .pb-groups-grid > li:nth-child(3n + 2) .pb-groups-card,
+.pb-app-shell .pb-groups-grid > li:nth-child(3n + 3) .pb-groups-card {background:#FFFDF9!important}
+.pb-app-shell .pb-groups-card:hover {transform:none!important;box-shadow:0 3px 12px rgba(36,53,42,.035)!important;border-color:#76957D}
+.pb-app-shell .pb-groups-card .pb-groups-avatar {
+  width:48px;height:48px;flex:0 0 48px;border-radius:15px;
+  background:#E4EFDA!important;color:#1F4D3A!important;font-size:20px
+}
+.pb-app-shell .pb-groups-grid > li:nth-child(3n + 2) .pb-groups-avatar {background:#FBE6A4!important}
+.pb-app-shell .pb-groups-grid > li:nth-child(3n + 3) .pb-groups-avatar {background:#E5D9F7!important}
+.pb-app-shell .pb-groups-info {width:auto;gap:6px}
+.pb-app-shell .pb-groups-info strong {font-size:clamp(17px,1.5vw,22px);letter-spacing:-.035em;line-height:1.2}
+.pb-app-shell .pb-groups-info>span {font-size:13px;line-height:1.5}
+.pb-app-shell .pb-groups-info small {padding:0;margin:5px 0 0;font-size:11px}
+.pb-app-shell .pb-groups-arrow {position:static;align-self:center;justify-self:center;color:#54715D;font-size:19px}
+.pb-app-shell .pb-groups-entry {display:none!important}
+.pb-app-shell .pb-groups-grid > li:first-child:not(:last-child) .pb-groups-card {
+  min-height:315px;background:#1F4D3A!important;color:#FAF7F0!important;
+  border:0!important;border-radius:25px!important;
+  padding:35px 37px;display:flex;align-items:flex-start;flex-direction:column;gap:20px;
+  position:relative;overflow:hidden;
+}
+.pb-app-shell .pb-groups-grid > li:first-child:not(:last-child) .pb-groups-avatar {
+  background:#F4D06F!important;width:62px;height:62px;flex:0 0 62px;
+  border-radius:18px;color:#1F4D3A!important;font-size:28px
+}
+.pb-app-shell .pb-groups-grid > li:first-child:not(:last-child) .pb-groups-info {display:flex;gap:10px;flex:1;justify-content:center}
+.pb-app-shell .pb-groups-grid > li:first-child:not(:last-child) .pb-groups-info strong {
+  font-size:clamp(27px,2.7vw,38px);line-height:1.12;max-width:430px;color:#FAF7F0!important;letter-spacing:-.045em
+}
+.pb-app-shell .pb-groups-grid > li:first-child:not(:last-child) .pb-groups-info>span {color:#DEE7DC;font-size:15px}
+.pb-app-shell .pb-groups-grid > li:first-child:not(:last-child) .pb-groups-info small {color:#C9D8C8}
+.pb-app-shell .pb-groups-grid > li:first-child:not(:last-child) .pb-groups-arrow {
+  position:absolute;top:32px;right:36px;color:#F4D06F;font-size:24px
+}
+.pb-app-shell .pb-groups-grid > li:last-child .pb-groups-new {
+  display:flex;align-items:center;justify-content:flex-start;flex-direction:row;
+  width:100%;min-height:88px;border:1px dashed #A0B2A0;
+  background:transparent!important;border-radius:20px;padding:17px 22px;gap:12px;
+  box-shadow:none!important;transform:none!important;transition:none!important
+}
+.pb-app-shell .pb-groups-grid > li:last-child .pb-groups-new>span {
+  width:38px;height:38px;flex:0 0 38px;display:grid;place-items:center;
+  border-radius:12px;background:#E5EFDA;color:#1F4D3A
+}
+.pb-app-shell .pb-groups-grid > li:last-child .pb-groups-new strong {font-size:15px}
+.pb-app-shell .pb-groups-grid > li:last-child .pb-groups-new small {margin:0 0 0 auto;font-size:12px}
+.pb-app-shell .pb-groups-grid:has(> li:nth-child(4)) > li:last-child:nth-child(even) {grid-column:1/-1}
+
+/* Detalle: cabecera de artículo, no otro banner degradado. */
+.pb-app-shell .group-social-shell {row-gap:17px}
+.pb-app-shell .group-social-hero {
+  min-height:0!important;background:transparent!important;
+  padding:14px 0 25px!important;border:0!important;border-bottom:1px solid #DEDCCF!important;
+  border-radius:0!important;box-shadow:none!important;backdrop-filter:none!important;
+  gap:24px;align-items:flex-end;
+}
+.pb-app-shell .group-social-hero-main {gap:23px;align-items:center;min-width:0}
+.pb-app-shell .group-social-avatar {
+  width:68px;height:68px;flex:0 0 68px;border-radius:18px;
+  background:#E5EFDA!important;color:#1F4D3A!important;font-size:29px
+}
+.pb-app-shell .group-social-hero h1 {
+  font-size:clamp(30px,3.5vw,53px);line-height:1.08;max-width:860px;
+  letter-spacing:-.055em;margin:5px 0 10px
+}
+.pb-app-shell .group-social-eyebrow {font-size:10px;letter-spacing:.1em}
+.pb-app-shell .group-social-identity>p {max-width:700px;font-size:15px}
+.pb-app-shell .group-social-meta {margin-top:13px;gap:8px}
+.pb-app-shell .group-social-meta>span {background:#F0EDE5;border-color:#E8DFD4;border-radius:999px}
+.pb-app-shell .group-social-primary {
+  border-radius:999px;box-shadow:none!important;
+  transform:none!important;transition:none!important;white-space:nowrap;
+}
+.pb-app-shell .group-social-tabs {
+  border-bottom:1px solid #E8DFD4!important;gap:24px;margin:0 0 12px;padding:0;
+}
+.pb-app-shell .group-social-tabs a,
+.pb-app-shell .group-social-tabs a.is-current,
+.pb-app-shell .group-social-tabs a:hover {
+  border:0!important;background:transparent!important;border-radius:0!important;
+  padding:12px 4px!important;transition:none!important;
+}
+.pb-app-shell .group-social-tabs a.is-current {border-bottom:3px solid #1F4D3A!important;color:#1F4D3A!important;font-weight:800}
+.pb-app-shell .group-social-columns {grid-template-columns:minmax(0,1.7fr) minmax(260px,.85fr);gap:26px}
+.pb-app-shell .group-social-panel {
+  border-radius:21px;border-color:#E5DFD3;box-shadow:none!important;
+  background:#FFFDF9;animation:none!important;transform:none!important;transition:none!important;
+}
+.pb-app-shell .group-social-plans {padding:27px 29px;background:#FFFDF9}
+.pb-app-shell .group-social-heading h2 {font-size:clamp(24px,2vw,31px);letter-spacing:-.04em}
+.pb-app-shell .group-social-date h3 {margin:26px 0 12px}
+.pb-app-shell .group-social-plan-list {gap:0!important}
+.pb-app-shell .group-social-plan-list li {border-bottom:1px solid #E9E4D9}
+.pb-app-shell .group-social-plan-list li:last-child {border-bottom:0}
+.pb-app-shell .group-social-plan-card,
+.pb-app-shell .group-social-plan-list li:nth-child(2n) .group-social-plan-card {
+  padding:17px 0;min-height:86px;border:0!important;border-radius:0!important;
+  background:transparent!important;box-shadow:none!important;
+  transform:none!important;transition:none!important;
+}
+.pb-app-shell .group-social-plan-card:hover {background:transparent!important;transform:none!important}
+.pb-app-shell .group-social-plan-icon {background:#E4EFD9;border-radius:12px}
+.pb-app-shell .group-social-plan-list li:nth-child(2n) .group-social-plan-icon {background:#E9DFF8}
+.pb-app-shell .group-social-plan-info strong {font-size:16px}
+.pb-app-shell .group-social-members {background:#F3EFE6;border-color:#E9E1D3}
+.pb-app-shell .group-social-people li {border-color:#DED9CE}
+.pb-app-shell .group-social-person-avatar {border-radius:50%;background:#E2D4F5}
+.pb-app-shell .group-social-side-note {display:none!important} /* Quitar frase decorativa redundante. */
+.pb-app-shell .group-social-crew,.pb-app-shell .pb-group-crew {margin:12px 0 0;gap:12px;min-height:0}
+.pb-app-shell .pb-group-crew__avatars {display:inline-flex;align-items:center}
+.pb-app-shell .pb-group-crew__avatar {border-radius:50%;box-shadow:none!important;transform:none!important;animation:none!important}
+.pb-app-shell .group-social-admin {background:#FAF7F0}
+
+/* Personas reales, sin dibujos: iniciales organizadas y discretas. */
+.pb-app-shell .pb-group-crew {display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:17px;color:#1F4D3A}
+.pb-app-shell .pb-group-crew__avatars {display:inline-flex;align-items:center;flex:none;padding-left:3px}
+.pb-app-shell .pb-group-crew__avatar {
+  display:inline-grid;place-items:center;width:32px;height:32px;margin-left:-4px;
+  border-radius:50%;border:2px solid #FAF7F0;background:#DDEAD6;
+  color:#1F4D3A;font-weight:800;font-size:10px;
+}
+.pb-app-shell .pb-group-crew__avatar:nth-child(2n) {background:#F4D06F}
+.pb-app-shell .pb-group-crew__avatar:nth-child(3n) {background:#C7B3EE}
+.pb-app-shell .pb-group-crew__caption {display:flex;flex-direction:column;gap:1px;color:#65786C;font-size:11px;line-height:1.35}
+.pb-app-shell .pb-group-crew__caption strong {font-size:12px;color:#1F4D3A}
+.pb-app-shell .pb-group-crew__link {margin-left:8px;font-size:11px;font-weight:800;color:#1F4D3A;text-decoration:underline;text-underline-offset:4px}
+
+/* Cero movimiento literal. La interacción se comunica con foco/contraste, no animaciones. */
+.pb-app-shell .pb-groups-index *, .pb-app-shell .group-social-shell * {
+  animation:none!important;transition:none!important;scroll-behavior:auto!important;
+}
+.pb-app-shell .pb-groups-index a:hover,.pb-app-shell .group-social-shell a:hover {filter:none!important}
+
+/* Oscuro: superficies variadas, oscuras y cálidas, sin violeta corporativo de fondo. */
+html[data-theme="dark"] .pb-app-shell .pb-groups-heading,
+html[data-theme="dark"] .pb-app-shell .group-social-hero {border-bottom-color:#385546!important}
+html[data-theme="dark"] .pb-app-shell .pb-groups-heading h1 {color:#FAF7F0}
+html[data-theme="dark"] .pb-app-shell .pb-groups-heading p {color:#CBD9CC}
+html[data-theme="dark"] .pb-app-shell .pb-groups-card,
+html[data-theme="dark"] .pb-app-shell .pb-groups-grid > li:nth-child(3n + 2) .pb-groups-card,
+html[data-theme="dark"] .pb-app-shell .pb-groups-grid > li:nth-child(3n + 3) .pb-groups-card {
+  background:#283C30!important;color:#FAF7F0!important;border-color:#3E5746
+}
+html[data-theme="dark"] .pb-app-shell .pb-groups-card .pb-groups-info strong {color:#FAF7F0!important}
+html[data-theme="dark"] .pb-app-shell .pb-groups-info>span,
+html[data-theme="dark"] .pb-app-shell .pb-groups-info small {color:#C9D9C9}
+html[data-theme="dark"] .pb-app-shell .pb-groups-grid > li:first-child:not(:last-child) .pb-groups-card {background:#42634A!important}
+html[data-theme="dark"] .pb-app-shell .pb-groups-grid > li:last-child .pb-groups-new {border-color:#6C806E;color:#FAF7F0!important}
+html[data-theme="dark"] .pb-app-shell .pb-groups-grid > li:last-child .pb-groups-new>span {background:#395845;color:#F4D06F}
+html[data-theme="dark"] .pb-app-shell .group-social-hero h1 {color:#FAF7F0}
+html[data-theme="dark"] .pb-app-shell .group-social-avatar {background:#F4D06F!important}
+html[data-theme="dark"] .pb-app-shell .group-social-meta>span {background:#2C4134;border-color:#4B6454;color:#D4DFD3}
+html[data-theme="dark"] .pb-app-shell .group-social-tabs {border-bottom-color:#3F5949!important}
+html[data-theme="dark"] .pb-app-shell .group-social-tabs a.is-current {border-bottom-color:#F4D06F!important;color:#FAF7F0!important}
+html[data-theme="dark"] .pb-app-shell .group-social-panel {background:#24392E;border-color:#3D5847}
+html[data-theme="dark"] .pb-app-shell .group-social-plan-list li {border-bottom-color:#3B5646}
+html[data-theme="dark"] .pb-app-shell .group-social-plans {background:#24392E}
+html[data-theme="dark"] .pb-app-shell .group-social-members {background:#354638;border-color:#4C6550}
+html[data-theme="dark"] .pb-app-shell .group-social-admin {background:#24392E}
+html[data-theme="dark"] .pb-app-shell .group-social-person-avatar {background:#C7B3EE}
+html[data-theme="dark"] .pb-app-shell .pb-group-crew__avatar {border-color:#183023}
+html[data-theme="dark"] .pb-app-shell .pb-group-crew__caption {color:#CAD9CA}
+html[data-theme="dark"] .pb-app-shell .pb-group-crew__caption strong {color:#FAF7F0}
+html[data-theme="dark"] .pb-app-shell .pb-group-crew__link {color:#F4D06F}
+
+@media(max-width:1040px) {
+  .pb-app-shell .pb-groups-grid {grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .pb-app-shell .group-social-columns {grid-template-columns:minmax(0,1fr) minmax(235px,.7fr)}
+}
+@media(max-width:800px) {
+  .pb-app-shell .pb-groups-grid {grid-template-columns:1fr}
+  .pb-app-shell .pb-groups-grid:has(> li:nth-child(3)) > li:first-child:not(:last-child) {grid-row:auto}
+  .pb-app-shell .pb-groups-grid > li:first-child:not(:last-child) .pb-groups-card {min-height:240px}
+  .pb-app-shell .pb-groups-grid:has(> li:nth-child(4)) > li:last-child:nth-child(even) {grid-column:auto}
+  .pb-app-shell .pb-groups-heading {flex-wrap:wrap}
+  .pb-app-shell .group-social-columns {grid-template-columns:1fr}
+  .pb-app-shell .group-social-hero {align-items:flex-start;flex-wrap:wrap}
+}
+@media(max-width:550px) {
+  .pb-app-shell .pb-groups-heading {padding-top:0!important}
+  .pb-app-shell .pb-groups-heading h1 {font-size:46px}
+  .pb-app-shell .pb-groups-grid > li:first-child:not(:last-child) .pb-groups-card {padding:25px;min-height:235px}
+  .pb-app-shell .pb-groups-grid > li:first-child:not(:last-child) .pb-groups-info strong {font-size:27px}
+  .pb-app-shell .group-social-hero-main {display:flex;flex-direction:column;align-items:flex-start;gap:13px;width:100%}
+  .pb-app-shell .group-social-avatar {width:54px;height:54px;flex:0 0 54px;font-size:23px}
+  .pb-app-shell .group-social-identity {width:100%}
+  .pb-app-shell .pb-group-crew {gap:10px}
+  .pb-app-shell .pb-group-crew__link {margin-left:0}
+  .pb-app-shell .group-social-hero h1 {font-size:32px}
+  .pb-app-shell .group-social-plans {padding:20px 16px}
+  .pb-app-shell .group-social-plan-status {font-size:10px;padding:6px 9px}
+}
+
+/* Plan B · Frontend 17 — microinteracciones solo al interactuar.
+   Conserva la composición editorial 16. Sin animaciones al cargar ni bucles.
+   Respeta reduced-motion y dispositivos táctiles.
+*/
+@media (hover: hover) and (pointer: fine) {
+  /* Estado base: transiciones discretas; no se anima nada por sí solo. */
+  .pb-app-shell .pb-groups-card {
+    transition: transform .19s ease, box-shadow .19s ease, border-color .19s ease !important;
+    will-change: auto;
+  }
+  .pb-app-shell .pb-groups-card:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 13px 29px rgba(31,77,58,.12) !important;
+    border-color: rgba(31,77,58,.28) !important;
+  }
+  .pb-app-shell .pb-groups-grid > li:first-child:not(:last-child) .pb-groups-card:hover {
+    box-shadow: 0 15px 31px rgba(31,77,58,.17) !important;
+  }
+  .pb-app-shell .pb-groups-arrow,
+  .pb-app-shell .group-social-arrow {
+    transition: transform .2s ease, color .2s ease !important;
+  }
+  .pb-app-shell .pb-groups-card:hover .pb-groups-arrow,
+  .pb-app-shell .group-social-plan-card:hover .group-social-arrow {
+    transform: translate(3px,-2px) !important;
+  }
+  .pb-app-shell .pb-groups-grid > li:last-child .pb-groups-new {
+    transition: border-color .18s ease, background-color .18s ease !important;
+  }
+  .pb-app-shell .pb-groups-grid > li:last-child .pb-groups-new:hover {
+    border-color: #668F71 !important;
+    background: rgba(167,201,87,.09) !important;
+  }
+  .pb-app-shell .pb-groups-heading .social-cta,
+  .pb-app-shell .group-social-primary {
+    transition: transform .18s ease, filter .18s ease, box-shadow .18s ease !important;
+  }
+  .pb-app-shell .pb-groups-heading .social-cta:hover,
+  .pb-app-shell .group-social-primary:hover {
+    transform: translateY(-2px) !important;
+    filter: brightness(1.06);
+    box-shadow: 0 9px 20px rgba(31,77,58,.12) !important;
+  }
+  /* Los planes siguen siendo filas editoriales: no saltan ni pierden alineación. */
+  .pb-app-shell .group-social-plan-card,
+  .pb-app-shell .group-social-plan-list li:nth-child(2n) .group-social-plan-card {
+    transition: color .18s ease, padding-left .18s ease !important;
+  }
+  .pb-app-shell .group-social-plan-card:hover,
+  .pb-app-shell .group-social-plan-list li:nth-child(2n) .group-social-plan-card:hover {
+    padding-left: 7px !important;
+  }
+  .pb-app-shell .group-social-tabs a,
+  .pb-app-shell .group-social-small-action,
+  .pb-app-shell .pb-group-crew__link {
+    transition: color .18s ease, opacity .18s ease !important;
+  }
+  .pb-app-shell .group-social-small-action:hover,
+  .pb-app-shell .pb-group-crew__link:hover {opacity:.72;}
+
+  html[data-theme="dark"] .pb-app-shell .pb-groups-card:hover {
+    box-shadow: 0 14px 28px rgba(0,0,0,.26) !important;
+    border-color: rgba(244,208,111,.38) !important;
+  }
+  html[data-theme="dark"] .pb-app-shell .pb-groups-grid > li:last-child .pb-groups-new:hover {
+    background: rgba(167,201,87,.08) !important;
+    border-color: #A7C957 !important;
+  }
+  html[data-theme="dark"] .pb-app-shell .pb-groups-heading .social-cta:hover,
+  html[data-theme="dark"] .pb-app-shell .group-social-primary:hover {
+    box-shadow: 0 8px 17px rgba(0,0,0,.22) !important;
+  }
+}
+
+/* Accesibilidad: foco siempre visible; sin desplazamientos por teclado. */
+.pb-app-shell .pb-groups-card:focus-visible,
+.pb-app-shell .pb-groups-new:focus-visible,
+.pb-app-shell .group-social-plan-card:focus-visible,
+.pb-app-shell .group-social-primary:focus-visible {
+  outline: 3px solid #A7C957 !important;
+  outline-offset: 3px;
+}
+
+/* Si el usuario prefiere menos movimiento, no forzamos transiciones. */
+@media (prefers-reduced-motion: reduce) {
+  .pb-app-shell .pb-groups-card,
+  .pb-app-shell .pb-groups-arrow,
+  .pb-app-shell .group-social-arrow,
+  .pb-app-shell .pb-groups-new,
+  .pb-app-shell .social-cta,
+  .pb-app-shell .group-social-primary,
+  .pb-app-shell .group-social-plan-card,
+  .pb-app-shell .group-social-tabs a,
+  .pb-app-shell .group-social-small-action,
+  .pb-app-shell .pb-group-crew__link {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
+  .pb-app-shell .group-social-plan-card:hover,
+  .pb-app-shell .group-social-plan-list li:nth-child(2n) .group-social-plan-card:hover {
+    padding-left: 0 !important;
+  }
+}
+/* FIN Frontend 17 */

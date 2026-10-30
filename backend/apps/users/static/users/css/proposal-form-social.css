@@ -32,3 +32,96 @@ html[data-theme="dark"] .pfs-workspace{--pfs-surface:rgba(31,32,51,.78);--pfs-in
     margin-bottom: 24px;
   }
 }
+
+/* Etapa 24.2 — Identidad Plan B, sin alterar estructura ni lógica del formulario. */
+.pb-app-shell:has(.pfs-workspace),.pb-app-shell:has(.pfs-workspace) .pb-app-content{
+ background:#FAF7F0!important;background-image:none!important;color:#1F4D3A!important;
+}
+.pb-app-shell:has(.pfs-workspace) .social-sidebar{background:#FFFDF8!important;background-image:none!important;border-right-color:#E8DFD4!important}
+.pb-app-shell:has(.pfs-workspace) .social-side-nav a{color:#526958!important}
+.pb-app-shell:has(.pfs-workspace) .social-side-nav a.social-side-active{background:#E1ECD8!important;color:#1F4D3A!important}
+.pb-app-shell:has(.pfs-workspace) .social-side-bottom{background:#F4E6B7!important;background-image:none!important;color:#1F4D3A!important}
+.pfs-workspace{
+ --pfs-surface:#FFFDF8;--pfs-ink:#1F4D3A;--pfs-muted:#6B7D6E;
+ --pfs-line:#E8DFD4;--pfs-field:#F7F5EF;max-width:1240px;
+}
+.pfs-head{margin-bottom:28px}
+.pfs-kicker{color:#638665!important;letter-spacing:.12em}
+.pfs-head h1{font-size:clamp(38px,4.5vw,62px);letter-spacing:-.06em;line-height:1.06}
+.pfs-context{color:#517758;gap:9px}
+.pfs-return{background:transparent;border-color:var(--pfs-line);transition:background .18s}
+.pfs-return:hover{background:#E4EFDD}
+.pfs-form{grid-template-columns:minmax(0,1.13fr) minmax(310px,.87fr);gap:18px 22px}
+.pfs-section{box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;border-radius:24px;gap:17px;padding:clamp(20px,2.5vw,30px)}
+.pfs-section:first-of-type{background:#FFFDF8}
+.pfs-section:nth-of-type(2){background:#E4EFDD;border-color:#D6E3D0}
+.pfs-section.location-picker{background:#FFFDF8}
+.pfs-section h2{font-size:clamp(21px,2vw,27px);letter-spacing:-.04em}
+.pfs-step{background:#F4D06F;color:#1F4D3A;border-radius:13px}
+.pfs-section:nth-of-type(2) .pfs-step{background:#A7C957}
+.pfs-section.location-picker .pfs-step{background:#C7B3EE}
+.pfs-form .field input:not([type=hidden]),.pfs-form .field select,.pfs-form .field textarea{
+ border-color:var(--pfs-line);background:var(--pfs-field);color:var(--pfs-ink);
+}
+.pfs-form .field input:focus-visible,.pfs-form .field select:focus-visible,.pfs-form .field textarea:focus-visible{
+ border-color:#6B9A71;box-shadow:0 0 0 3px rgba(167,201,87,.22)
+}
+.pfs-form .button--primary{background:#1F4D3A;color:#FFFDF8;box-shadow:none}
+.pfs-form .button--primary:hover{background:#31674E;transform:translateY(-1px)}
+.pfs-form .button--quiet{background:#F7F5EF;border-color:#D8DFD3;color:#1F4D3A}
+.pfs-form .button--quiet:hover{background:#E4EFDD}
+.pfs-form .proposal-map{height:clamp(300px,31vw,400px);border-color:#D9E3D9;border-radius:18px}
+.pfs-form .location-actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px}
+.pfs-actions{border-top:1px solid var(--pfs-line);margin-top:6px;padding-top:24px}
+html[data-theme="dark"] .pb-app-shell:has(.pfs-workspace),
+html[data-theme="dark"] .pb-app-shell:has(.pfs-workspace) .pb-app-content{
+ background:#192B21!important;background-image:none!important;color:#FAF7F0!important
+}
+html[data-theme="dark"] .pb-app-shell:has(.pfs-workspace) .social-sidebar{background:#1E3025!important;border-color:#3D5846!important}
+html[data-theme="dark"] .pb-app-shell:has(.pfs-workspace) .social-side-nav a{color:#D4E1D5!important}
+html[data-theme="dark"] .pb-app-shell:has(.pfs-workspace) .social-side-nav a.social-side-active{background:#355840!important;color:#FFFDF8!important}
+html[data-theme="dark"] .pb-app-shell:has(.pfs-workspace) .social-side-bottom{background:#F4D06F!important;color:#1F4D3A!important}
+html[data-theme="dark"] .pfs-workspace{
+ --pfs-surface:#253D2F;--pfs-ink:#FAF7F0;--pfs-muted:#BECEBF;
+ --pfs-line:#46614C;--pfs-field:#304A3A
+}
+html[data-theme="dark"] .pfs-section:first-of-type,html[data-theme="dark"] .pfs-section.location-picker{background:#253D2F;border-color:#46614C}
+html[data-theme="dark"] .pfs-section:nth-of-type(2){background:#345640;border-color:#52735A}
+html[data-theme="dark"] .pfs-return{background:#253D2F}
+html[data-theme="dark"] .pfs-kicker{color:#B9D59E!important}
+html[data-theme="dark"] .pfs-context{color:#D6E7C1}
+html[data-theme="dark"] .pfs-form .field input:not([type=hidden]),
+html[data-theme="dark"] .pfs-form .field select,
+html[data-theme="dark"] .pfs-form .field textarea{border-color:#53705A;background:#304A3A;color:#FAF7F0}
+html[data-theme="dark"] .pfs-form .button--primary{background:#F4D06F;color:#1F4D3A}
+html[data-theme="dark"] .pfs-form .button--quiet{background:#304A3A;color:#FAF7F0;border-color:#59745F}
+html[data-theme="dark"] .pfs-form .button--quiet:hover{background:#3D6049}
+html[data-theme="dark"] .pfs-form .proposal-map{border-color:#5B765E}
+@media(max-width:900px){.pfs-form{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:580px){.pfs-head h1{font-size:clamp(34px,10vw,46px)}.pfs-section{padding:20px 16px}.pfs-form .proposal-map{height:300px}}
+@media(prefers-reduced-motion:reduce){.pfs-form .button--primary:hover{transform:none}}
+
+/* Etapa 24.3 — formulario de propuestas adaptable a tablets y celulares. */
+.pfs-workspace,.pfs-form,.pfs-section,.pfs-section-head,.pfs-fields,.pfs-form .field {min-width:0}
+.pfs-form :is(input,textarea,select){max-width:100%;min-width:0}
+.pfs-form .city-search-row,.pfs-form .proposal-budget-fields{min-width:0}
+@media (max-width: 1050px){
+ .pfs-form{grid-template-columns:minmax(0,1fr)!important;gap:18px}
+ .pfs-form>.pfs-section{grid-column:1/-1!important}
+ .pfs-form .proposal-map{height:clamp(290px,42vw,400px)}
+}
+@media (max-width: 600px){
+ .pfs-workspace{width:100%;max-width:100%;padding:10px 0 48px}
+ .pfs-head{flex-direction:column;align-items:flex-start;gap:14px;margin-bottom:20px}
+ .pfs-head h1{overflow-wrap:anywhere}
+ .pfs-context{overflow-wrap:anywhere}
+ .pfs-section{padding:20px 16px;gap:16px;border-radius:20px}
+ .pfs-section-head{align-items:flex-start;gap:12px}
+ .pfs-form .city-search-row{grid-template-columns:minmax(0,1fr)}
+ .pfs-form .city-search-row .button{width:100%;justify-self:stretch}
+ .pfs-form .proposal-budget-fields{grid-template-columns:minmax(0,1fr)}
+ .pfs-form .proposal-map{height:300px;min-height:300px}
+ .pfs-actions{flex-direction:column-reverse;align-items:stretch;gap:10px}
+ .pfs-actions .button{width:100%;max-width:100%;justify-content:center;text-align:center}
+}
+@media(max-width:390px){.pfs-section{padding:18px 13px}.pfs-step{width:38px;height:38px}}

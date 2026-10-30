@@ -35,3 +35,318 @@ html[data-theme='dark'] .pb-profile-card,html[data-theme='dark'] .pb-plan-card,h
 @media(max-width:1000px){.pb-plan-grid{grid-template-columns:1fr}}
 @media(max-width:700px){.pb-page-heading{flex-direction:column;align-items:flex-start}.pb-profile-banner,.pb-profile-inner{padding:22px}.pb-account-facts{grid-template-columns:1fr}.pb-plan-card{padding:15px;gap:11px}.pb-plan-icon{width:43px;height:43px}.pb-plan-summary{align-items:flex-start;padding:20px}.pb-profile-person h2{font-size:22px}}
 @media(prefers-reduced-motion:reduce){.pb-plan-card{transition:none}}
+
+
+/* ETAPA 29 — Perfil Plan B. Ámbito limitado a .pb-profile-wrap */
+.pb-app-shell:has(.pb-profile-wrap) .pb-app-content{background:#FAF7F0!important;background-image:none!important;color:#1F4D3A}
+.pb-profile-wrap{max-width:1130px;padding-top:20px}
+.pb-profile-wrap .pb-page-heading{margin-bottom:30px}
+.pb-profile-wrap .pb-overline{color:#5F8865;font-size:12px;letter-spacing:.12em}
+.pb-profile-wrap .pb-page-heading h1{font-size:clamp(42px,5vw,72px);letter-spacing:-.065em;color:#1F4D3A;line-height:1.02}
+.pb-profile-wrap .pb-page-heading p{font-size:16px;color:#6A7E6F}
+.pb-profile-wrap .pb-profile-card{background:#FFFDF8;border:1px solid #E8DFD4;box-shadow:none;border-radius:27px}
+.pb-profile-wrap .pb-profile-banner{background:#E3EEDC;border-bottom:1px solid #D4E3CD;padding:clamp(24px,3.5vw,42px)}
+.pb-profile-wrap .pb-profile-avatar{background:#F4D06F;color:#1F4D3A;border-radius:22px;width:78px;height:78px}
+.pb-profile-wrap .pb-profile-person h2{font-size:clamp(24px,2.8vw,37px);color:#1F4D3A;line-height:1.12}
+.pb-profile-wrap .pb-profile-person p,.pb-profile-wrap .pb-profile-form>p{color:#627869;line-height:1.55}
+.pb-profile-wrap .pb-profile-inner{padding:clamp(22px,3.5vw,42px)}
+.pb-profile-wrap .pb-account-facts{gap:14px;margin-bottom:32px}
+.pb-profile-wrap .pb-account-facts>div{background:#F7F5EF;border:1px solid #E8DFD4;border-radius:18px;padding:20px}
+.pb-profile-wrap .pb-account-facts dt{color:#67816D;font-weight:750;letter-spacing:.025em}
+.pb-profile-wrap .pb-account-facts dd{color:#1F4D3A;font-size:16px}
+.pb-profile-wrap .pb-profile-form{max-width:640px}
+.pb-profile-wrap .pb-profile-form h3{font-size:25px;letter-spacing:-.04em;color:#1F4D3A}
+.pb-profile-wrap .auth-form .field label{color:#1F4D3A;font-weight:750}
+.pb-profile-wrap .auth-form input:not([type=hidden]){background:#F7F5EF;border:1px solid #D8E0D4;border-radius:14px;color:#1F4D3A;min-height:50px;max-width:100%}
+.pb-profile-wrap .auth-form input:focus-visible{border-color:#719D72;outline:3px solid rgba(167,201,87,.35);outline-offset:2px}
+.pb-profile-wrap .auth-form .button--primary{background:#1F4D3A;color:#FFFDF8;border-radius:14px;min-height:48px;border:0;box-shadow:none;transition:background .2s}
+.pb-profile-wrap .auth-form .button--primary:hover{background:#30684D}
+.pb-profile-wrap .pb-profile-signout .button{border:1px solid #D9E1D8;background:transparent;color:#375F47;border-radius:14px;min-height:46px}
+.pb-profile-wrap .pb-profile-signout .button:hover{background:#E3EEDC}
+html[data-theme='dark'] .pb-app-shell:has(.pb-profile-wrap) .pb-app-content{background:#192B21!important;background-image:none!important;color:#FAF7F0}
+html[data-theme='dark'] .pb-profile-wrap .pb-overline{color:#B8D49D}
+html[data-theme='dark'] .pb-profile-wrap .pb-page-heading h1{color:#FAF7F0}
+html[data-theme='dark'] .pb-profile-wrap .pb-page-heading p{color:#BACDBD}
+html[data-theme='dark'] .pb-profile-wrap .pb-profile-card{background:#243C2D;border-color:#46634E}
+html[data-theme='dark'] .pb-profile-wrap .pb-profile-banner{background:#365842;border-color:#59745D}
+html[data-theme='dark'] .pb-profile-wrap .pb-profile-person h2,
+html[data-theme='dark'] .pb-profile-wrap .pb-account-facts dd,
+html[data-theme='dark'] .pb-profile-wrap .pb-profile-form h3,
+html[data-theme='dark'] .pb-profile-wrap .auth-form .field label{color:#FAF7F0}
+html[data-theme='dark'] .pb-profile-wrap .pb-profile-person p,
+html[data-theme='dark'] .pb-profile-wrap .pb-profile-form>p{color:#C6D8C8}
+html[data-theme='dark'] .pb-profile-wrap .pb-account-facts>div{background:#2D4937;border-color:#507058}
+html[data-theme='dark'] .pb-profile-wrap .pb-account-facts dt{color:#B8D49D}
+html[data-theme='dark'] .pb-profile-wrap .auth-form input:not([type=hidden]){background:#304B3A;border-color:#597660;color:#FAF7F0}
+html[data-theme='dark'] .pb-profile-wrap .auth-form .button--primary{background:#F4D06F;color:#1F4D3A}
+html[data-theme='dark'] .pb-profile-wrap .auth-form .button--primary:hover{background:#FFE08E}
+html[data-theme='dark'] .pb-profile-wrap .pb-profile-signout .button{border-color:#57715C;color:#FAF7F0}
+html[data-theme='dark'] .pb-profile-wrap .pb-profile-signout .button:hover{background:#365842}
+@media(max-width:700px){.pb-profile-wrap{padding-top:8px}.pb-profile-wrap .pb-profile-person{align-items:center}.pb-profile-wrap .pb-profile-avatar{width:60px;height:60px;font-size:26px}.pb-profile-wrap .pb-account-facts{grid-template-columns:minmax(0,1fr)}.pb-profile-wrap .pb-profile-banner,.pb-profile-wrap .pb-profile-inner{padding:23px 19px}.pb-profile-wrap .auth-form .button--primary{width:100%}}
+@media(prefers-reduced-motion:reduce){.pb-profile-wrap .auth-form .button--primary{transition:none}}
+
+/* ETAPA 29.1 — Sidebar Mi perfil: identidad coherente con Plan B. */
+@media (min-width: 901px) {
+  html[data-theme='light'] .pb-app-shell:has(.pb-profile-wrap) .social-sidebar {
+    background: #FFFDF8 !important;
+    background-image: none !important;
+    border-right-color: #E8DFD4 !important;
+  }
+  html[data-theme='light'] .pb-app-shell:has(.pb-profile-wrap) .social-side-nav a {
+    color: #45604C !important;
+  }
+  html[data-theme='light'] .pb-app-shell:has(.pb-profile-wrap) .social-side-nav a:hover {
+    background: #EDF2E7 !important;
+    color: #1F4D3A !important;
+  }
+  html[data-theme='light'] .pb-app-shell:has(.pb-profile-wrap) .social-side-nav a.social-side-active {
+    background: #E1ECD8 !important;
+    color: #1F4D3A !important;
+  }
+  html[data-theme='light'] .pb-app-shell:has(.pb-profile-wrap) .social-side-nav a.social-side-active .pb-nav-label {
+    color: #1F4D3A !important;
+  }
+  html[data-theme='light'] .pb-app-shell:has(.pb-profile-wrap) .social-side-bottom {
+    background: #F4E6B7 !important;
+    background-image: none !important;
+    color: #1F4D3A !important;
+  }
+  html[data-theme='light'] .pb-app-shell:has(.pb-profile-wrap) .social-side-bottom-icon,
+  html[data-theme='light'] .pb-app-shell:has(.pb-profile-wrap) .social-side-bottom small { color: #526A56 !important; }
+  html[data-theme='dark'] .pb-app-shell:has(.pb-profile-wrap) .social-sidebar {
+    background: #1E3025 !important;
+    background-image: none !important;
+    border-right-color: #3D5846 !important;
+  }
+  html[data-theme='dark'] .pb-app-shell:has(.pb-profile-wrap) .social-side-nav a {
+    color: #DAE3D7 !important;
+  }
+  html[data-theme='dark'] .pb-app-shell:has(.pb-profile-wrap) .social-side-nav a:hover {
+    background: #304735 !important;
+    color: #FAF7F0 !important;
+  }
+  html[data-theme='dark'] .pb-app-shell:has(.pb-profile-wrap) .social-side-nav a.social-side-active {
+    background: #3A5740 !important;
+    color: #FAF7F0 !important;
+  }
+  html[data-theme='dark'] .pb-app-shell:has(.pb-profile-wrap) .social-side-nav a.social-side-active .pb-nav-label {
+    color: #FAF7F0 !important;
+  }
+  html[data-theme='dark'] .pb-app-shell:has(.pb-profile-wrap) .social-side-bottom {
+    background: #F4D06F !important;
+    background-image: none !important;
+    color: #1F4D3A !important;
+  }
+  html[data-theme='dark'] .pb-app-shell:has(.pb-profile-wrap) .social-side-bottom-icon,
+  html[data-theme='dark'] .pb-app-shell:has(.pb-profile-wrap) .social-side-bottom small {
+    color: #1F4D3A !important;
+  }
+  html[data-theme='dark'] .pb-app-shell:has(.pb-profile-wrap) .pb-theme-sidebar-control {
+    background: #294333 !important;
+    border-color: #45614B !important;
+    color: #FAF7F0 !important;
+  }
+}
+
+
+/* ETAPA 29.2 — Cerrar sesión accesible y visible. */
+.pb-app-shell .pb-sidebar-logout {
+  width: 100%; margin: 14px 0 2px; padding: 0; flex-shrink: 0;
+}
+.pb-app-shell .pb-sidebar-logout__button {
+  display: flex; width: 100%; min-height: 46px; align-items: center;
+  justify-content: flex-start; gap: 12px; padding: 11px 14px;
+  border: 1px solid #C5D3C2; border-radius: 13px;
+  background: #F1F0E8; color: #1F4D3A; cursor: pointer;
+  font: inherit; font-weight: 750; font-size: 13px;
+  transition: background-color .18s ease, border-color .18s ease;
+}
+.pb-app-shell .pb-sidebar-logout__button svg { flex: 0 0 19px; }
+.pb-app-shell .pb-sidebar-logout__button:hover { background: #E3EBDB; border-color: #A7C957; }
+.pb-app-shell .pb-sidebar-logout__button:focus-visible {
+  outline: 3px solid #A7C957; outline-offset: 3px;
+}
+html[data-theme='dark'] .pb-app-shell .pb-sidebar-logout__button {
+  background: #344D3D; border-color: #58725C; color: #FAF7F0;
+}
+html[data-theme='dark'] .pb-app-shell .pb-sidebar-logout__button:hover {
+  background: #45654D; border-color: #A7C957;
+}
+/* Mayor jerarquía para la salida existente de Mi perfil. */
+.pb-app-shell .pb-profile-signout { margin-top: 22px; }
+.pb-app-shell .pb-profile-signout .button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: 48px; padding: 12px 23px; border-radius: 13px;
+  background: #E8DFD4; border: 1px solid #CDBFAB;
+  color: #1F4D3A; font-weight: 800; text-decoration: none;
+}
+.pb-app-shell .pb-profile-signout .button:hover { background: #E0D1BF; border-color: #B4A38B; }
+html[data-theme='dark'] .pb-app-shell .pb-profile-signout .button {
+  background: #39513F; border-color: #718A72; color: #FAF7F0;
+}
+html[data-theme='dark'] .pb-app-shell .pb-profile-signout .button:hover { background: #49644F; }
+.pb-app-shell .pb-profile-signout .button:focus-visible { outline: 3px solid #A7C957; outline-offset: 3px; }
+/* En celular el menú lateral es una barra inferior: no agregar un séptimo acceso. */
+@media (max-width: 700px) {
+  .pb-app-shell .pb-sidebar-logout { display: none !important; }
+  .pb-app-shell .pb-profile-signout .button { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pb-app-shell .pb-sidebar-logout__button { transition: none; }
+}
+
+/* ETAPA 29.3: dejar visible el cierre de sesión al final del menú. */
+@media (min-width: 701px) {
+  .pb-app-shell .social-sidebar:has(.pb-sidebar-logout) {
+    gap: 15px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    scrollbar-width: thin;
+    scrollbar-color: #69826d transparent;
+    padding-bottom: 12px !important;
+  }
+  .pb-app-shell .social-sidebar .social-side-bottom {
+    padding: 12px 14px !important;
+    border-radius: 16px !important;
+    min-height: 0 !important;
+  }
+  .pb-app-shell .social-sidebar .social-side-bottom-icon {
+    font-size: 21px !important;
+    line-height: 1 !important;
+    margin-bottom: 5px !important;
+  }
+  .pb-app-shell .social-sidebar .social-side-bottom strong {
+    font-size: 14px !important;
+    line-height: 1.22 !important;
+  }
+  .pb-app-shell .social-sidebar .social-side-bottom small {
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+    margin-top: 4px !important;
+  }
+  .pb-app-shell .social-sidebar .pb-sidebar-logout {
+    display: block !important;
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+  .pb-app-shell .social-sidebar .pb-sidebar-logout__button {
+    display: flex !important;
+    min-height: 44px !important;
+    font-size: 13px !important;
+  }
+}
+
+/* ETAPA 29.7: pie del sidebar unificado, sin cambios en navegación móvil. */
+@media (min-width: 701px) {
+  .pb-app-shell .social-sidebar:has(.pb-sidebar-footer) {
+    display: flex !important;
+    flex-direction: column !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding-bottom: 16px !important;
+    scrollbar-width: thin;
+  }
+  .pb-app-shell .social-sidebar .pb-sidebar-footer {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 9px !important;
+    width: 100% !important;
+    margin-top: auto !important;
+    padding-top: 19px !important;
+    flex: 0 0 auto !important;
+  }
+  .pb-app-shell .social-sidebar .pb-sidebar-footer > * {
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .pb-app-shell .social-sidebar .pb-sidebar-footer .pb-theme-sidebar-control {
+    min-height: 58px !important;
+    padding: 9px 12px !important;
+  }
+  .pb-app-shell .social-sidebar .pb-sidebar-footer .social-side-bottom {
+    display: grid !important;
+    grid-template-columns: 22px minmax(0,1fr) !important;
+    grid-template-rows: auto auto !important;
+    align-items: center !important;
+    column-gap: 10px !important;
+    row-gap: 3px !important;
+    padding: 13px 13px !important;
+    min-height: 0 !important;
+  }
+  .pb-app-shell .social-sidebar .pb-sidebar-footer .social-side-bottom-icon {
+    grid-area: 1 / 1 / 3 / 2 !important;
+    align-self: center !important;
+    margin: 0 !important;
+    font-size: 19px !important;
+    line-height: 1 !important;
+  }
+  .pb-app-shell .social-sidebar .pb-sidebar-footer .social-side-bottom strong {
+    grid-area: 1 / 2 !important;
+    font-size: 13px !important;
+    line-height: 1.28 !important;
+    margin: 0 !important;
+  }
+  .pb-app-shell .social-sidebar .pb-sidebar-footer .social-side-bottom small {
+    grid-area: 2 / 2 !important;
+    margin: 0 !important;
+    font-size: 11px !important;
+    line-height: 1.3 !important;
+  }
+  .pb-app-shell .social-sidebar .pb-sidebar-footer .pb-sidebar-logout__button {
+    width: 100% !important;
+    min-height: 47px !important;
+    padding: 11px 14px !important;
+    border-radius: 14px !important;
+  }
+}
+@media (max-width: 700px) {
+  .pb-app-shell .social-sidebar .pb-sidebar-footer { display: contents !important; }
+  .pb-app-shell .social-sidebar .pb-sidebar-footer .pb-sidebar-logout { display: none !important; }
+}
+
+/* ETAPA 30.1: Perfil personal, datos existentes y jerarquía editorial. */
+.pb-profile-wrap .pb-profile-v30 .pb-profile-banner{padding:32px 40px 27px}
+.pb-profile-wrap .pb-profile-v30 .pb-profile-person{align-items:center;gap:22px;margin-top:17px}
+.pb-profile-wrap .pb-profile-v30 .pb-profile-avatar{width:84px;height:84px;flex:0 0 84px;border-radius:24px;background:#F4D06F;color:#1F4D3A;font-size:34px;font-weight:800;display:grid;place-items:center}
+.pb-profile-wrap .pb-profile-v30 .pb-profile-identity h2{font-size:clamp(24px,2.3vw,35px);line-height:1.1;letter-spacing:-.045em;margin:0 0 7px}
+.pb-profile-wrap .pb-profile-v30 .pb-profile-identity p{margin:0 0 9px;max-width:48ch}
+.pb-profile-wrap .pb-profile-v30 .pb-profile-since{font-size:13px;font-weight:700;opacity:.85}
+.pb-profile-wrap .pb-profile-v30 .pb-profile-photo-hint{font-size:12px;line-height:1.45;opacity:.82;margin:19px 0 0}
+.pb-profile-wrap .pb-profile-v30 .pb-profile-inner{padding:32px 40px 39px}
+.pb-profile-wrap .pb-profile-v30 .pb-profile-data-head{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:16px}
+.pb-profile-wrap .pb-profile-v30 .pb-profile-data-head h3{font-size:25px;letter-spacing:-.04em;margin:3px 0 0}
+.pb-profile-wrap .pb-profile-v30 .pb-profile-data-head p{margin:0;color:var(--muted);font-size:14px}
+.pb-profile-wrap .pb-profile-v30 .pb-account-facts{margin-bottom:30px}
+.pb-profile-wrap .pb-profile-v30 .pb-account-facts dd{font-size:17px}
+.pb-profile-wrap .pb-profile-v30 .pb-profile-form{max-width:650px;border-top:1px solid var(--glass-border);padding-top:25px}
+.pb-profile-wrap .pb-profile-v30 .pb-profile-form h3{font-size:25px}
+@media(max-width:700px){.pb-profile-wrap .pb-profile-v30 .pb-profile-banner,.pb-profile-wrap .pb-profile-v30 .pb-profile-inner{padding:24px 20px}.pb-profile-wrap .pb-profile-v30 .pb-profile-person{gap:14px}.pb-profile-wrap .pb-profile-v30 .pb-profile-avatar{width:64px;height:64px;flex-basis:64px;font-size:26px;border-radius:20px}.pb-profile-wrap .pb-profile-v30 .pb-profile-data-head{display:block}.pb-profile-wrap .pb-profile-v30 .pb-profile-data-head p{margin-top:5px}.pb-profile-wrap .pb-profile-v30 .pb-profile-identity h2{overflow-wrap:anywhere}}
+
+/* ETAPA 30.2: fotografía de perfil privada. */
+.pb-profile-avatar { overflow: hidden; }
+.pb-profile-avatar-image { width: 100%; height: 100%; display: block; object-fit: cover; border-radius: inherit; }
+.pb-profile-photo-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; margin-top: 18px; }
+.pb-profile-photo-upload { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.pb-profile-photo-label { font-weight: 700; font-size: 13px; }
+.pb-profile-photo-upload input[type=file] { font: inherit; font-size: 12px; max-width: 240px; }
+.pb-profile-photo-upload input[type=file]::file-selector-button { border: 1px solid currentColor; border-radius: 9px; padding: 7px; margin-right: 8px; cursor: pointer; background: transparent; color: inherit; }
+.pb-profile-photo-controls small { font-size: 12px; width: 100%; opacity: .8; }
+@media(max-width:700px) { .pb-profile-photo-upload { align-items: stretch; width: 100%; } .pb-profile-photo-upload input[type=file] { width: 100%; max-width: 100%; } }
+
+/* ETAPA 30.3: selección cuidada y vista previa instantánea de foto. */
+.pb-profile-wrap .pb-profile-photo-upload { gap: 10px; }
+.pb-profile-wrap .pb-profile-file-input { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.pb-profile-wrap .pb-profile-photo-picker { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 15px; border-radius: 13px; cursor: pointer; font-size: 13px; font-weight: 700; color: inherit; border: 1px solid currentColor; background: rgba(255,255,255,.07); transition: background .18s ease, transform .18s ease; }
+.pb-profile-wrap .pb-profile-photo-picker:hover { background: rgba(255,255,255,.15); transform: translateY(-1px); }
+.pb-profile-wrap .pb-profile-file-input:focus-visible + .pb-profile-file-name { outline: 2px solid #F4D06F; outline-offset: 3px; border-radius: 4px; }
+.pb-profile-wrap .pb-profile-file-name { font-size: 12px; opacity: .85; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pb-profile-wrap .pb-profile-file-error { color: #F4D06F; opacity: 1; max-width: 300px; white-space: normal; }
+.pb-profile-wrap .pb-profile-photo-cancel { background: transparent; border: 0; color: inherit; text-decoration: underline; font: inherit; font-size: 12px; cursor: pointer; opacity: .85; padding: 7px 3px; }
+.pb-profile-wrap .pb-profile-photo-cancel[hidden] { display: none !important; }
+.pb-profile-wrap .pb-profile-photo-submit:disabled { opacity: .48; cursor: not-allowed; transform: none; }
+.pb-profile-wrap .pb-profile-avatar-preview { outline: 2px solid rgba(244,208,111,.65); outline-offset: 3px; }
+@media(max-width:700px) { .pb-profile-wrap .pb-profile-photo-upload { width: 100%; gap: 9px; } .pb-profile-wrap .pb-profile-photo-picker { width: auto; } .pb-profile-wrap .pb-profile-file-name { max-width: 100%; } }

@@ -1,7 +1,7 @@
 {% extends 'components/authenticated_base.html' %}
 {% load static %}
 {% block title %}Mi calendario · Plan B{% endblock %}
-{% block shell_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'users/css/personal-calendar.css' %}">{% endblock %}
+{% block shell_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'users/css/personal-calendar.css' %}?v=25">{% endblock %}
 {% block breadcrumbs %}<a href="{% url 'users:dashboard' %}">Mi espacio</a><span aria-hidden="true">/</span><span aria-current="page">Calendario</span>{% endblock %}
 {% block workspace %}
 <section class="pb-calendar" aria-labelledby="calendar-title">

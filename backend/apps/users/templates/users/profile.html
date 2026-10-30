@@ -4,10 +4,36 @@
 {% block workspace %}
 <div class="pb-profile-wrap">
   <header class="pb-page-heading"><div><span class="pb-overline">TU ESPACIO PERSONAL</span><h1>Mi perfil</h1><p>Tu cuenta, tus datos y tu identidad en Plan B.</p></div></header>
-  <section class="pb-profile-card" aria-labelledby="profile-title">
-    <div class="pb-profile-banner"><span class="pb-overline">TU CUENTA</span><div class="pb-profile-person"><span class="pb-profile-avatar" aria-hidden="true">{{ planb_user.username|first|upper }}</span><div><h2 id="profile-title">{{ planb_user.username }}</h2><p>Tu espacio para organizar planes con amigos</p></div></div></div>
+  <section class="pb-profile-card pb-profile-v30" aria-labelledby="profile-title">
+    <div class="pb-profile-banner">
+      <span class="pb-overline">TU CUENTA</span>
+      <div class="pb-profile-person">
+        <span class="pb-profile-avatar" aria-label="Avatar de {{ profile.username }}">{% if avatar_url %}<img class="pb-profile-avatar-image" src="{{ avatar_url }}" alt="Foto de perfil de {{ profile.username }}" referrerpolicy="no-referrer">{% else %}{{ profile.username|slice:":1"|upper }}{% endif %}</span>
+        <div class="pb-profile-identity">
+          <h2 id="profile-title">{{ profile.username }}</h2>
+          <p>Tu espacio para organizar planes con amigos.</p>
+          {% if profile.created_at %}<span class="pb-profile-since">Miembro desde {{ profile.created_at|date:"F Y" }}</span>{% endif %}
+        </div>
+      </div>
+      <div class="pb-profile-photo-controls">
+        <form method="post" enctype="multipart/form-data" action="{% url 'users:profile' %}" class="pb-profile-photo-upload">
+          {% csrf_token %}<input type="hidden" name="photo_action" value="upload">
+          <label for="pb-photo-input" class="pb-profile-photo-picker"><span aria-hidden="true">＋</span> Elegir fotografía</label>
+          <input id="pb-photo-input" class="pb-profile-file-input" name="photo" type="file" accept="image/jpeg,image/png,image/webp" required aria-label="Seleccionar imagen para el perfil">
+          <span id="pb-photo-filename" class="pb-profile-file-name" aria-live="polite">Ningún archivo seleccionado</span>
+          <button id="pb-photo-cancel" class="pb-profile-photo-cancel" type="button" hidden>Cancelar</button>
+          <button id="pb-photo-submit" class="button button--primary pb-profile-photo-submit" type="submit" disabled>Guardar foto</button>
+        </form>
+        {% if avatar_url %}<form method="post" action="{% url 'users:profile' %}">{% csrf_token %}<input type="hidden" name="photo_action" value="remove"><button class="button button--quiet" type="submit">Eliminar foto</button></form>{% endif %}
+        <small>JPG, PNG o WebP · máximo 2 MB.</small>
+      </div>
+    </div>
     <div class="pb-profile-inner">
-      <dl class="pb-account-facts"><div><dt>Usuario actual</dt><dd>{{ planb_user.username }}</dd></div><div><dt>Cuenta creada</dt><dd>{{ profile.created_at|date:"d/m/Y H:i" }}</dd></div></dl>
+      <div class="pb-profile-data-head"><div><span class="pb-overline">TU INFORMACIÓN</span><h3>Tus datos</h3></div><p>La información de tu cuenta en Plan B.</p></div>
+      <dl class="pb-account-facts">
+        <div><dt>Usuario actual</dt><dd>{{ profile.username }}</dd></div>
+        <div><dt>Cuenta creada</dt><dd>{{ profile.created_at|date:"d/m/Y H:i" }}</dd></div>
+      </dl>
       <div class="pb-profile-form"><h3>Editar datos</h3><p>Podés actualizar tu nombre de usuario cuando lo necesites.</p>
         <form method="post" action="{% url 'users:profile' %}" class="auth-form">
           {% csrf_token %}
@@ -18,6 +44,62 @@
       </div>
     </div>
   </section>
+  <script>
+  (() => {
+    const input = document.getElementById('pb-photo-input');
+    const avatar = document.querySelector('.pb-profile-v30 .pb-profile-avatar');
+    const name = document.getElementById('pb-photo-filename');
+    const save = document.getElementById('pb-photo-submit');
+    const cancel = document.getElementById('pb-photo-cancel');
+    if (!input || !avatar || !name || !save || !cancel) return;
+    const original = avatar.innerHTML;
+    let previewUrl = null;
+    const reset = () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      previewUrl = null;
+      input.value = '';
+      avatar.innerHTML = original;
+      name.textContent = 'Ningún archivo seleccionado';
+      name.classList.remove('pb-profile-file-error');
+      save.disabled = true;
+      cancel.hidden = true;
+      avatar.classList.remove('pb-profile-avatar-preview');
+    };
+    input.addEventListener('change', () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      previewUrl = null;
+      const file = input.files && input.files[0];
+      if (!file) { reset(); return; }
+      const formats = ['image/jpeg', 'image/png', 'image/webp'];
+      if (!formats.includes(file.type) || file.size > 2 * 1024 * 1024 || file.size === 0) {
+        reset();
+        name.textContent = 'Elegí JPG, PNG o WebP de hasta 2 MB.';
+        name.classList.add('pb-profile-file-error');
+        return;
+      }
+      previewUrl = URL.createObjectURL(file);
+      const image = document.createElement('img');
+      image.className = 'pb-profile-avatar-image';
+      image.alt = 'Vista previa de la fotografía seleccionada';
+      image.src = previewUrl;
+      image.addEventListener('error', () => {
+        if (avatar.contains(image)) {
+          reset();
+          name.textContent = 'No se pudo abrir la imagen elegida.';
+          name.classList.add('pb-profile-file-error');
+        }
+      });
+      avatar.replaceChildren(image);
+      avatar.classList.add('pb-profile-avatar-preview');
+      name.textContent = file.name;
+      name.classList.remove('pb-profile-file-error');
+      save.disabled = false;
+      cancel.hidden = false;
+    });
+    cancel.addEventListener('click', reset);
+    window.addEventListener('pagehide', () => { if (previewUrl) URL.revokeObjectURL(previewUrl); });
+  })();
+  </script>
   <form method="post" action="{% url 'users:logout' %}" class="pb-profile-signout">{% csrf_token %}<button class="button button--quiet" type="submit">Cerrar sesión <span aria-hidden="true">↗</span></button></form>
 </div>
 {% endblock %}

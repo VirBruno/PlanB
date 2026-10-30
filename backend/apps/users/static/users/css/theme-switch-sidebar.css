@@ -1,0 +1,153 @@
+/* Plan B | Frontend 02: selector de apariencia en la navegación lateral.
+   Reutiliza html[data-theme] y el script existente theme.js; no cambia servicios.
+   Cargado después de app-shell y responsive-polish para evitar solapamientos. */
+.pb-app-shell .pb-theme-sidebar-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  margin-top: auto;
+  margin-bottom: -22px;
+  padding: 12px 12px;
+  border: 1px solid rgba(117, 92, 210, .17);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .48);
+  color: var(--sd-ink, #24253e);
+}
+.pb-app-shell .social-side-bottom { margin-top: 0; }
+.pb-app-shell .pb-theme-sidebar-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  line-height: 1.25;
+}
+.pb-app-shell .pb-theme-sidebar-copy strong {
+  font-size: 12px;
+  font-weight: 750;
+  color: var(--sd-ink, #24253e);
+}
+.pb-app-shell .pb-theme-sidebar-copy small {
+  font-size: 10px;
+  color: var(--sd-muted, #687083);
+}
+.pb-app-shell button.pb-theme-sidebar-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex: 0 0 52px;
+  width: 52px;
+  height: 30px;
+  min-width: 52px;
+  min-height: 30px;
+  margin: 0;
+  padding: 4px;
+  appearance: none;
+  border: 1px solid rgba(114, 111, 151, .20);
+  border-radius: 999px;
+  background: #d6d9e9;
+  box-shadow: inset 0 1px 3px rgba(38, 40, 70, .08);
+  cursor: pointer;
+  transition: background-color .2s ease, border-color .2s ease;
+}
+.pb-app-shell .pb-theme-sidebar-knob {
+  display: block;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 5px rgba(25, 28, 61, .20);
+  transform: translateX(0);
+  transition: transform .2s ease;
+  pointer-events: none;
+}
+html[data-theme="dark"] .pb-app-shell .pb-theme-sidebar-control {
+  color: #f0ecff;
+  border-color: rgba(187, 175, 255, .22);
+  background: rgba(40, 38, 65, .76);
+}
+html[data-theme="dark"] .pb-app-shell .pb-theme-sidebar-copy strong { color: #f4f1ff; }
+html[data-theme="dark"] .pb-app-shell .pb-theme-sidebar-copy small { color: #b8b9d0; }
+html[data-theme="dark"] .pb-app-shell button.pb-theme-sidebar-switch {
+  border-color: #a58bff;
+  background: linear-gradient(120deg, #7757e8, #9b7cef);
+}
+html[data-theme="dark"] .pb-app-shell .pb-theme-sidebar-knob { transform: translateX(22px); }
+.pb-app-shell button.pb-theme-sidebar-switch:focus-visible {
+  outline: 3px solid #7359df;
+  outline-offset: 3px;
+}
+.pb-app-shell button.pb-theme-sidebar-switch:hover { border-color: #8060df; }
+/* En teléfonos el sidebar ya se convierte en una barra de navegación inferior.
+   El interruptor queda accesible encima de esa barra, no dentro de sus cinco íconos. */
+@media (max-width: 700px) {
+  .pb-app-shell .pb-theme-sidebar-control {
+    position: fixed !important;
+    z-index: 54;
+    right: 12px;
+    bottom: calc(88px + env(safe-area-inset-bottom));
+    left: auto;
+    width: auto;
+    min-width: 0;
+    display: flex !important;
+    padding: 7px;
+    margin: 0;
+    border-radius: 999px;
+    background: var(--sd-panel, rgba(255, 255, 255, .94));
+    box-shadow: 0 6px 22px rgba(37, 31, 70, .16);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+  }
+  .pb-app-shell .pb-theme-sidebar-copy { display: none; }
+  .pb-app-shell .social-side-bottom { display: none !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pb-app-shell button.pb-theme-sidebar-switch,
+  .pb-app-shell .pb-theme-sidebar-knob { transition: none; }
+}
+
+/* PLANB_SWITCH_KNOB_FIX_03: sol/luna dentro del círculo que se desplaza. */
+.pb-app-shell button.pb-theme-sidebar-switch .pb-theme-sidebar-knob {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  line-height: 1;
+  color: #6553ad;
+  user-select: none;
+}
+
+
+/* Etapa 24.4: control de tema integrado a navegación móvil. */
+@media (max-width:700px) {
+ .pb-app-shell .social-sidebar {
+  display:grid!important;grid-template-columns:minmax(0,1fr) 38px!important;
+  align-items:center!important;column-gap:5px!important;overflow:hidden!important;
+  padding:7px 7px calc(7px + env(safe-area-inset-bottom))!important;
+  background:#FFFDF8!important;
+ }
+ .pb-app-shell .social-side-nav {min-width:0!important;gap:0!important}
+ .pb-app-shell .social-side-nav a{gap:5px!important;padding:7px 0!important;min-width:0!important;white-space:nowrap!important;overflow:hidden!important;font-size:9px!important}
+ .pb-app-shell .social-side-nav a>.pb-nav-label{font-size:9px!important;line-height:1.1!important;overflow-wrap:normal!important;white-space:nowrap!important;letter-spacing:-.035em!important}
+ .pb-app-shell .social-side-nav a:nth-child(5)>.pb-nav-label{font-size:0!important}
+ .pb-app-shell .social-side-nav a:nth-child(5)>.pb-nav-label::after{content:'Avisos';font-size:9px!important}
+ .pb-app-shell .social-side-nav a:nth-child(2)>.pb-nav-label{font-size:0!important}
+ .pb-app-shell .social-side-nav a:nth-child(2)>.pb-nav-label::after{content:'Grupos';font-size:9px!important}
+ .pb-app-shell .social-side-nav a>.pb-nav-icon{width:19px!important;height:19px!important;min-width:19px!important}
+ .pb-app-shell .pb-theme-sidebar-control{position:static!important;inset:auto!important;z-index:auto!important;
+  width:38px!important;height:51px!important;min-height:51px!important;min-width:38px!important;
+  padding:0!important;margin:0!important;display:flex!important;align-items:center!important;justify-content:center!important;
+  background:transparent!important;border:0!important;border-radius:12px!important;box-shadow:none!important;backdrop-filter:none!important}
+ .pb-app-shell button.pb-theme-sidebar-switch{flex:0 0 34px!important;width:34px!important;min-width:34px!important;
+  height:34px!important;min-height:34px!important;padding:5px!important;border-radius:50%!important;
+  background:#E4EFDD!important;border:1px solid #A5BBA9!important;display:flex!important;justify-content:center!important}
+ .pb-app-shell .pb-theme-sidebar-knob{flex:0 0 22px!important;width:22px!important;height:22px!important;transform:none!important}
+ html[data-theme='dark'] .pb-app-shell .social-sidebar{background:#1E3025!important;border-top-color:#45614C!important}
+ html[data-theme='dark'] .pb-app-shell button.pb-theme-sidebar-switch{background:#365B44!important;border-color:#6D9673!important}
+ html[data-theme='dark'] .pb-app-shell .pb-theme-sidebar-knob{transform:none!important}
+ .pb-app-shell button.pb-theme-sidebar-switch:focus-visible{outline:3px solid #A7C957!important;outline-offset:2px!important}
+}
+@media (max-width:360px){.pb-app-shell .social-sidebar{grid-template-columns:minmax(0,1fr) 35px!important;column-gap:3px!important}.pb-app-shell .social-side-nav a>.pb-nav-label{font-size:8px!important}.pb-app-shell .social-side-nav a:nth-child(5)>.pb-nav-label::after,.pb-app-shell .social-side-nav a:nth-child(2)>.pb-nav-label::after{font-size:8px!important}}

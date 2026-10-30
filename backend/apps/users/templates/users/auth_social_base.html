@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'users/css/identity-auth-warm.css' %}?v=1"><link rel="stylesheet" href="{% static 'users/css/identity-auth-layout-fix.css' %}?v=2"><link rel="stylesheet" href="{% static 'users/css/identity-auth-friends.css' %}?v=3">
+<link rel="stylesheet" href="{% static 'users/css/identity-auth-fullscreen.css' %}?v=5">
+<link rel="stylesheet" href="{% static 'users/css/identity-auth-photo-clean.css' %}?v=6">{% endblock %}
+{% block body %}
+<div class="pb-warm-auth {% block auth_variant_class %}pb-warm-auth--login{% endblock %}">
+  <div class="pb-warm-auth__scene">
+    <header class="pb-warm-auth__header">
+      <a class="pb-warm-auth__brand" href="{% url 'users:login' %}" aria-label="planb., inicio de sesión">
+        <img src="{% static 'users/img/planb-wordmark.png' %}?v=4" alt="planb." width="590" height="354">
+      </a>
+      <p class="pb-warm-auth__tagline">Más planes, más momentos.</p>
+    </header>
+
+    <main class="pb-warm-auth__main" id="contenido">
+      <section class="pb-warm-auth__card" aria-label="Acceso a Plan B">
+        {% include 'components/messages.html' %}
+        {% block auth_content %}{% endblock %}
+        <div class="pb-warm-auth__switch-page">{% block top_link %}{% endblock %}</div>
+      </section>
+    </main>
+
+    <button type="button" class="pb-warm-auth__theme" data-theme-toggle data-theme-compact
+            aria-label="Cambiar apariencia" title="Cambiar modo claro/oscuro">☾</button>
+  </div>
+</div>
+{% endblock %}
+{% block theme_control %}{% endblock %}

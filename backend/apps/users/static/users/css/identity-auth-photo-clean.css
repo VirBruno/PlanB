@@ -1,0 +1,33 @@
+/* Plan B · Identidad social 06
+   Fotografía original sin tarjetas ni texto incrustado.
+   Cargada DESPUÉS de identity-auth-fullscreen.css para sustituir solo el fondo.
+   No modifica el formulario, el logo ni el interruptor de tema. */
+
+.pb-warm-auth--login .pb-warm-auth__scene,
+.pb-warm-auth--register .pb-warm-auth__scene {
+  background-color: #d48a5c;
+  background-image:
+    linear-gradient(180deg, rgba(23, 35, 25, .02) 0%, rgba(23, 35, 25, 0) 40%, rgba(23, 35, 25, .13) 100%),
+    url('../img/planb-amigos-fondo-limpio.webp');
+  background-size: 100% 100%, cover;
+  background-position: center center, center center;
+  background-repeat: no-repeat, no-repeat;
+  background-attachment: scroll, scroll;
+}
+
+/* Los elementos de la interfaz permanecen por encima de la fotografía. */
+.pb-warm-auth__header,
+.pb-warm-auth__main,
+.pb-warm-auth__theme {
+  position: relative;
+  z-index: 2;
+}
+.pb-warm-auth__theme { position: fixed; }
+
+@media (max-width: 760px) {
+  .pb-warm-auth--login .pb-warm-auth__scene,
+  .pb-warm-auth--register .pb-warm-auth__scene {
+    background-size: 100% 100%, cover;
+    background-position: center center, 52% center;
+  }
+}

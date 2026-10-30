@@ -1,11 +1,10 @@
-{% extends 'users/auth_base.html' %}
-{% block layout_class %}auth-layout--compact{% endblock %}
+{% extends 'users/auth_social_base.html' %}
+{% block auth_variant_class %}pb-warm-auth--register{% endblock %}
 {% block title %}Crear una cuenta · Plan B{% endblock %}
-{% block top_link %}¿Ya tenés una cuenta? <a href="{% url 'users:login' %}">Iniciá sesión <span aria-hidden="true">↗</span></a>{% endblock %}
+{% block top_link %}¿Ya tenés cuenta? <a href="{% url 'users:login' %}">Iniciá sesión</a>{% endblock %}
 {% block auth_content %}
-<p class="eyebrow eyebrow--blue">TU PRIMER PASO</p>
-<h2>Hacé lugar a<br>nuevos planes.</h2>
-<p class="panel-description">Creá tu cuenta y sumate a Plan B.</p>
+<h2>Creá tu cuenta</h2>
+<p class="panel-description">Unite y empezá a planear con tu grupo.</p>
 <form method="post" action="{% url 'users:register' %}" class="auth-form" data-submit-form>
   {% csrf_token %}
   {% include 'components/form_errors.html' %}

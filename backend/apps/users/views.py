@@ -16,7 +16,7 @@ from apps.groups.services import group_service
 from apps.groups.services.exceptions import GroupUnavailable, InvalidGroup
 from .forms import LoginForm, ProfileForm, RegisterForm
 from .services import auth_service, session_service
-from .services import profile_service
+from .services import profile_service, avatar_service
 from .services.exceptions import (
     ConfirmationInvalid,
     InvalidCredentials,
@@ -63,7 +63,22 @@ def safe_next(value):
 def register(request):
     form = RegisterForm(request.POST if request.method == "POST" else None)
     status = 200
-    if request.method == "POST" and form.is_valid():
+    if request.method == "POST" and request.POST.get("photo_action") in ("upload", "remove"):
+        try:
+            token = session_service.get_access_token(request)
+            if request.POST["photo_action"] == "remove":
+                avatar_service.remove(token, user["id"])
+                messages.success(request, "Eliminaste tu foto de perfil.")
+            else:
+                photo = request.FILES.get("photo")
+                if photo is None:
+                    raise avatar_service.AvatarError("Seleccioná una imagen primero.")
+                avatar_service.upload(token, user["id"], photo)
+                messages.success(request, "Actualizaste tu foto de perfil.")
+            return redirect("users:profile")
+        except avatar_service.AvatarError as error:
+            messages.error(request, str(error))
+    if request.method == "POST" and not request.POST.get("photo_action") and form.is_valid():
         try:
             auth_session = auth_service.sign_up(
                 username=form.cleaned_data["username"],
@@ -95,7 +110,22 @@ def login(request):
     form = LoginForm(request.POST if request.method == "POST" else None)
     destination = safe_next(request.POST.get("next", request.GET.get("next", "")))
     status = 200
-    if request.method == "POST" and form.is_valid():
+    if request.method == "POST" and request.POST.get("photo_action") in ("upload", "remove"):
+        try:
+            token = session_service.get_access_token(request)
+            if request.POST["photo_action"] == "remove":
+                avatar_service.remove(token, user["id"])
+                messages.success(request, "Eliminaste tu foto de perfil.")
+            else:
+                photo = request.FILES.get("photo")
+                if photo is None:
+                    raise avatar_service.AvatarError("Seleccioná una imagen primero.")
+                avatar_service.upload(token, user["id"], photo)
+                messages.success(request, "Actualizaste tu foto de perfil.")
+            return redirect("users:profile")
+        except avatar_service.AvatarError as error:
+            messages.error(request, str(error))
+    if request.method == "POST" and not request.POST.get("photo_action") and form.is_valid():
         try:
             auth_session = auth_service.sign_in(
                 identifier=form.cleaned_data["identifier"],
@@ -181,7 +211,22 @@ def profile(request):
         initial={"username": user["username"]},
     )
     status = 200
-    if request.method == "POST" and form.is_valid():
+    if request.method == "POST" and request.POST.get("photo_action") in ("upload", "remove"):
+        try:
+            token = session_service.get_access_token(request)
+            if request.POST["photo_action"] == "remove":
+                avatar_service.remove(token, user["id"])
+                messages.success(request, "Eliminaste tu foto de perfil.")
+            else:
+                photo = request.FILES.get("photo")
+                if photo is None:
+                    raise avatar_service.AvatarError("Seleccioná una imagen primero.")
+                avatar_service.upload(token, user["id"], photo)
+                messages.success(request, "Actualizaste tu foto de perfil.")
+            return redirect("users:profile")
+        except avatar_service.AvatarError as error:
+            messages.error(request, str(error))
+    if request.method == "POST" and not request.POST.get("photo_action") and form.is_valid():
         try:
             profile_service.update_profile(
                 session_service.get_access_token(request),
@@ -196,7 +241,12 @@ def profile(request):
         else:
             messages.success(request, "Actualizaste tu perfil.")
             return redirect("users:profile")
-    return render(request, "users/profile.html", {"form": form, "profile": user}, status=status)
+    avatar_url = None
+    try:
+        avatar_url = avatar_service.signed_url(session_service.get_access_token(request), user["id"])
+    except avatar_service.AvatarError:
+        pass  # El perfil continúa disponible si Storage aún no está configurado.
+    return render(request, "users/profile.html", {"form": form, "profile": user, "avatar_url": avatar_url}, status=status)
 
 
 @private_page

@@ -8,6 +8,8 @@
   <meta name="theme-color" content="#f6f5fc">
   <script>try{document.documentElement.dataset.theme=localStorage.getItem("planb-theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")}catch(e){document.documentElement.dataset.theme="light"}</script>
   <title>{% block title %}Plan B{% endblock %}</title>
+  <link rel="icon" type="image/png" sizes="64x64" href="{% static 'users/img/planb-favicon.png' %}">
+  <link rel="apple-touch-icon" sizes="192x192" href="{% static 'users/img/planb-app-icon.png' %}">
   <link rel="stylesheet" href="{% static 'users/css/planb.css' %}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

@@ -1,0 +1,24 @@
+/* Identidad visual nueva, acotada a la marca de la barra lateral autenticada. */
+.pb-app-shell .social-side-brand.pb-brand-side {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 9px 0 8px;
+  min-height: 74px;
+  text-decoration: none;
+}
+.pb-app-shell .pb-brand-side__image {
+  display: block;
+  width: clamp(116px, 8.2vw, 151px);
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+.pb-app-shell .pb-brand-side__image--dark { display: none; }
+html[data-theme='dark'] .pb-app-shell .pb-brand-side__image--light { display: none; }
+html[data-theme='dark'] .pb-app-shell .pb-brand-side__image--dark { display: block; }
+@media (max-width: 760px) {
+  .pb-app-shell .social-side-brand.pb-brand-side { justify-content: center; min-height: 55px; }
+  .pb-app-shell .pb-brand-side__image { width: 108px; }
+}

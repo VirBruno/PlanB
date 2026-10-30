@@ -1,0 +1,132 @@
+/* Plan B · Identidad social 01 · Ajuste visual 02.
+   Se carga DESPUÉS de identity-auth-warm.css; no modifica la autenticación.
+   Mejora altura útil, separación marca/eslogan, fotografías y autofill. */
+
+.pb-warm-auth {
+  padding: 18px 22px;
+}
+
+.pb-warm-auth__scene {
+  width: min(100%, 980px);
+  min-height: calc(100svh - 36px);
+  height: auto;
+  padding: clamp(16px, 2.2vw, 24px) clamp(20px, 3.5vw, 44px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 1.6vh, 18px);
+  /* Las fotos de la primera entrega tienen una franja inferior
+     degradada: el recorte superior evita mostrar esa sección. */
+  background-size: cover, 114% auto;
+  background-position: center center, center top;
+  background-repeat: no-repeat;
+}
+
+.pb-warm-auth__header {
+  margin: 0;
+  width: 100%;
+  text-align: center;
+  flex: 0 0 auto;
+}
+
+.pb-warm-auth__brand {
+  width: clamp(152px, 15vw, 194px);
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.pb-warm-auth__brand img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.pb-warm-auth__tagline {
+  display: block;
+  margin: 0 auto;
+  line-height: 1.45;
+  font-size: clamp(12px, 1.1vw, 14px);
+  max-width: 320px;
+}
+
+.pb-warm-auth__main {
+  flex: 0 1 auto;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.pb-warm-auth__card {
+  width: min(100%, 448px);
+  padding: clamp(20px, 2.5vw, 27px) clamp(20px, 3vw, 29px);
+  border-radius: 26px;
+}
+
+.pb-warm-auth__card h1,
+.pb-warm-auth__card h2 {
+  font-size: clamp(25px, 2.5vw, 29px);
+  line-height: 1.16;
+  margin: 0 0 6px;
+}
+
+.pb-warm-auth__card .panel-description {
+  margin-bottom: 15px;
+  line-height: 1.48;
+}
+
+.pb-warm-auth__card .auth-form { gap: 10px; }
+.pb-warm-auth__card .field label { margin-bottom: 4px; }
+.pb-warm-auth__card .field input { min-height: 44px; }
+.pb-warm-auth__card .button--primary { min-height: 46px; }
+.pb-warm-auth__card .notice { margin-bottom: 11px; }
+.pb-warm-auth__switch-page { margin-top: 14px; padding-top: 13px; }
+
+/* Chrome autocompleta en azul por defecto, que rompe la paleta crema. */
+.pb-warm-auth__card input:-webkit-autofill,
+.pb-warm-auth__card input:-webkit-autofill:hover,
+.pb-warm-auth__card input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #fffdf9 inset !important;
+  -webkit-text-fill-color: #18342d !important;
+  caret-color: #18342d;
+  transition: background-color 9999s ease-out 0s;
+}
+html[data-theme='dark'] .pb-warm-auth__card input:-webkit-autofill,
+html[data-theme='dark'] .pb-warm-auth__card input:-webkit-autofill:hover,
+html[data-theme='dark'] .pb-warm-auth__card input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #263b31 inset !important;
+  -webkit-text-fill-color: #fbf9ef !important;
+  caret-color: #fbf9ef;
+}
+
+/* El formulario puede crecer si aparecen avisos/errores o al registrar. */
+@media (max-height: 700px) and (min-width: 761px) {
+  .pb-warm-auth__scene { gap: 10px; padding-block: 16px; }
+  .pb-warm-auth__brand { width: 150px; }
+  .pb-warm-auth__card { padding-block: 18px; }
+}
+
+@media (max-width: 760px) {
+  .pb-warm-auth { padding: 0; }
+  .pb-warm-auth__scene {
+    width: 100%;
+    min-height: 100svh;
+    padding: 56px 16px 24px;
+    border-radius: 0;
+    gap: 16px;
+    background-size: cover, auto 155%;
+    background-position: center center, center top;
+  }
+  .pb-warm-auth__header { margin: 0; }
+  .pb-warm-auth__brand { width: 178px; }
+  .pb-warm-auth__main { padding: 0; margin: 0; }
+  .pb-warm-auth__card { width: min(100%, 440px); padding: 23px 20px; }
+}
+
+@media (max-width: 380px) {
+  .pb-warm-auth__brand { width: 156px; }
+  .pb-warm-auth__scene { padding-inline: 12px; }
+  .pb-warm-auth__card { padding-inline: 17px; }
+}

@@ -1,0 +1,407 @@
+/* Plan B | Frontend 03 | Propuestas y elección del grupo
+   Capa visual independiente: no altera votos, resultados, mapas ni solicitudes.
+   Se carga después del CSS existente solamente en el detalle de un plan. */
+.pb-app-shell .pb-plan-detail {
+  --pb03-border: rgba(121, 107, 181, .18);
+  --pb03-accent: #7458dd;
+  --pb03-soft: rgba(122, 98, 220, .085);
+  --pb03-soft-strong: rgba(122, 98, 220, .14);
+  --pb03-green: #176c56;
+  --pb03-green-soft: rgba(60, 177, 135, .12);
+  --pb03-surface: var(--sd-panel, var(--white, #fff));
+  --pb03-muted: var(--muted, #657084);
+  --pb03-text: var(--text, #27243d);
+}
+html[data-theme="dark"] .pb-app-shell .pb-plan-detail {
+  --pb03-border: rgba(199, 185, 252, .19);
+  --pb03-accent: #c5b6ff;
+  --pb03-soft: rgba(181, 153, 255, .10);
+  --pb03-soft-strong: rgba(181, 153, 255, .18);
+  --pb03-green: #91e2c7;
+  --pb03-green-soft: rgba(72, 180, 146, .16);
+}
+
+/* Título de sección y botón para sumar propuestas. */
+.pb-app-shell .pb-plan-detail .pb-proposals-heading {
+  margin-bottom: clamp(18px, 2.5vw, 26px);
+  gap: 12px 20px;
+}
+.pb-app-shell .pb-plan-detail .pb-proposals-heading h2 {
+  line-height: 1.2;
+}
+.pb-app-shell .pb-plan-detail .pb-proposals-subtitle {
+  max-width: 60ch;
+  line-height: 1.55;
+}
+.pb-app-shell .pb-plan-detail .pb-proposals-heading .button {
+  min-height: 44px;
+  align-items: center;
+  box-shadow: 0 8px 18px rgba(107, 78, 211, .14);
+}
+
+/* Método de elección: preferencia activa clara y opciones consistentes. */
+.pb-app-shell .pb-plan-detail .proposal-election {
+  gap: 16px;
+  margin: 0 0 23px;
+  padding: 20px 0 22px;
+  border-top: 1px solid var(--pb03-border);
+  border-bottom: 1px solid var(--pb03-border);
+}
+.pb-app-shell .pb-plan-detail .proposal-election-heading {
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.pb-app-shell .pb-plan-detail .proposal-election-heading h3 {
+  font-size: clamp(18px, 2vw, 21px);
+  letter-spacing: -.02em;
+  line-height: 1.28;
+  color: var(--pb03-text);
+}
+.pb-app-shell .pb-plan-detail .proposal-method-active {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: var(--pb03-soft);
+  border: 1px solid var(--pb03-border);
+  color: var(--pb03-accent);
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.pb-app-shell .pb-plan-detail .proposal-method-note {
+  max-width: 65ch;
+  line-height: 1.55;
+}
+.pb-app-shell .pb-plan-detail .proposal-method-picker {
+  justify-self: stretch;
+  width: 100%;
+  min-width: 0;
+}
+.pb-app-shell .pb-plan-detail .proposal-method-picker summary {
+  min-height: 44px;
+  padding: 10px 15px;
+  border-radius: 12px;
+  border-color: var(--pb03-border);
+  background: var(--pb03-surface);
+  color: var(--pb03-text);
+  font-size: 13px;
+  transition: border-color .16s ease, background-color .16s ease;
+}
+.pb-app-shell .pb-plan-detail .proposal-method-picker summary:hover {
+  background: var(--pb03-soft);
+  border-color: var(--pb03-accent);
+}
+.pb-app-shell .pb-plan-detail .proposal-method-picker summary::after {
+  color: var(--pb03-accent);
+}
+.pb-app-shell .pb-plan-detail .proposal-method-picker form {
+  margin: 13px 0 0;
+}
+.pb-app-shell .pb-plan-detail .proposal-method-options {
+  gap: 12px;
+  align-items: stretch;
+}
+.pb-app-shell .pb-plan-detail .proposal-method-option {
+  position: relative;
+  min-height: 119px;
+  padding: 17px 17px 16px;
+  gap: 9px;
+  border: 1px solid var(--pb03-border);
+  border-radius: 16px;
+  color: var(--pb03-text);
+  background: var(--pb03-surface);
+  box-shadow: 0 7px 20px rgba(44, 36, 91, .025);
+  transition: border-color .16s ease, background-color .16s ease,
+              transform .16s ease, box-shadow .16s ease;
+}
+.pb-app-shell .pb-plan-detail .proposal-method-option strong {
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--pb03-text);
+}
+.pb-app-shell .pb-plan-detail .proposal-method-option span {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--pb03-muted);
+}
+.pb-app-shell .pb-plan-detail .proposal-method-option:hover {
+  transform: translateY(-2px);
+  border-color: var(--pb03-accent);
+  background: var(--pb03-soft);
+  box-shadow: 0 9px 26px rgba(44, 36, 91, .07);
+}
+.pb-app-shell .pb-plan-detail .proposal-method-option.is-active {
+  background: var(--pb03-soft);
+  border-color: var(--pb03-accent);
+  box-shadow: inset 0 0 0 1px var(--pb03-accent);
+}
+.pb-app-shell .pb-plan-detail .proposal-method-option.is-active::after {
+  content: 'Seleccionado';
+  justify-self: start;
+  margin-top: 4px;
+  color: var(--pb03-accent);
+  font-size: 10px;
+  letter-spacing: .045em;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+/* Resultado de votación/combate: legible y con un único destaque. */
+.pb-app-shell .pb-plan-detail .proposal-leaderboard {
+  gap: 14px;
+  margin: 0 0 24px;
+  padding: clamp(15px, 2vw, 22px);
+  border: 1px solid var(--pb03-border);
+  border-radius: 18px;
+  background: var(--pb03-soft);
+}
+.pb-app-shell .pb-plan-detail .proposal-leaderboard-heading {
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
+.pb-app-shell .pb-plan-detail .proposal-leaderboard-heading h3 {
+  font-size: clamp(18px, 2vw, 21px);
+  color: var(--pb03-text);
+}
+.pb-app-shell .pb-plan-detail .proposal-leaderboard-heading p {
+  font-size: 12px;
+  line-height: 1.55;
+}
+.pb-app-shell .pb-plan-detail .proposal-champion {
+  padding: 10px 12px;
+  border-left: 3px solid var(--pb03-green);
+  border-radius: 9px;
+  color: var(--pb03-green);
+  background: var(--pb03-green-soft);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.pb-app-shell .pb-plan-detail .proposal-ranking {
+  gap: 7px;
+}
+.pb-app-shell .pb-plan-detail .proposal-ranking li {
+  grid-template-columns: 28px minmax(0,1fr) auto;
+  gap: 10px;
+  min-height: 58px;
+  padding: 10px 13px;
+  border: 1px solid var(--pb03-border);
+  border-radius: 11px;
+  background: var(--pb03-surface);
+}
+.pb-app-shell .pb-plan-detail .proposal-ranking li.is-champion {
+  border-color: rgba(45, 150, 114, .35);
+  background: var(--pb03-green-soft);
+}
+.pb-app-shell .pb-plan-detail .proposal-ranking-place {
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  border-radius: 8px;
+  background: var(--pb03-soft-strong);
+  color: var(--pb03-accent);
+}
+.pb-app-shell .pb-plan-detail .proposal-ranking-name {
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--pb03-text);
+}
+.pb-app-shell .pb-plan-detail .proposal-ranking-name small {
+  font-size: 11px;
+  margin-top: 4px;
+}
+.pb-app-shell .pb-plan-detail .proposal-ranking li > strong {
+  font-size: 12px;
+  color: var(--pb03-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tarjetas de propuestas: distinguir información, acciones y resultado. */
+.pb-app-shell .pb-plan-detail .pb-proposals-grid {
+  gap: clamp(15px, 2vw, 22px);
+}
+.pb-app-shell .pb-plan-detail .pb-proposal-card {
+  gap: 14px;
+  border-color: var(--pb03-border);
+  border-radius: 20px;
+  background: var(--pb03-surface);
+  box-shadow: 0 11px 30px rgba(42, 35, 84, .045);
+}
+.pb-app-shell .pb-plan-detail .pb-proposal-card:has(.pb-proposal-confirmed) {
+  border-color: rgba(45, 150, 114, .48);
+  box-shadow: 0 0 0 2px var(--pb03-green-soft), 0 11px 30px rgba(42, 35, 84, .04);
+}
+.pb-app-shell .pb-plan-detail .pb-proposal-card-heading h3 {
+  line-height: 1.32;
+  overflow-wrap: anywhere;
+}
+.pb-app-shell .pb-plan-detail .proposal-author {
+  line-height: 1.5;
+}
+.pb-app-shell .pb-plan-detail .proposal-type {
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: var(--pb03-soft-strong);
+  color: var(--pb03-accent);
+}
+.pb-app-shell .pb-plan-detail .proposal-actions {
+  align-items: flex-start;
+  gap: 7px;
+}
+.pb-app-shell .pb-plan-detail .proposal-actions .button {
+  min-height: 36px;
+  border-radius: 10px;
+}
+.pb-app-shell .pb-plan-detail .pb-proposal-confirmed {
+  align-self: flex-start;
+  margin: 0;
+  padding: 7px 11px;
+  border: 1px solid rgba(45, 150, 114, .25);
+  border-radius: 999px;
+  background: var(--pb03-green-soft);
+  color: var(--pb03-green);
+  font-size: 12px;
+  line-height: 1.35;
+}
+.pb-app-shell .pb-plan-detail .proposal-election-score {
+  gap: 8px;
+  min-height: 44px;
+  padding: 11px 0;
+  border-block: 1px solid var(--pb03-border);
+  color: var(--pb03-text);
+}
+.pb-app-shell .pb-plan-detail .proposal-election-score > strong {
+  margin-right: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.pb-app-shell .pb-plan-detail :is(.proposal-champion-badge, .proposal-voted-label) {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+}
+.pb-app-shell .pb-plan-detail .proposal-champion-badge {
+  color: var(--pb03-green);
+  background: var(--pb03-green-soft);
+}
+.pb-app-shell .pb-plan-detail .proposal-voted-label {
+  color: var(--pb03-accent);
+  background: var(--pb03-soft);
+}
+.pb-app-shell .pb-plan-detail .proposal-election-score .button {
+  min-height: 38px;
+  border-radius: 10px;
+  padding: 7px 13px;
+}
+.pb-app-shell .pb-plan-detail .pb-confirm-form .button {
+  min-height: 42px;
+  width: 100%;
+  justify-content: center;
+  border-radius: 12px;
+}
+.pb-app-shell .pb-plan-detail .proposal-meta {
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--pb03-border);
+}
+.pb-app-shell .pb-plan-detail .proposal-meta > div {
+  flex: 1 1 150px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid var(--pb03-border);
+  border-radius: 11px;
+  background: var(--pb03-soft);
+}
+.pb-app-shell .pb-plan-detail .proposal-meta dt {
+  font-size: 11px;
+  color: var(--pb03-muted);
+}
+.pb-app-shell .pb-plan-detail .proposal-meta dd {
+  font-size: 12px;
+  font-weight: 750;
+  color: var(--pb03-text);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.pb-app-shell .pb-plan-detail .pb-proposal-card-location {
+  padding-top: 12px;
+  border-top: 1px solid var(--pb03-border);
+}
+.pb-app-shell .pb-plan-detail .proposal-location-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--pb03-muted);
+  letter-spacing: .02em;
+}
+.pb-app-shell .pb-plan-detail .proposal-map-preview {
+  border-color: var(--pb03-border);
+  border-radius: 14px;
+}
+.pb-app-shell .pb-plan-detail .proposal-map-link > span {
+  font-size: 12px;
+  color: var(--pb03-accent);
+  text-underline-offset: 3px;
+}
+.pb-app-shell .pb-plan-detail .proposal-map-link:hover > span {
+  text-decoration: underline;
+}
+
+/* Pronóstico de cada propuesta: bloque secundario, sin competir con el título. */
+.pb-app-shell .pb-plan-detail .pb-proposal-card .pb-weather {
+  margin-block: 0;
+  border-radius: 13px;
+}
+
+/* Accesibilidad y móviles. */
+.pb-app-shell .pb-plan-detail :is(.proposal-method-picker summary,
+  .proposal-method-option, .proposal-election-score button,
+  .proposal-actions .button, .pb-confirm-form button,
+  .proposal-map-link, .proposal-ideal-view):focus-visible {
+  outline: 3px solid var(--pb03-accent);
+  outline-offset: 3px;
+}
+@media (max-width: 900px) {
+  .pb-app-shell .pb-plan-detail .proposal-method-options {
+    grid-template-columns: 1fr;
+  }
+  .pb-app-shell .pb-plan-detail .proposal-method-option {
+    min-height: 0;
+  }
+}
+@media (max-width: 620px) {
+  .pb-app-shell .pb-plan-detail .proposal-election {
+    padding-top: 16px;
+  }
+  .pb-app-shell .pb-plan-detail .proposal-method-active {
+    white-space: normal;
+  }
+  .pb-app-shell .pb-plan-detail .proposal-ranking li {
+    grid-template-columns: 24px minmax(0,1fr) auto;
+    padding: 9px;
+    gap: 7px;
+  }
+  .pb-app-shell .pb-plan-detail .proposal-ranking li > strong {
+    white-space: normal;
+    text-align: right;
+  }
+  .pb-app-shell .pb-plan-detail .pb-proposal-card .proposal-meta > div {
+    flex-basis: 100%;
+  }
+  .pb-app-shell .pb-plan-detail .proposal-election-score .button {
+    min-height: 42px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pb-app-shell .pb-plan-detail :is(.proposal-method-option, .proposal-method-picker summary) {
+    transition: none !important;
+    transform: none !important;
+  }
+}

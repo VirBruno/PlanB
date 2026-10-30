@@ -3,7 +3,6 @@
 {% block extra_css %}
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'users/css/proposals.css' %}?v=5">
-  <link rel="stylesheet" href="{% static 'users/css/plan-detail-social.css' %}">
   <link rel="stylesheet" href="{% static 'users/css/plan-decisions.css' %}?v=8">
   <link rel="stylesheet" href="{% static 'users/css/plan-phases.css' %}?v=9">
   <link rel="stylesheet" href="{% static 'users/css/proposal-weather.css' %}?v=1">
@@ -13,6 +12,8 @@
   <link rel="stylesheet" href="{% static 'leaflet.css' %}">
   {% endif %}
   <link rel="stylesheet" href="{% static 'users/css/plan-detail-weather-focus.css' %}?v=6">
+  <link rel="stylesheet" href="{% static 'users/css/planb-proposals-polish.css' %}?v=3">
+  <link rel="stylesheet" href="{% static 'users/css/plan-detail-social.css' %}?v=27">
 {% endblock %}
 {% block extra_js %}
   <script src="{% static 'users/js/plan-weather-planner.js' %}?v=1" defer></script>
@@ -149,7 +150,7 @@
   </details>
   {% endif %}
   {# ETAPA8_DECISION_PLAN: decisión explícita, independiente del comparador. #}
-  <section class="pb-decision-panel" aria-labelledby="pb-decision-title">
+  <section class="pb-decision-panel {% if plan.selected_proposal_id and confirmed_proposal %}{% if plan.status %}pb-decision-panel--confirmed{% else %}pb-decision-panel--finished{% endif %}{% elif plan.status %}pb-decision-panel--organizing{% else %}pb-decision-panel--inactive{% endif %}" aria-labelledby="pb-decision-title">
     {% if plan.selected_proposal_id and confirmed_proposal %}
       {# ETAPA9_PHASES: el cierre se representa con status=false y propuesta confirmada. #}
       <div class="pb-decision-badge {% if not plan.status %}pb-phase-finished{% endif %}">{% if plan.status %}✓ ENCUENTRO CONFIRMADO{% else %}✓ ENCUENTRO FINALIZADO{% endif %}</div>
@@ -165,7 +166,7 @@
         {% if can_finish_meeting %}
         <form method="post" action="{% url 'plans:finish_plan_meeting' plan.id %}" data-confirm-delete="¿Marcar este encuentro como finalizado? Quedará en el historial del grupo.">{% csrf_token %}<button type="submit" class="button button--primary">✓ Finalizar encuentro</button></form>
         {% else %}
-        <span class="pb-phase-future-action" title="La fecha del encuentro todavía no llegó"><button type="button" class="button button--quiet" disabled aria-disabled="true">Finalizar encuentro</button><small>Disponible cuando llegue la fecha y hora del encuentro.</small></span>
+        <p class="pb-phase-future-action" role="note"><span aria-hidden="true">◷</span><span>Podrás finalizar este encuentro cuando llegue la fecha y hora programadas.</span></p>
         {% endif %}
         <form method="post" action="{% url 'plans:reopen_plan_decision' plan.id %}" data-confirm-delete="¿Reabrir el plan? Se eliminará la fecha definitiva y podrán modificarse las propuestas.">{% csrf_token %}<button type="submit" class="button button--quiet">Reabrir decisión</button></form>
         {% else %}
