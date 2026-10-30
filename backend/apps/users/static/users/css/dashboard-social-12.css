@@ -208,13 +208,11 @@ body:has(.pb-app-shell .pb-home-hero),
   position:relative;display:flex;flex-direction:column;align-items:flex-start;
   width:100%;height:100%;min-height:224px;padding:25px 24px 22px;
   border:0;border-radius:26px 26px 19px 26px;
-  background:#E9EFDF;color:#1F4D3A!important;
+  background:var(--sd-panel);color:#1F4D3A!important;
   box-shadow:none;backdrop-filter:none;
   text-decoration:none!important;
   transition:transform .18s ease,box-shadow .18s ease;
 }
-.pb-app-shell:has(.pb-home-hero) .social-group-item:nth-child(3n+2) .social-group-card {background:#FFF1C8}
-.pb-app-shell:has(.pb-home-hero) .social-group-item:nth-child(3n+3) .social-group-card {background:#EFE5FA}
 .pb-app-shell:has(.pb-home-hero) .social-group-card:hover {
   transform:translateY(-5px);box-shadow:0 16px 27px rgba(31,77,58,.10);
 }
@@ -321,9 +319,6 @@ html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-section-caption
 html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-section-heading h2 {color:#FAF7F0}
 html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-section-heading p {color:#C7D4C8}
 html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-text-link {color:#CDE6A8!important}
-html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-group-item:nth-child(3n+1) .social-group-card {background:#315542}
-html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-group-item:nth-child(3n+2) .social-group-card {background:#62553C}
-html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-group-item:nth-child(3n+3) .social-group-card {background:#534567}
 html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-group-card {color:#FAF7F0!important}
 html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-group-avatar {background:rgba(250,247,240,.16);color:#FAF7F0}
 html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-group-item:nth-child(3n+2) .social-group-avatar {background:#F4D06F;color:#1F4D3A}
@@ -430,7 +425,6 @@ html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-steps li > span
   background:#E9F0E2;color:#1F4D3A!important;
   transition:transform .18s ease,background .18s ease;
 }
-.pb-app-shell:has(.pb-home-hero) .pb-hero-group-link:nth-child(even) {background:#EEE4F7}
 .pb-app-shell:has(.pb-home-hero) .pb-hero-group-link:hover {transform:translateX(3px);background:#E0EACF}
 .pb-app-shell:has(.pb-home-hero) .pb-hero-group-initial {
   width:29px;height:29px;border-radius:10px;flex:0 0 29px;
@@ -489,10 +483,8 @@ html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-steps li > span
 }
 .pb-app-shell:has(.pb-home-hero) .social-group-card {
   min-height:194px;padding:20px 19px 17px;
-  background:#E4EFDA;border-radius:22px 27px 22px 27px;
+  background:var(--sd-panel);border:1px solid #E8DFD4;border-radius:22px 27px 22px 27px;
 }
-.pb-app-shell:has(.pb-home-hero) .social-group-item:nth-child(3n+2) .social-group-card {background:#FFF0C4}
-.pb-app-shell:has(.pb-home-hero) .social-group-item:nth-child(3n+3) .social-group-card {background:#EBE0F7}
 .pb-app-shell:has(.pb-home-hero) .social-group-avatar {
   width:43px;height:43px;flex-basis:43px;margin-bottom:12px;
   font-size:19px;border-radius:14px;background:rgba(255,255,255,.66)
@@ -524,7 +516,6 @@ html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .pb-moment-kicker,
 html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .pb-moment-title,
 html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .pb-moment-desc {color:#1F4D3A}
 html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .pb-hero-group-link {background:#F9F4FE}
-html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .pb-hero-group-link:nth-child(even) {background:#F9E5B7}
 html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .pb-hero-group-link:hover {background:#E9F0E2}
 html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .pb-hero-all {color:#1F4D3A!important}
 html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-mini-actions a {
@@ -537,17 +528,15 @@ html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-mini-actions sm
 html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-mini-actions .pb-quick-icon,
 html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-mini-actions a:nth-child(2) .pb-quick-icon,
 html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-mini-actions a:nth-child(3) .pb-quick-icon {background:#FAF7F0!important;color:#1F4D3A}
-html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-group-item:nth-child(3n+1) .social-group-card {background:#DCEBD2;color:#1F4D3A!important}
-html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-group-item:nth-child(3n+2) .social-group-card {background:#F5DEA4;color:#1F4D3A!important}
-html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-group-item:nth-child(3n+3) .social-group-card {background:#DDC9F2;color:#1F4D3A!important}
+html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-group-card {background:var(--sd-panel);border-color:#405A47;color:#FAF7F0!important}
 html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-group-content strong,
-html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-group-content > span,
-html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .pb-card-entry {color:#1F4D3A!important}
-html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-group-chevron {color:#1F4D3A}
+html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .pb-card-entry {color:#FAF7F0!important}
+html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-group-content > span {color:#C2D2C4!important}
+html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-group-chevron {color:#A7C957}
 html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-group-avatar {background:rgba(250,247,240,.72);color:#1F4D3A}
 html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-group-item:nth-child(3n+2) .social-group-avatar {background:#FAF7F0;color:#1F4D3A}
 html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-group-item:nth-child(3n+3) .social-group-avatar {background:#FAF7F0;color:#1F4D3A}
-html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .pb-card-entry {background:rgba(255,255,255,.62);border:0}
+html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .pb-card-entry {background:#334B3A;border:0}
 html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-group-card:hover {box-shadow:0 15px 23px rgba(0,0,0,.2)}
 
 @media(max-width:1100px) {

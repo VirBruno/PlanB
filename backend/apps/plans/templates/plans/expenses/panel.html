@@ -29,7 +29,7 @@
       {% if transfer.can_notify %}
       <form method="post" action="{% url 'plans:notify_expense_debt' plan.id %}" data-debt-reminder-form>
         {% csrf_token %}<input type="hidden" name="debtor_id" value="{{ transfer.from_id }}">
-        <button type="submit" class="button button--quiet">Notificar a {{ transfer.debtor }}</button>
+        <button type="submit" class="button button--primary pb-debt-notify">Notificar a {{ transfer.debtor }}</button>
         <span role="status" aria-live="polite" data-debt-reminder-status></span>
       </form>
       {% endif %}
