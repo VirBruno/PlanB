@@ -325,3 +325,28 @@ html[data-theme='dark'] .pb-app-shell .pb-profile-signout .button:hover { backgr
 .pb-profile-wrap .pb-profile-v30 .pb-profile-form{max-width:650px;border-top:1px solid var(--glass-border);padding-top:25px}
 .pb-profile-wrap .pb-profile-v30 .pb-profile-form h3{font-size:25px}
 @media(max-width:700px){.pb-profile-wrap .pb-profile-v30 .pb-profile-banner,.pb-profile-wrap .pb-profile-v30 .pb-profile-inner{padding:24px 20px}.pb-profile-wrap .pb-profile-v30 .pb-profile-person{gap:14px}.pb-profile-wrap .pb-profile-v30 .pb-profile-avatar{width:64px;height:64px;flex-basis:64px;font-size:26px;border-radius:20px}.pb-profile-wrap .pb-profile-v30 .pb-profile-data-head{display:block}.pb-profile-wrap .pb-profile-v30 .pb-profile-data-head p{margin-top:5px}.pb-profile-wrap .pb-profile-v30 .pb-profile-identity h2{overflow-wrap:anywhere}}
+
+/* ETAPA 30.2: fotografía de perfil privada. */
+.pb-profile-avatar { overflow: hidden; }
+.pb-profile-avatar-image { width: 100%; height: 100%; display: block; object-fit: cover; border-radius: inherit; }
+.pb-profile-photo-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; margin-top: 18px; }
+.pb-profile-photo-upload { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.pb-profile-photo-label { font-weight: 700; font-size: 13px; }
+.pb-profile-photo-upload input[type=file] { font: inherit; font-size: 12px; max-width: 240px; }
+.pb-profile-photo-upload input[type=file]::file-selector-button { border: 1px solid currentColor; border-radius: 9px; padding: 7px; margin-right: 8px; cursor: pointer; background: transparent; color: inherit; }
+.pb-profile-photo-controls small { font-size: 12px; width: 100%; opacity: .8; }
+@media(max-width:700px) { .pb-profile-photo-upload { align-items: stretch; width: 100%; } .pb-profile-photo-upload input[type=file] { width: 100%; max-width: 100%; } }
+
+/* ETAPA 30.3: selección cuidada y vista previa instantánea de foto. */
+.pb-profile-wrap .pb-profile-photo-upload { gap: 10px; }
+.pb-profile-wrap .pb-profile-file-input { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.pb-profile-wrap .pb-profile-photo-picker { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 15px; border-radius: 13px; cursor: pointer; font-size: 13px; font-weight: 700; color: inherit; border: 1px solid currentColor; background: rgba(255,255,255,.07); transition: background .18s ease, transform .18s ease; }
+.pb-profile-wrap .pb-profile-photo-picker:hover { background: rgba(255,255,255,.15); transform: translateY(-1px); }
+.pb-profile-wrap .pb-profile-file-input:focus-visible + .pb-profile-file-name { outline: 2px solid #F4D06F; outline-offset: 3px; border-radius: 4px; }
+.pb-profile-wrap .pb-profile-file-name { font-size: 12px; opacity: .85; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pb-profile-wrap .pb-profile-file-error { color: #F4D06F; opacity: 1; max-width: 300px; white-space: normal; }
+.pb-profile-wrap .pb-profile-photo-cancel { background: transparent; border: 0; color: inherit; text-decoration: underline; font: inherit; font-size: 12px; cursor: pointer; opacity: .85; padding: 7px 3px; }
+.pb-profile-wrap .pb-profile-photo-cancel[hidden] { display: none !important; }
+.pb-profile-wrap .pb-profile-photo-submit:disabled { opacity: .48; cursor: not-allowed; transform: none; }
+.pb-profile-wrap .pb-profile-avatar-preview { outline: 2px solid rgba(244,208,111,.65); outline-offset: 3px; }
+@media(max-width:700px) { .pb-profile-wrap .pb-profile-photo-upload { width: 100%; gap: 9px; } .pb-profile-wrap .pb-profile-photo-picker { width: auto; } .pb-profile-wrap .pb-profile-file-name { max-width: 100%; } }
