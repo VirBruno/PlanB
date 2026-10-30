@@ -4,10 +4,25 @@
 {% block workspace %}
 <div class="pb-profile-wrap">
   <header class="pb-page-heading"><div><span class="pb-overline">TU ESPACIO PERSONAL</span><h1>Mi perfil</h1><p>Tu cuenta, tus datos y tu identidad en Plan B.</p></div></header>
-  <section class="pb-profile-card" aria-labelledby="profile-title">
-    <div class="pb-profile-banner"><span class="pb-overline">TU CUENTA</span><div class="pb-profile-person"><span class="pb-profile-avatar" aria-hidden="true">{{ planb_user.username|first|upper }}</span><div><h2 id="profile-title">{{ planb_user.username }}</h2><p>Tu espacio para organizar planes con amigos</p></div></div></div>
+  <section class="pb-profile-card pb-profile-v30" aria-labelledby="profile-title">
+    <div class="pb-profile-banner">
+      <span class="pb-overline">TU CUENTA</span>
+      <div class="pb-profile-person">
+        <span class="pb-profile-avatar" aria-hidden="true">{{ profile.username|slice:":1"|upper }}</span>
+        <div class="pb-profile-identity">
+          <h2 id="profile-title">{{ profile.username }}</h2>
+          <p>Tu espacio para organizar planes con amigos.</p>
+          {% if profile.created_at %}<span class="pb-profile-since">Miembro desde {{ profile.created_at|date:"F Y" }}</span>{% endif %}
+        </div>
+      </div>
+      <p class="pb-profile-photo-hint"><span aria-hidden="true">✦</span> Por ahora, tus iniciales te representan. Próximamente podrás agregar una foto.</p>
+    </div>
     <div class="pb-profile-inner">
-      <dl class="pb-account-facts"><div><dt>Usuario actual</dt><dd>{{ planb_user.username }}</dd></div><div><dt>Cuenta creada</dt><dd>{{ profile.created_at|date:"d/m/Y H:i" }}</dd></div></dl>
+      <div class="pb-profile-data-head"><div><span class="pb-overline">TU INFORMACIÓN</span><h3>Tus datos</h3></div><p>La información de tu cuenta en Plan B.</p></div>
+      <dl class="pb-account-facts">
+        <div><dt>Usuario actual</dt><dd>{{ profile.username }}</dd></div>
+        <div><dt>Cuenta creada</dt><dd>{{ profile.created_at|date:"d/m/Y H:i" }}</dd></div>
+      </dl>
       <div class="pb-profile-form"><h3>Editar datos</h3><p>Podés actualizar tu nombre de usuario cuando lo necesites.</p>
         <form method="post" action="{% url 'users:profile' %}" class="auth-form">
           {% csrf_token %}
