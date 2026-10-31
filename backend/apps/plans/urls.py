@@ -1,9 +1,11 @@
 from django.urls import path
 
-from . import views
+from . import expense_views, views
 
 app_name = "plans"
 urlpatterns = [
+    path("<uuid:plan_id>/gastos/notificar/", expense_views.notify_debt, name="notify_expense_debt"),
+    path("<uuid:plan_id>/gastos/", expense_views.expenses, name="expenses"),
     path("", views.index, name="index"),
     path("grupo/<uuid:group_id>/clima/localidades/", views.group_weather_cities, name="group_weather_cities"),
     path("grupo/<uuid:group_id>/clima/horario/", views.group_weather_at, name="group_weather_at"),

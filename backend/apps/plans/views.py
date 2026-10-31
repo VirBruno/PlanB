@@ -104,6 +104,14 @@ def index(request):
         plans_page = plan_service.list_plans(session_service.get_access_token(request), page=page)
     except PlanUnavailable:
         return _unavailable(request)
+    try:
+        names = group_service.names_for_ids(
+            session_service.get_access_token(request), (p["group_id"] for p in plans_page["items"]),
+        )
+    except GroupUnavailable:
+        names = {}
+    for plan in plans_page["items"]:
+        plan["group_name"] = names.get(plan["group_id"], "Grupo no disponible")
     return render(request, "plans/index.html", {
         "plans_page": plans_page, "planb_user": request.planb_user,
     })

@@ -1,0 +1,112 @@
+/* Submódulo localizado. Las variables siguen los temas existentes de Plan B. */
+.pb-expense-card {
+  display: flex; align-items: center; gap: 18px; width: 100%; padding: 24px;
+  margin: 26px 0; text-align: left; color: var(--text); background: var(--white);
+  border: 1px solid var(--line); border-radius: 22px; cursor: pointer;
+  box-shadow: 0 8px 25px #191a2b08; font: inherit;
+}
+.pb-expense-card:hover { border-color: var(--blue); }
+.pb-expense-card > span:nth-child(2) { flex: 1; }
+.pb-expense-card strong { display: block; font-size: 1.12rem; margin-bottom: 5px; }
+.pb-expense-card small { color: var(--muted); }
+.pb-expense-card-icon { display: grid; place-items: center; width: 48px; height: 48px;
+  border-radius: 16px; background: #a0e6cf55; color: var(--text); font-size: 1.5rem; font-weight: 800; }
+.pb-expenses-dialog { width: min(900px, calc(100vw - 32px)); max-width: none; max-height: 88dvh;
+  padding: 30px; border: 1px solid var(--line); border-radius: 26px; margin: auto;
+  color: var(--text); background: var(--canvas); box-shadow: 0 28px 100px #0004;
+  overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-gutter: stable;
+  scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--muted) 28%, transparent) transparent; }
+.pb-expenses-dialog:hover, .pb-expenses-dialog:focus-within {
+  scrollbar-color: color-mix(in srgb, var(--muted) 48%, transparent) transparent;
+}
+.pb-expenses-dialog::-webkit-scrollbar { width: 8px; }
+.pb-expenses-dialog::-webkit-scrollbar-track { background: transparent; }
+.pb-expenses-dialog::-webkit-scrollbar-thumb {
+  border: 2px solid transparent; border-radius: 999px; background-clip: padding-box;
+  background-color: color-mix(in srgb, var(--muted) 28%, transparent);
+}
+.pb-expenses-dialog:hover::-webkit-scrollbar-thumb,
+.pb-expenses-dialog:focus-within::-webkit-scrollbar-thumb { background-color: color-mix(in srgb, var(--muted) 48%, transparent); }
+.pb-expenses-dialog::backdrop { background: #15152599; backdrop-filter: blur(5px); }
+.pb-expenses-dialog [hidden] { display: none !important; }
+.pb-expenses-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.pb-expenses-header h2 { font-size: 1.7rem; margin: 8px 0; }
+.pb-expenses-header p { color: var(--muted); margin: 0 0 20px; overflow-wrap: anywhere; }
+.pb-expenses-kicker { font-size: .72rem; letter-spacing: .12em; font-weight: 800; color: var(--blue); }
+.pb-expenses-close { border: 1px solid var(--line); background: var(--white); color: var(--text);
+  border-radius: 50%; min-width: 44px; min-height: 44px; cursor: pointer; font-size: 1.5rem; }
+.pb-expenses-overview { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 12px 0 26px; }
+.pb-expenses-overview > div { background: var(--white); padding: 20px; border: 1px solid var(--line); border-radius: 18px; min-width: 0; }
+.pb-expenses-overview strong { display: block; font-size: clamp(1.2rem, 4vw, 1.8rem); margin: 10px 0; overflow-wrap: anywhere; }
+.pb-expenses-overview span, .pb-expenses-overview small, .pb-expenses-note,
+.pb-expenses-row p, .pb-expense-fields small, .pb-expense-participants p { color: var(--muted); font-size: .86rem; }
+.pb-expenses-section-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.pb-expenses-section-head small { color: var(--muted); font-weight: 500; }
+.pb-expenses-row { display: flex; justify-content: space-between; gap: 15px; padding: 18px 0; border-bottom: 1px solid var(--line); }
+.pb-expenses-row > div { min-width: 0; overflow-wrap: anywhere; }
+.pb-expenses-row > strong { white-space: nowrap; }
+.pb-expenses-row h4, .pb-expenses-row p { margin: 0 0 8px; }
+.pb-expenses-row details { color: var(--muted); font-size: .85rem; }
+.pb-expenses-row summary { cursor: pointer; }
+.pb-expenses-row li { margin-top: 8px; }
+.pb-expenses-empty { text-align: center; padding: 36px 16px; color: var(--muted); }
+.pb-expenses-people, .pb-expenses-settle { margin-top: 28px; }
+.pb-expenses-table-scroll { overflow-x: auto; }
+.pb-expenses-dialog table { width: 100%; border-collapse: collapse; font-size: .86rem; }
+.pb-expenses-dialog th, .pb-expenses-dialog td { padding: 13px 10px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+.pb-expenses-dialog th:first-child { text-align: left; }
+.pb-expenses-dialog th small { display: block; color: var(--muted); font-weight: 400; }
+.pb-expenses-settle p { background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 15px; }
+.pb-expense-transfer { display: flex; align-items: center; justify-content: space-between; gap: 18px;
+  margin: 12px 0; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--white); }
+.pb-expense-transfer > p { flex: 1; min-width: 0; margin: 0; padding: 0; border: 0; background: none; overflow-wrap: anywhere; line-height: 1.6; }
+.pb-expense-transfer form { display: flex; flex-direction: column; align-items: stretch; gap: 9px; max-width: 45%; min-width: 0; margin: 0; }
+.pb-expenses-dialog .pb-expense-transfer .pb-debt-notify {
+  min-height: 44px; max-width: 100%; padding: 12px 17px; border: 1px solid #1F4D3A;
+  border-radius: 12px; background: #1F4D3A; color: #FFFDF8; box-shadow: none;
+  font-weight: 800; white-space: normal; overflow-wrap: anywhere;
+  transition: background .18s ease, border-color .18s ease, transform .18s ease;
+}
+.pb-expenses-dialog .pb-expense-transfer .pb-debt-notify:hover { background: #30684D; border-color: #30684D; }
+.pb-expenses-dialog .pb-expense-transfer .pb-debt-notify:active { transform: translateY(1px); }
+.pb-expenses-dialog .pb-expense-transfer .pb-debt-notify:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+.pb-expenses-dialog .pb-expense-transfer .pb-debt-notify:disabled { opacity: .65; cursor: wait; transform: none; }
+html[data-theme='dark'] .pb-expenses-dialog .pb-expense-transfer .pb-debt-notify { background: #F4D06F; border-color: #F4D06F; color: #1F4D3A; }
+html[data-theme='dark'] .pb-expenses-dialog .pb-expense-transfer .pb-debt-notify:hover { background: #FFE08E; border-color: #FFE08E; }
+.pb-expense-transfer [data-debt-reminder-status] { color: var(--muted); font-size: .86rem; overflow-wrap: anywhere; }
+.pb-expense-transfer [data-debt-reminder-status]:empty { display: none; }
+.pb-expense-positive { color: #197554; }
+.pb-expense-negative { color: #aa4937; }
+html[data-theme='dark'] .pb-expense-positive { color: #8ae0bd; }
+html[data-theme='dark'] .pb-expense-negative { color: #ffb2a1; }
+.pb-expense-fields { display: grid; gap: 16px; }
+.pb-expense-fields label { display: block; margin: 8px 0; font-weight: 700; }
+.pb-expense-fields input, .pb-expense-fields select { width: 100%; min-height: 46px; box-sizing: border-box;
+  border: 1px solid var(--line); border-radius: 12px; color: var(--text); background: var(--white); padding: 12px; font: inherit; }
+.pb-expense-participants { margin: 24px 0; padding: 18px; border: 1px solid var(--line); border-radius: 14px; }
+.pb-expense-participants legend { font-weight: 700; }
+.pb-expense-participants label { display: flex; align-items: center; gap: 10px; min-height: 42px; cursor: pointer; }
+.pb-expense-participants input { width: 20px; height: 20px; accent-color: var(--blue); }
+.pb-expense-participants input:disabled { opacity: .5; }
+.pb-expense-all { font-weight: 800; }
+.pb-expenses-actions { display: flex; justify-content: flex-end; gap: 12px; margin: 22px 0; }
+.pb-expenses-errors, .pb-expenses-dialog .errorlist { color: var(--text); background: #ffb2a133; padding: 12px 24px; border-radius: 12px; }
+.pb-expenses-dialog :focus-visible, .pb-expense-card:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+@media (max-width: 580px) {
+  .pb-expenses-dialog { padding: 18px; width: calc(100vw - 20px); max-height: 94dvh; border-radius: 18px; box-sizing: border-box; }
+  .pb-expense-card { padding: 18px; gap: 12px; }
+  .pb-expenses-header h2 { font-size: 1.3rem; }
+  .pb-expenses-overview { gap: 10px; }
+  .pb-expenses-overview > div { padding: 14px; }
+  .pb-expenses-section-head { align-items: flex-start; flex-direction: column; }
+  .pb-expenses-row { flex-wrap: wrap; }
+  .pb-expense-transfer { flex-direction: column; align-items: stretch; gap: 14px; }
+  .pb-expense-transfer form { max-width: none; width: 100%; }
+  .pb-expenses-actions .button { flex: 1; text-align: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pb-expenses-dialog .pb-expense-transfer .pb-debt-notify { transition: none; }
+}
+@media (forced-colors: active) {
+  .pb-expenses-dialog { scrollbar-color: auto; }
+}

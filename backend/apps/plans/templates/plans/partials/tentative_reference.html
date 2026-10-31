@@ -1,0 +1,17 @@
+<aside class="pb-schedule-summary pb-tentative-reference" data-plan-schedule-summary
+       data-weather-url="{% url 'plans:group_weather_at' group.id %}"
+       data-province="{{ plan.weather_province }}" data-city-id="{{ plan.weather_city_id }}"
+       data-date="{{ scheduled_date_iso }}" data-time="{{ scheduled_hour }}"
+       aria-labelledby="tentative-reference-title">
+  <div class="pb-tentative-copy">
+    <span class="pb-schedule-eyebrow">PREFERENCIA TENTATIVA</span>
+    <h3 id="tentative-reference-title">Fecha y destino del plan</h3>
+    <p class="pb-tentative-note">Una referencia inicial mientras el grupo carga sus propuestas. La fecha y el lugar definitivos se eligen al confirmar una propuesta.</p>
+    <div class="pb-schedule-summary-meta"><span>🕒 {{ scheduled_display }} hs.</span><span>📍 {{ plan.weather_city_name }}{% if plan_province_name %}, {{ plan_province_name }}{% endif %}</span></div>
+  </div>
+  <div class="pb-schedule-weather" aria-live="polite">
+    <span class="pb-schedule-symbol" data-schedule-symbol aria-hidden="true">🌤️</span>
+    <div class="pb-schedule-weather-body"><strong data-schedule-headline>Clima para esta referencia</strong><p data-schedule-message>Consultando pronóstico…</p><div class="pb-schedule-metrics" data-schedule-metrics hidden></div></div>
+  </div>
+  <p class="pb-schedule-footnote">Pronóstico de <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a>. Puede cambiar a medida que se acerca la fecha.</p>
+</aside>

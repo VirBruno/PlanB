@@ -11,11 +11,13 @@
   {% if proposals %}
   <link rel="stylesheet" href="{% static 'leaflet.css' %}">
   {% endif %}
-  <link rel="stylesheet" href="{% static 'users/css/plan-detail-weather-focus.css' %}?v=6">
+  <link rel="stylesheet" href="{% static 'users/css/plan-detail-weather-focus.css' %}?v=7">
   <link rel="stylesheet" href="{% static 'users/css/planb-proposals-polish.css' %}?v=3">
-  <link rel="stylesheet" href="{% static 'users/css/plan-detail-social.css' %}?v=27">
+  <link rel="stylesheet" href="{% static 'users/css/plan-detail-social.css' %}?v=28">
+  <link rel="stylesheet" href="{% static 'users/css/plan-expenses.css' %}?v=3">
 {% endblock %}
 {% block extra_js %}
+  <script src="{% static 'users/js/plan-expenses.js' %}?v=2" defer></script>
   <script src="{% static 'users/js/plan-weather-planner.js' %}?v=1" defer></script>
   <script src="{% static 'users/js/plan-schedule.js' %}?v=1" defer></script>
   {% if proposals %}
@@ -46,35 +48,10 @@
     {% endif %}
   </div>
   {% if plan.description %}<p class="group-description">{{ plan.description|linebreaksbr }}</p>{% endif %}
-  {% if plan.scheduled_at and not plan.selected_proposal_id %}
-  <section class="pb-schedule-summary" data-plan-schedule-summary
-           data-weather-url="{% url 'plans:group_weather_at' group.id %}"
-           data-province="{{ plan.weather_province }}"
-           data-city-id="{{ plan.weather_city_id }}"
-           data-date="{{ scheduled_date_iso }}"
-           data-time="{{ scheduled_hour }}"
-           aria-label="Fecha y clima del plan">
-    <span class="pb-schedule-eyebrow">PREFERENCIA TENTATIVA</span>
-    <h2>📅 Fecha y destino del plan</h2>
-    <div class="pb-schedule-summary-meta">
-      <span>🕒 {{ scheduled_display }} hs.</span>
-      <span>📍 {{ plan.weather_city_name }}{% if plan_province_name %}, {{ plan_province_name }}{% endif %}</span>
-    </div>
-    <div class="pb-schedule-weather" aria-live="polite">
-      <span class="pb-schedule-symbol" data-schedule-symbol aria-hidden="true">🌤️</span>
-      <div class="pb-schedule-weather-body">
-        <strong data-schedule-headline>Clima previsto para este plan</strong>
-        <p data-schedule-message>Consultando pronóstico…</p>
-        <div class="pb-schedule-metrics" data-schedule-metrics hidden></div>
-      </div>
-    </div>
-    <p class="pb-schedule-footnote">Pronóstico de <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a>. Puede cambiar a medida que se acerca la fecha.</p>
-  </section>
-  {% endif %}
   <dl class="group-meta">
     <div><dt>Estado</dt><dd class="pb-phase-label">{% if plan.status %}{% if plan.selected_proposal_id %}Confirmado{% else %}En organización{% endif %}{% else %}{% if plan.selected_proposal_id %}Finalizado{% else %}Inactivo{% endif %}{% endif %}</dd></div>
     <div><dt>Creado el</dt><dd>{{ plan.created_at|date:"d/m/Y" }}</dd></div>
-    <div><dt>Grupo</dt><dd><a href="{% url 'groups:detail' group.id %}">{{ group.name }}</a></dd></div>
+    <div><dt>Grupo</dt><dd><a href="{% url 'groups:detail' group.id %}">{% include 'components/group_identity.html' with group_id=group.id mark_class='pb-group-mark--inline' only %} {{ group.name }}</a></dd></div>
   </dl>
   {% if plan.scheduled_at %}
   <details class="pb-weather-compare" data-weather-compare>
@@ -181,11 +158,13 @@
       {% if plan.scheduled_at %}<p class="pb-decision-note">La fecha y localidad del plan son una <strong>preferencia tentativa</strong>, no una decisión del grupo.</p>{% endif %}
     {% endif %}
   </section>
+  {% include 'plans/expenses/modal.html' %}
   <section class="proposals-section pb-plan-proposals" aria-labelledby="proposals-title">
     <div class="section-heading pb-proposals-heading">
       <div><p class="pb-proposals-kicker">IDEAS DEL GRUPO</p><h2 id="proposals-title">Propuestas <span class="pb-proposals-count">{{ proposals|length }}</span></h2><p class="pb-proposals-subtitle">{% if plan.selected_proposal_id %}El encuentro está confirmado; reabrí la decisión para cambiar alternativas.{% else %}Explorá las alternativas que compartieron los integrantes.{% endif %}</p></div>
       {% if can_create_proposal and not plan.selected_proposal_id %}<a class="button button--primary" href="{% url 'plans:proposal_create' plan.id %}">Nueva propuesta <span aria-hidden="true">+</span></a>{% endif %}
     </div>
+    {% if plan.scheduled_at and not plan.selected_proposal_id %}{% include 'plans/partials/tentative_reference.html' %}{% endif %}
     {% if proposals %}
     <section class="proposal-election" id="proposal-election" aria-labelledby="proposal-election-title">
       <div class="proposal-election-heading">
@@ -253,7 +232,7 @@
       {% if champion_id %}<p class="proposal-champion">Propuesta campeona: <strong>{{ leaderboard.0.tittle }}</strong></p>{% endif %}
       <ol class="proposal-ranking">
         {% for proposal in leaderboard %}
-        <li{% if proposal.id == champion_id %} class="is-champion"{% endif %}><span class="proposal-ranking-place">{{ forloop.counter }}</span><span class="proposal-ranking-name">{{ proposal.tittle }}<small>{{ proposal.creator_username }}</small></span><strong>{{ proposal.votes }} voto{{ proposal.votes|pluralize }}</strong></li>
+        <li{% if proposal.id == champion_id %} class="is-champion"{% endif %}><span class="proposal-ranking-place">{{ forloop.counter }}</span><span class="proposal-ranking-name">{{ proposal.tittle }}<small>{% include 'components/user_avatar.html' with user_id=proposal.created_by username=proposal.creator_username scope='plan' scope_id=plan.id only %} {{ proposal.creator_username }}</small></span><strong>{{ proposal.votes }} voto{{ proposal.votes|pluralize }}</strong></li>
         {% endfor %}
       </ol>
     </section>
@@ -263,7 +242,7 @@
       {% if champion_id %}<p class="proposal-champion">Propuesta campeona: <strong>{{ leaderboard.0.tittle }}</strong></p>{% endif %}
       <ol class="proposal-ranking">
         {% for proposal in leaderboard %}
-        <li{% if proposal.id == champion_id %} class="is-champion"{% endif %}><span class="proposal-ranking-place">{{ forloop.counter }}</span><span class="proposal-ranking-name">{{ proposal.tittle }}<small>{{ proposal.creator_username }}</small></span><strong>{% if election_method == 'votes' %}{{ proposal.votes }} voto{{ proposal.votes|pluralize }}{% else %}{{ proposal.Score }} pts{% endif %}</strong></li>
+        <li{% if proposal.id == champion_id %} class="is-champion"{% endif %}><span class="proposal-ranking-place">{{ forloop.counter }}</span><span class="proposal-ranking-name">{{ proposal.tittle }}<small>{% include 'components/user_avatar.html' with user_id=proposal.created_by username=proposal.creator_username scope='plan' scope_id=plan.id only %} {{ proposal.creator_username }}</small></span><strong>{% if election_method == 'votes' %}{{ proposal.votes }} voto{{ proposal.votes|pluralize }}{% else %}{{ proposal.Score }} pts{% endif %}</strong></li>
         {% endfor %}
       </ol>
       {% if election_method == 'combat' %}
@@ -291,7 +270,7 @@
           <div>
             <span class="proposal-type">{{ proposal.type|capfirst }}</span>
             <h3>{{ proposal.tittle }}</h3>
-            <p class="proposal-author">Propuesta por <strong>{{ proposal.creator_username }}</strong></p>
+            <p class="proposal-author">{% include 'components/user_avatar.html' with user_id=proposal.created_by username=proposal.creator_username scope='plan' scope_id=plan.id only %} Propuesta por <strong>{{ proposal.creator_username }}</strong></p>
           </div>
           {% if proposal.can_manage and not plan.selected_proposal_id %}
           <div class="proposal-actions">

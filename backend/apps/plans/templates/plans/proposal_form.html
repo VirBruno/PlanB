@@ -31,7 +31,7 @@
       <span class="pfs-kicker">TU IDEA, TU PLAN B</span>
       <h1 id="proposal-form-title">{% if is_edit %}Editá tu propuesta{% else %}Creá tu propuesta{% endif %}</h1>
       <p>Compartí una alternativa con tu grupo para que puedan organizarse.</p>
-      <div class="pfs-context"><span>{{ group.name }}</span><span aria-hidden="true">·</span><span>{{ plan.name }}</span></div>
+      <div class="pfs-context"><span>{% include 'components/group_label.html' with group_id=group.id group_name=group.name only %}</span><span aria-hidden="true">·</span><span>{{ plan.name }}</span></div>
     </div>
     <a class="pfs-return" href="{% url 'plans:detail' plan.id %}">← Volver al plan</a>
   </div>

@@ -150,3 +150,21 @@
   .pb-plan-detail .pb-weather-compare-toggle,
   .pb-plan-detail .pb-weather-compare-hint span { transition: none; }
 }
+
+/* Referencia inicial junto a las propuestas; no representa una decisión del grupo. */
+.pb-plan-detail .pb-schedule-summary.pb-tentative-reference { grid-template-columns:minmax(0,1.4fr) minmax(200px,1fr);align-items:start;gap:14px 24px;padding:20px;margin:16px 0 24px; }
+.pb-plan-detail .pb-tentative-copy { min-width:0; }
+.pb-plan-detail .pb-tentative-reference h3 { font-size:17px;line-height:1.3;margin:7px 0;color:var(--text);letter-spacing:-.02em; }
+.pb-plan-detail .pb-tentative-note { color:var(--muted);font-size:12px;line-height:1.6;margin:0 0 12px;max-width:65ch; }
+.pb-plan-detail .pb-tentative-reference .pb-schedule-eyebrow { font-size:9px; }
+.pb-plan-detail .pb-tentative-reference .pb-schedule-summary-meta { flex-direction:row;flex-wrap:wrap;gap:8px;font-size:12px; }
+.pb-plan-detail .pb-tentative-reference .pb-schedule-summary-meta span { background:transparent;border:1px solid var(--line);padding:5px 8px;border-radius:8px; }
+.pb-plan-detail .pb-tentative-reference .pb-schedule-weather { grid-column:2;grid-row:1;align-self:start;align-items:flex-start;gap:9px;padding:12px;border:1px solid var(--line);border-radius:12px;background:transparent; }
+.pb-plan-detail .pb-tentative-reference .pb-schedule-symbol { font-size:24px; }
+.pb-plan-detail .pb-tentative-reference .pb-schedule-weather-body strong { font-size:12px; }
+.pb-plan-detail .pb-tentative-reference .pb-schedule-weather-body p { font-size:11px;line-height:1.5; }
+.pb-plan-detail .pb-tentative-reference .pb-schedule-footnote { font-size:10px;margin:0; }
+@media(max-width:700px) {
+  .pb-plan-detail .pb-schedule-summary.pb-tentative-reference { grid-template-columns:minmax(0,1fr);padding:16px;gap:12px; }
+  .pb-plan-detail .pb-tentative-reference .pb-schedule-weather { grid-column:1;grid-row:auto;width:100%; }
+}

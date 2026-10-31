@@ -38,6 +38,7 @@ def list_events(access_token, first):
         events.append({
             "id": plan["id"], "name": plan["name"],
             "group_name": groups[group_id]["name"],
+            "group_id": group_id,  # Identidad visual del grupo; sin consultas ni permisos adicionales.
             "phase": "confirmed" if plan["status"] else "finished",
             "status_label": "Confirmado" if plan["status"] else "Finalizado",
             # confirm_plan_proposal copia date_pick a scheduled_at y lo congela.

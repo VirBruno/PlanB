@@ -125,7 +125,7 @@ body:has(.pb-app-shell .pb-plan-detail),
 .pb-plan-detail .pb-climate-planner{background:#FFFDF8!important;background-image:none!important;border:1px solid #E8DFD4!important;border-radius:24px!important;box-shadow:none!important}
 .pb-plan-detail .pb-climate-kicker,.pb-plan-detail .pb-schedule-eyebrow{color:#5E8060!important}
 .pb-plan-detail .pb-climate-head h2{color:#1F4D3A!important}
-.pb-plan-detail .pb-schedule-summary{background:#FFF0BE!important;border-color:#F0DDA1!important;border-radius:24px!important;box-shadow:none!important}
+.pb-plan-detail .pb-schedule-summary{background:#F5F3EC!important;border-color:#E8DFD4!important;border-radius:16px!important;box-shadow:none!important}
 .pb-plan-detail .pb-schedule-summary h2{color:#1F4D3A!important}
 .pb-plan-detail .pb-weather-compare{border-color:#E8DFD4!important}
 .pb-plan-detail .pb-weather-compare-toggle{color:#1F4D3A!important}
@@ -175,7 +175,7 @@ html[data-theme='dark'] .pb-plan-detail .pb-decision-panel h2,html[data-theme='d
 html[data-theme='dark'] .pb-plan-detail .pb-decision-badge{background:#203528!important;border-color:#5D8562!important;color:#F4D06F!important}
 html[data-theme='dark'] .pb-plan-detail .pb-decision-meta a{color:#F4D06F!important}
 html[data-theme='dark'] .pb-plan-detail .pb-climate-planner,html[data-theme='dark'] .pb-plan-detail .pb-proposal-card,html[data-theme='dark'] .pb-plan-detail .pb-proposals-empty{background:#253D2F!important;border-color:#45614C!important}
-html[data-theme='dark'] .pb-plan-detail .pb-schedule-summary{background:#5A5137!important;border-color:#786B46!important}
+html[data-theme='dark'] .pb-plan-detail .pb-schedule-summary{background:#22372B!important;border-color:#3D5846!important}
 html[data-theme='dark'] .pb-plan-detail .pb-schedule-summary h2,html[data-theme='dark'] .pb-plan-detail .pb-climate-head h2,html[data-theme='dark'] .pb-plan-detail .pb-proposals-heading h2,html[data-theme='dark'] .pb-plan-detail .proposal-election-heading h3{color:#FAF7F0!important}
 html[data-theme='dark'] .pb-plan-detail .proposal-election{background:#4D4332!important;border-color:#6E6044!important}
 html[data-theme='dark'] .pb-plan-detail .proposal-method-active{background:#2A4233!important;color:#FAF7F0!important;border-color:#59725D!important}

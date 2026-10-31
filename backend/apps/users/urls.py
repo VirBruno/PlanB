@@ -1,11 +1,12 @@
 from django.urls import path
 
-from . import calendar_views, views
+from . import avatar_views, calendar_views, views
 
 
 app_name = "users"
 
 urlpatterns = [
+    path("avatares/", avatar_views.avatars, name="avatars"),
     path("calendario/", calendar_views.index, name="calendar"),
     path('calendario/selector/', calendar_views.selector, name='calendar_selector'),
     path("registro/", views.register, name="register"),

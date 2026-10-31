@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Mis grupos · Plan B{% endblock %}
 {% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'users/css/groups-index.css' %}">{% endblock %}
-{% block page_css %}<link rel="stylesheet" href="{% static 'users/css/grupos-editorial-16.css' %}?v=17">{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'users/css/grupos-editorial-16.css' %}?v=18">{% endblock %}
 {% block workspace %}
 <section class="pb-groups-index" aria-labelledby="groups-index-title">
   <header class="pb-groups-heading">
@@ -19,7 +19,7 @@
       {% for group in groups_page.items %}
         <li>
           <a class="pb-groups-card" href="{% url 'groups:detail' group.id %}" aria-label="Ver grupo {{ group.name }}">
-            <span class="pb-groups-avatar" aria-hidden="true">{{ group.name|first|upper }}</span>
+            {% include 'components/group_identity.html' with group_id=group.id mark_class='pb-groups-avatar' only %}
             <span class="pb-groups-info"><strong>{{ group.name }}</strong>
               <span>{% if group.description %}{{ group.description|truncatechars:125 }}{% else %}Un espacio para organizar planes con tu gente.{% endif %}</span>
               <small>Creado el {{ group.created_at|date:"d/m/Y" }}</small>

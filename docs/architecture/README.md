@@ -34,11 +34,18 @@ OAuth, invitaciones, propuestas, preferencias ni algoritmo de compatibilidad.
 
 ## Decisiones y guías
 
+- [Avatares visibles y contexto de grupo](avatares-visibles.md): fotos privadas
+  compartidas entre identidades autorizadas, carga por lotes y etiquetas de grupo.
+
 - [Autenticación con Supabase](autenticacion-supabase.md): privilegios, clientes,
   confirmación, login, logout y configuración manual de passwords.
 - [Esquema de datos](esquema-datos.md): constraints, grants, RLS, sesiones,
   aislamiento del esquema y orden de migraciones.
 - [Validación](../testing/autenticacion.md): suite offline y límites de mocks/SQLite.
+- [Gastos compartidos](gastos-compartidos.md): modelo, reparto exacto, RPC/RLS,
+  historial y popup; [prueba manual](../testing/gastos-compartidos.md).
+- [Notificaciones de deudas](notificaciones-deudas.md): acreedor real, fuente
+  común de transferencias, pendientes únicos y deep-link al popup.
 
 La suite offline no aplica SQL ni modifica infraestructura remota. Las pruebas
 reales de correo, Auth, RLS y concurrencia PostgreSQL se ejecutan únicamente en
