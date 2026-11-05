@@ -1,9 +1,10 @@
 from django.urls import path
 
-from . import expense_views, views
+from . import expense_views, recommendation_views, views
 
 app_name = "plans"
 urlpatterns = [
+    path("<uuid:plan_id>/recomendaciones/", recommendation_views.recommendations, name="recommendations"),
     path("<uuid:plan_id>/gastos/notificar/", expense_views.notify_debt, name="notify_expense_debt"),
     path("<uuid:plan_id>/gastos/", expense_views.expenses, name="expenses"),
     path("", views.index, name="index"),

@@ -305,3 +305,12 @@ el mejor puntaje de cada autor en su propuesta y muestra el leaderboard. La
 integración está en `supabase/tests/proposal_election.sql`; usar sólo Supabase
 local o un proyecto de prueba autorizado. Ver
 [despliegue y pruebas de elección](docs/testing/planes.md#métodos-de-elección).
+
+## Lugares recomendados para planes confirmados
+
+El backend permite generar y consultar un snapshot compartido de hasta cinco
+lugares Geoapify por plan confirmado. Requiere revisar y aplicar manualmente
+`supabase/migrations/202611050001_plan_recommendations.sql` y configurar
+`GEOAPIFY_API_KEY` sólo en el servidor. No genera desde el detalle ni cambia
+la confirmación; el disparo automático queda para el siguiente bloque.
+Ver [arquitectura, seguridad, pruebas y pasos manuales](docs/testing/recomendaciones.md).

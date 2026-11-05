@@ -14,6 +14,7 @@ CSRF_TRUSTED_ORIGINS = [DJANGO_PUBLIC_URL]
 SUPABASE_URL = os.environ["SUPABASE_URL"].rstrip("/")
 SUPABASE_PUBLISHABLE_KEY = os.environ["SUPABASE_PUBLISHABLE_KEY"]
 SUPABASE_SECRET_KEY = os.environ["SUPABASE_SECRET_KEY"]
+GEOAPIFY_API_KEY = os.getenv("GEOAPIFY_API_KEY", "").strip()
 DATABASES = {"default": {
     "ENGINE": "django.db.backends.postgresql",
     "NAME": os.environ["DB_NAME"], "USER": os.environ["DB_USER"],
