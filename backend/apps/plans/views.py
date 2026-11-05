@@ -312,6 +312,10 @@ def detail(request, plan_id):
         "plan": plan, "group": group, "can_manage": group["role"] == "owner",
         "election_method": election_method,
         "confirmed_proposal": confirmed_proposal,
+        "show_recommendations": bool(
+            plan.get("status") is True and plan.get("selected_proposal_id")
+            and plan.get("confirmed_at") is not None
+        ),
         "can_finish_meeting": _meeting_can_be_finished(plan),
         "decision_schema": plan.get("decision_schema", False),
         "can_create_proposal": not any(

@@ -1,7 +1,7 @@
-"""Endpoints de backend para Prompt 1; no activan generación desde el detalle."""
+"""Consulta/generación y reintento explícito sobre el mismo servicio autorizado."""
 from django.http import Http404, JsonResponse
 from django.views.decorators.debug import sensitive_variables
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.groups.services.exceptions import GroupNotFound, GroupUnavailable, InvalidGroup
 from apps.users.decorators import private_page, supabase_login_required
@@ -11,18 +11,42 @@ from .services.exceptions import PlanNotFound, PlanUnavailable
 from .services.place_types import RecommendationError
 
 
-@private_page
-@require_http_methods(["GET", "POST"])
-@supabase_login_required
 @sensitive_variables()
-def recommendations(request, plan_id):
+def _response(request, plan_id, *, retry=False):
     try:
-        operation = (plan_recommendation_service.generate_recommendations if request.method == "POST"
-                     else plan_recommendation_service.get_recommendations)
-        result = operation(session_service.get_access_token(request), str(plan_id))
+        token = session_service.get_access_token(request)
+        if retry:
+            result = plan_recommendation_service.get_recommendations(token, str(plan_id))
+            # No convertir Reintentar en un recálculo arbitrario de un ready.
+            # La RPC existente mantiene el lock y la protección de pending reciente.
+            if result["status"] in ("failed", "pending"):
+                result = plan_recommendation_service.generate_recommendations(
+                    token, str(plan_id), replace=True,
+                )
+            elif result["status"] == "not_generated":
+                # Una solicitud anterior pudo fallar antes de reservar trabajo.
+                result = plan_recommendation_service.generate_recommendations(token, str(plan_id))
+        else:
+            operation = (plan_recommendation_service.generate_recommendations if request.method == "POST"
+                         else plan_recommendation_service.get_recommendations)
+            result = operation(token, str(plan_id))
     except (PlanNotFound, GroupNotFound):
         raise Http404("No encontramos ese plan.") from None
     except (PlanUnavailable, GroupUnavailable, InvalidGroup, RecommendationError):
         return JsonResponse({"status": "unavailable", "error_code": "storage_unavailable",
                              "items": []}, status=503)
     return JsonResponse(result)
+
+
+@private_page
+@require_http_methods(["GET", "POST"])
+@supabase_login_required
+def recommendations(request, plan_id):
+    return _response(request, plan_id)
+
+
+@private_page
+@require_POST
+@supabase_login_required
+def retry_recommendations(request, plan_id):
+    return _response(request, plan_id, retry=True)

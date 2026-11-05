@@ -1,5 +1,9 @@
 # Asistente de planes confirmados · bloque 1
 
+Este documento conserva las decisiones y validación del backend del Prompt 1.
+La experiencia visual y la generación desde el detalle agregadas en Prompt 2
+se describen en [Sugerencias en el detalle del plan](recomendaciones-ui.md).
+
 ## 1. Arquitectura encontrada
 
 Planes y propuestas viven en `public` de Supabase, sin modelos ORM Django.
