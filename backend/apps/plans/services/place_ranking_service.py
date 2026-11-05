@@ -1,6 +1,10 @@
-"""Ranking objetivo: compatibilidad, distancia geodésica, completitud y ID."""
+"""Zona urbana adaptable; compatibilidad, datos presentes y distancia/diversidad."""
 from math import asin, cos, radians, sin, sqrt
 from urllib.parse import urlencode
+
+from .place_types import Location
+
+MIN_SEPARATION_METERS = 150
 
 
 def distance_meters(base, latitude, longitude):
@@ -22,18 +26,44 @@ def rank_candidates(candidates, criteria):
         distance = distance_meters(criteria.location, item["latitude"], item["longitude"])
         if distance > criteria.radius_meters:
             continue
-        completeness = sum(bool(item.get(field)) for field in ("address", "website", "opening_hours"))
-        ranked.append(((0 if exact else 1, distance, -completeness, item["provider_place_id"]),
-                       {**item, "distance_meters": round(distance, 2)}))
-    seen, result = set(), []
-    for _, item in sorted(ranked, key=lambda entry: entry[0]):
-        identifier = item["provider_place_id"]
-        if identifier in seen:
-            continue
-        seen.add(identifier)
-        result.append({**item, "rank": len(result) + 1})
-        if len(result) == 5:
-            break
+        # Cantidad de datos objetivos presentes, no una valoración del comercio.
+        fields_present = sum(bool(item.get(field)) for field in ("address", "website", "opening_hours"))
+        specific_category = any(
+            category.startswith(requested + ".")
+            for category in item["categories"] for requested in criteria.categories)
+        fields_present += int(specific_category)
+        ranked.append((0 if exact else 1, -fields_present, distance, item["provider_place_id"], item))
+
+    # Deduplicar antes de decidir si la zona tiene cinco alternativas disponibles.
+    # Los textos sólo desempatan duplicados del MISMO ID con igual completitud.
+    unique = {}
+    for entry in sorted(ranked, key=lambda e: e[:4] + tuple(
+            str(e[4].get(field) or "") for field in ("name", "address", "website", "opening_hours"))):
+        unique.setdefault(entry[3], entry)
+    available = list(unique.values())
+    if not available:
+        return []
+    distances = sorted(entry[2] for entry in available)
+    # No exigir 300 m de distancia mínima ni descartar los pocos lugares próximos.
+    # Si no alcanzan cinco dentro de 600 m, ampliar sólo hasta el quinto disponible
+    # (o el último si hay menos), siempre dentro del límite de la búsqueda original.
+    area_radius = max(criteria.preferred_radius_meters, distances[min(4, len(distances) - 1)])
+    pool = [entry for entry in available if entry[2] <= area_radius]
+    selected, result = [], []
+    while pool and len(result) < 5:
+        def preference(entry):
+            item = entry[4]
+            clustered = any(distance_meters(
+                Location(chosen["latitude"], chosen["longitude"]), item["latitude"], item["longitude"],
+            ) < MIN_SEPARATION_METERS for chosen in selected)
+            # La separación sólo desempata categoría y datos equivalentes.
+            return entry[:2] + (clustered,) + entry[2:4]
+
+        entry = min(pool, key=preference)
+        pool.remove(entry)
+        item = entry[4]
+        selected.append(item)
+        result.append({**item, "distance_meters": round(entry[2], 2), "rank": len(result) + 1})
     return result
 
 

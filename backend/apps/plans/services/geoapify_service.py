@@ -68,7 +68,7 @@ class GeoapifyClient:
         features = self._features(PLACES_URL, {
             "categories": ",".join(criteria.categories),
             "filter": f"circle:{loc.longitude},{loc.latitude},{criteria.radius_meters}",
-            "bias": f"proximity:{loc.longitude},{loc.latitude}",
+            "bias": f"circle:{loc.longitude},{loc.latitude},{criteria.preferred_radius_meters}",
             "limit": criteria.candidate_limit, "lang": "es",
         })
         candidates = []

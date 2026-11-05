@@ -69,6 +69,14 @@ class RecommendationUITests(TestCase):
         self.assertContains(response, 'src="/static/leaflet.js"', count=1)
         self.assertContains(response, "data-recommendations", count=1)
 
+    def test_suggestions_follow_the_complete_group_proposals_section(self):
+        response = self.client.get(self.url)
+        html = response.content.decode()
+        self.assertContains(response, "data-recommendations", count=1)
+        self.assertGreater(html.index("data-recommendations"), html.index("Ya compartiste tu propuesta"))
+        self.assertGreater(html.index("data-recommendations"), html.index("data-proposal-preview"))
+        self.assertContains(response, 'aria-label="Lugares sugeridos" tabindex="0"')
+
     @override_settings(GEOAPIFY_API_KEY="key-that-must-never-reach-the-template")
     def test_frontend_receives_no_provider_key_or_raw_data(self):
         response = self.client.get(self.url)

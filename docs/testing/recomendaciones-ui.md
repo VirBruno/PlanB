@@ -4,8 +4,8 @@
 
 Fragmento Django en el detalle existente, CSS localizado y JavaScript nativo con
 fetch. Sin framework ni paquetes nuevos. Se reutilizan el servicio, snapshot,
-endpoints y Leaflet 1.9.4 ya instalado. La sección aparece debajo de la decisión
-confirmada y antes de los gastos/propuestas. Es visible sólo con `status=True`,
+endpoints y Leaflet 1.9.4 ya instalado. La sección aparece al final del contenido
+funcional, después del bloque completo de propuestas del grupo. Es visible sólo con `status=True`,
 `selected_proposal_id` y `confirmed_at`, igual que el servicio de recomendaciones.
 Organización, inactivos y finalizados no la muestran.
 
@@ -90,7 +90,8 @@ OSM es adecuado para el bajo tráfico académico previsto; no ofrece SLA.
 
 ## 8–9. Responsive y temas
 
-Más de 1000 px: listado y mapa en dos columnas; mapa sticky. Hasta 1000 px:
+Más de 1000 px: listado y mapa en dos columnas con altura equilibrada y scroll
+propio del listado. Hasta 1000 px:
 cards completas y mapa debajo. Se revisó en 320, 390, 820 y 1440 px, sin scroll
 horizontal. En mobile el mapa tiene altura acotada y los enlaces/controles de
 acción tienen superficie táctil. Se heredan las variables de la identidad verde
@@ -230,3 +231,62 @@ como marcador: el snapshot público actual no lo incluye y no se cambia su
 contrato. Sin fotos y sin Gemini; el frontend es independiente del resolver.
 La validación local usa servicios simulados y no demuestra disponibilidad de
 tiles externos o del proveedor real. No hubo commit ni push.
+
+## Ajuste posterior: jerarquía, variedad y equilibrio desktop
+
+La inclusión del fragmento de sugerencias se movió después del cierre de la
+sección de propuestas, con sus elecciones, acciones y mapas. No hay HTML
+duplicado ni cambios de backend para alterar ese orden.
+
+En desktop, listado y panel del mapa comparten una altura entre 420 y 620 px,
+adaptada al alto del viewport. El listado tiene scrollbar, padding para el foco
+y navegación por teclado; desplazar cards no desplaza el mapa ni solicita datos.
+En mobile/tablet se elimina el límite y el scroll interior: todas las cards
+permanecen en el flujo normal antes del mapa. Se mantienen colores y atribución.
+
+La búsqueda sigue haciendo UNA solicitud Places, con máximo 20 candidatos y el
+mismo límite exterior de 5 km. Cambia únicamente el bias de proximity a circle,
+para preferir una zona de hasta 600 m en vez de ordenar los candidatos sólo por
+proximidad al centro. Si el criterio recibido tiene un radio menor, se respeta.
+Referencia: [bias circular de Geoapify](https://apidocs.geoapify.com/docs/places/).
+
+Ranking dentro de una zona razonable:
+
+1. Descartar categorías incompatibles y lugares fuera del radio autorizado,
+   y deduplicar IDs antes de evaluar la cantidad disponible.
+2. Usar los candidatos dentro de 600 m. Si no alcanzan cinco, ampliar la zona
+   sólo hasta el quinto candidato compatible disponible, dentro del radio
+   exterior. Si hay menos de cinco, conservar los que haya.
+3. Priorizar compatibilidad exacta, luego cantidad de datos objetivos presentes
+   entre dirección, website, horarios y subcategoría específica compatible.
+   Nombre/ID/coordenadas válidos ya son requisitos de la normalización existente.
+4. Entre opciones con la misma compatibilidad y completitud, favorecer las que
+   estén al menos a 150 m de las ya seleccionadas; después, menor distancia al
+   punto del plan e ID estable. Es una preferencia suave: no excluye candidatos
+   agrupados ni impone una distancia mínima respecto del punto base.
+
+Así un local documentado a 420 m puede preceder a uno incompleto a 46 m, y una
+opción equivalente en otra parte de la zona puede entrar antes que otra pegada
+a las seleccionadas. Esto NO afirma mejor calidad comercial, reputación o
+popularidad. No se guardan ratings ni nuevos scores; se conserva el snapshot.
+
+La variedad sólo puede elegirse entre los candidatos realmente devueltos en esa
+única llamada. Si no hay alternativas o el proveedor devuelve un conjunto
+concentrado, se conservan los lugares disponibles sin inventar resultados ni
+hacer búsquedas extra. Los snapshots ready existentes NO se recalculan: esta
+política afecta próximas generaciones o recálculos explícitos autorizados.
+Para probarla sin alterar snapshots actuales, usar un nuevo plan confirmado.
+No se modifican RLS, RPC, SQL, endpoints, persistencia, consumo por generación,
+Gemini ni `.env`. No hay commit ni push.
+
+Validación del ajuste: tests específicos `Ran 80 tests in 1.325s`, `OK`.
+Suite completa: `Ran 709 tests in 21.708s`, `OK` (11 tests nuevos sobre 698).
+Check: `System check identified no issues (0 silenced).`
+Chrome: 75 verificaciones OK en cada ancho 320/390/820 y 79 OK en desktop 1440,
+incluyendo orden, scroll interno, equilibrio de alturas, teclado y ausencia de
+requests al desplazar cards. Capturas e informes temporales:
+`C:\Users\Administrator\AppData\Local\Temp\planb-recommendations-browser-ohf1c01r`.
+El runner ahora tolera el bloqueo transitorio del archivo DevToolsActivePort
+de Chrome en Windows. `git diff --check` no encontró errores de whitespace;
+`.env` y migrations no tienen diferencias y el SHA256 de la migration sigue
+coincidiendo con el registrado arriba. Sin llamadas reales a Geoapify en tests.

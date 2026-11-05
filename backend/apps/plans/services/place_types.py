@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from math import isfinite
 import re
 
+PREFERRED_RADIUS_METERS = 600
+
 
 @dataclass(frozen=True)
 class Location:
@@ -22,6 +24,10 @@ class PlaceSearch:
     location: Location
     radius_meters: int = 5000
     candidate_limit: int = 20
+
+    @property
+    def preferred_radius_meters(self):
+        return min(PREFERRED_RADIUS_METERS, self.radius_meters)
 
     def __post_init__(self):
         if (not isinstance(self.location, Location)

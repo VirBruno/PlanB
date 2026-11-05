@@ -68,7 +68,7 @@ class GeoapifyTests(SimpleTestCase):
         self.assertEqual(args, (geoapify_service.PLACES_URL,))
         self.assertEqual(kwargs["params"]["limit"], 20)
         self.assertEqual(kwargs["params"]["filter"], "circle:-58.38,-34.6,5000")
-        self.assertEqual(kwargs["params"]["bias"], "proximity:-58.38,-34.6")
+        self.assertEqual(kwargs["params"]["bias"], "circle:-58.38,-34.6,600")
         self.assertEqual(kwargs["timeout"].connect, 2)
         self.assertEqual(kwargs["timeout"].read, 6)
         self.assertFalse(kwargs["follow_redirects"])
@@ -119,6 +119,14 @@ class GeoapifyTests(SimpleTestCase):
     def test_empty_result_is_success(self):
         self.response([])
         self.assertEqual(self.provider.search(self.criteria), [])
+
+    def test_preferred_bias_respects_smaller_requested_radius_without_extra_calls(self):
+        self.response([feature()])
+        self.provider.search(PlaceSearch(("catering.cafe",), BASE, radius_meters=300))
+        params = self.get.call_args.kwargs["params"]
+        self.assertEqual(params["filter"], "circle:-58.38,-34.6,300")
+        self.assertEqual(params["bias"], "circle:-58.38,-34.6,300")
+        self.get.assert_called_once()
 
     def test_optional_fields_absent_are_null_and_not_invented(self):
         self.response([feature()])
@@ -220,14 +228,77 @@ class IntentAndRankingTests(SimpleTestCase):
         self.assertEqual(distance_meters(BASE, BASE.latitude, BASE.longitude), 0)
         self.assertAlmostEqual(distance_meters(Location(0, 0), 0, 1), 111195.08, places=1)
 
-    def test_ranking_category_then_proximity_then_information(self):
+    def test_ranking_category_then_information_then_distance_and_separation(self):
         criteria = PlaceSearch(("catering.cafe",), BASE)
         items = [candidate("far", latitude=-34.61), candidate("near"),
                  candidate("rich", address="Calle 1"), candidate("child", categories=["catering.cafe.coffee"]),
                  candidate("wrong", categories=["commercial.supermarket"]),
                  candidate("outside", latitude=-35.6)]
         self.assertEqual([r["provider_place_id"] for r in rank_candidates(items, criteria)],
-                         ["rich", "near", "far", "child"])
+                         ["rich", "far", "near", "child"])
+
+    def place_at(self, identifier, meters, **changes):
+        return candidate(identifier, latitude=BASE.latitude + meters / 111195.08, **changes)
+
+    def test_more_complete_data_precedes_nearest_place_within_preferred_area(self):
+        criteria = PlaceSearch(("catering.cafe",), BASE)
+        places = [self.place_at("near", 46), self.place_at("documented", 420, address="Calle 1",
+                                                           website="https://cafe.example/", opening_hours="Mo-Fr")]
+        result = rank_candidates(places, criteria)
+        self.assertEqual([p["provider_place_id"] for p in result], ["documented", "near"])
+        self.assertNotIn("quality_score", result[0])
+        self.assertNotIn("rating", result[0])
+
+    def test_exact_category_precedes_more_complete_descendant_match(self):
+        criteria = PlaceSearch(("catering.cafe",), BASE)
+        places = [self.place_at("exact", 500), self.place_at("child", 100,
+                  categories=["catering.cafe.coffee"], address="Calle 1", website="https://example.com/", opening_hours="Mo-Fr")]
+        self.assertEqual(rank_candidates(places, criteria)[0]["provider_place_id"], "exact")
+
+    def test_specific_category_is_objective_information_within_same_compatibility(self):
+        criteria = PlaceSearch(("catering.cafe",), BASE)
+        places = [self.place_at("generic", 50), self.place_at("specific", 400,
+                  categories=["catering.cafe", "catering.cafe.coffee"])]
+        self.assertEqual(rank_candidates(places, criteria)[0]["provider_place_id"], "specific")
+
+    def test_equal_information_explores_area_without_excluding_nearby_places(self):
+        criteria = PlaceSearch(("catering.cafe",), BASE)
+        places = [self.place_at(str(m), m) for m in (46, 85, 151, 152, 159, 340, 550)]
+        result = rank_candidates(places, criteria)
+        self.assertEqual([p["provider_place_id"] for p in result[:3]], ["46", "340", "550"])
+        self.assertEqual(len(result), 5)
+        self.assertTrue(all(p["distance_meters"] <= 600 for p in result))
+        self.assertEqual(result, rank_candidates(list(reversed(places)), criteria))
+
+    def test_close_cluster_is_retained_if_no_spread_alternatives_are_available(self):
+        criteria = PlaceSearch(("catering.cafe",), BASE)
+        places = [self.place_at(str(m), m) for m in (46, 85, 151, 152, 159)]
+        self.assertEqual(len(rank_candidates(places, criteria)), 5)
+
+    def test_preferred_area_does_not_select_remote_places_only_for_more_fields(self):
+        criteria = PlaceSearch(("catering.cafe",), BASE)
+        places = [self.place_at(str(m), m) for m in (50, 200, 350, 450, 550)]
+        places.append(self.place_at("remote", 1500, address="Calle 1", website="https://example.com/", opening_hours="Mo-Fr"))
+        result = rank_candidates(places, criteria)
+        self.assertNotIn("remote", [p["provider_place_id"] for p in result])
+
+    def test_sparse_area_expands_only_as_far_as_needed_with_existing_candidates(self):
+        criteria = PlaceSearch(("catering.cafe",), BASE)
+        places = [self.place_at(str(m), m) for m in (50, 400, 700, 900, 1200, 3000, 5500)]
+        result = rank_candidates(places, criteria)
+        self.assertEqual({p["provider_place_id"] for p in result}, {"50", "400", "700", "900", "1200"})
+
+    def test_too_few_candidates_and_custom_radius_do_not_fabricate_or_exceed_limits(self):
+        criteria = PlaceSearch(("catering.cafe",), BASE, radius_meters=300)
+        places = [self.place_at(str(m), m) for m in (50, 250, 400)]
+        self.assertEqual({p["provider_place_id"] for p in rank_candidates(places, criteria)}, {"50", "250"})
+        self.assertEqual(rank_candidates([], criteria), [])
+
+    def test_duplicate_ids_do_not_hide_sparse_area_fallback(self):
+        criteria = PlaceSearch(("catering.cafe",), BASE)
+        places = [self.place_at("near", 50)] * 5 + [self.place_at("other", 800)]
+        result = rank_candidates(places, criteria)
+        self.assertEqual({p["provider_place_id"] for p in result}, {"near", "other"})
 
     def test_order_is_stable_deduplicated_and_at_most_five(self):
         criteria = PlaceSearch(("catering.cafe",), BASE)

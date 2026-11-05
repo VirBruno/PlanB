@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="{% static 'users/css/plan-detail-social.css' %}?v=28">
   <link rel="stylesheet" href="{% static 'users/css/plan-expenses.css' %}?v=3">
   {% if show_recommendations %}
-  <link rel="stylesheet" href="{% static 'users/css/plan-recommendations.css' %}?v=1">
+  <link rel="stylesheet" href="{% static 'users/css/plan-recommendations.css' %}?v=2">
   {% endif %}
 {% endblock %}
 {% block extra_js %}
@@ -166,7 +166,6 @@
       {% if plan.scheduled_at %}<p class="pb-decision-note">La fecha y localidad del plan son una <strong>preferencia tentativa</strong>, no una decisión del grupo.</p>{% endif %}
     {% endif %}
   </section>
-  {% if show_recommendations %}{% include 'plans/partials/recommendations.html' %}{% endif %}
   {% include 'plans/expenses/modal.html' %}
   <section class="proposals-section pb-plan-proposals" aria-labelledby="proposals-title">
     <div class="section-heading pb-proposals-heading">
@@ -344,5 +343,6 @@
     {% endif %}
     {% if not can_create_proposal %}<p class="empty-proposals">Ya compartiste tu propuesta para este plan.</p>{% endif %}
   </section>
+  {% if show_recommendations %}{% include 'plans/partials/recommendations.html' %}{% endif %}
 </section>
 {% endblock %}

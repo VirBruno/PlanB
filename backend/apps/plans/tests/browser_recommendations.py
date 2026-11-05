@@ -173,6 +173,25 @@ window.addEventListener('load', async () => {
     assert(root.scrollWidth <= root.clientWidth + 1 && document.documentElement.scrollWidth <= innerWidth + 1, 'Sin scroll horizontal');
     const columns = getComputedStyle(root.querySelector('[data-suggestions-results]')).gridTemplateColumns.split(' ').length;
     assert(columns === (innerWidth > 1000 ? 2 : 1), 'Layout desktop/mobile coherente');
+    const list = root.querySelector('[data-suggestions-list]');
+    const panel = root.querySelector('.pb-suggestions-map-panel');
+    assert(document.querySelector('.pb-plan-proposals').compareDocumentPosition(original) & Node.DOCUMENT_POSITION_FOLLOWING,
+      'Sugerencias después de propuestas del grupo');
+    if (innerWidth > 1000) {
+      assert(list.scrollHeight > list.clientHeight && getComputedStyle(list).overflowY === 'auto', 'Desktop usa listado con scroll propio');
+      assert(Math.abs(list.getBoundingClientRect().height - panel.getBoundingClientRect().height) < 3, 'Listado y mapa equilibrados en altura');
+      const beforeScroll = window.recCalls.length;
+      const mapTop = panel.getBoundingClientRect().top;
+      list.scrollTop = list.scrollHeight;
+      assert(list.scrollTop > 0 && Math.abs(panel.getBoundingClientRect().top - mapTop) < 1, 'Scroll de cards conserva el mapa visible');
+      root.querySelector('[data-select-place="4"]').focus();
+      assert(document.activeElement.dataset.selectPlace === '4', 'Última card accesible por teclado');
+      assert(window.recCalls.length === beforeScroll, 'Scroll interno no consume recomendaciones');
+      list.scrollTop = 0;
+    } else {
+      assert(getComputedStyle(list).maxHeight === 'none' && getComputedStyle(list).overflowY === 'visible',
+        'Mobile conserva listado completo sin scroll anidado');
+    }
     const result = document.createElement('pre'); result.id = 'browser-results';
     result.textContent = JSON.stringify({ok: true, width: innerWidth, checks}); document.body.append(result);
   } catch (error) {
@@ -248,11 +267,16 @@ def main():
                 creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0)
             try:
                 port_file = profile / "DevToolsActivePort"
+                port = None
                 for _ in range(160):
-                    if port_file.exists():
+                    try:
+                        port = int(port_file.read_text().splitlines()[0])
                         break
+                    except (OSError, ValueError, IndexError):
+                        pass  # Chrome puede mantener el archivo bloqueado al crearlo en Windows.
                     time.sleep(.05)
-                port = int(port_file.read_text().splitlines()[0])
+                if port is None:
+                    raise SystemExit("Chrome no publicó el puerto de depuración a tiempo.")
                 with urlopen(f"http://127.0.0.1:{port}/json/list", timeout=5) as response:
                     target = next(t for t in json.load(response) if t["type"] == "page")
                 with connect(target["webSocketDebuggerUrl"], open_timeout=5) as connection:
