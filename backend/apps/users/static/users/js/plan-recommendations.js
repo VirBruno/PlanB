@@ -105,6 +105,17 @@
     let markers = [];
     let resizeObserver = null;
     let hasSnapshot = false;
+    let refitWhenVisible = false;
+    let visiblePoints = [];
+    function resizeVisibleMap() {
+      if (!map || !mapElement.clientWidth || !mapElement.clientHeight) return;
+      map.invalidateSize({pan: false});
+      if (refitWhenVisible) {
+        map.fitBounds(visiblePoints, {padding: [32, 32], maxZoom: 16});
+        refitWhenVisible = false;
+      }
+    }
+    root.closest("[data-tool-panel]")?.addEventListener("planb:tool-open", () => requestAnimationFrame(resizeVisibleMap));
 
     function message(state, text, detail = "") {
       feedback.dataset.state = state;
@@ -190,6 +201,8 @@
       mapElement.hidden = false;
       try {
         map = L.map(mapElement, {scrollWheelZoom: false});
+        refitWhenVisible = !mapElement.clientWidth || !mapElement.clientHeight;
+        visiblePoints = valid.map(item => [item.latitude, item.longitude]);
         // La página usa same-origin; los tiles necesitan Referer según política OSM.
         const tiles = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
           maxZoom: 19, referrerPolicy: "strict-origin-when-cross-origin",
@@ -215,7 +228,7 @@
           markers[index] = marker;
         });
         if (typeof ResizeObserver !== "undefined") {
-          resizeObserver = new ResizeObserver(() => map?.invalidateSize({pan: false}));
+          resizeObserver = new ResizeObserver(resizeVisibleMap);
           resizeObserver.observe(mapElement);
         }
       } catch {

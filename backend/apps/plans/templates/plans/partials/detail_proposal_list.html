@@ -1,0 +1,68 @@
+{% load l10n %}
+    <ul class="proposal-list pb-proposals-grid">
+      {% for proposal in proposals %}
+      <li class="proposal-item pb-proposal-card">
+        <div class="proposal-heading pb-proposal-card-heading">
+          <div>
+            <span class="proposal-type">{{ proposal.type|capfirst }}</span>
+            <h3>{{ proposal.tittle }}</h3>
+            <p class="proposal-author">{% include 'components/user_avatar.html' with user_id=proposal.created_by username=proposal.creator_username scope='plan' scope_id=plan.id only %} Propuesta por <strong>{{ proposal.creator_username }}</strong></p>
+          </div>
+          {% if proposal.can_manage and not plan.selected_proposal_id %}
+          <div class="proposal-actions">
+            <a class="button button--quiet" href="{% url 'plans:proposal_edit' plan.id proposal.id %}">Editar</a>
+            <form method="post" action="{% url 'plans:proposal_delete' plan.id proposal.id %}" data-confirm-delete="¿Eliminar esta propuesta? Esta acción no se puede deshacer.">
+              {% csrf_token %}
+              <button class="button button--danger-quiet" type="submit">Eliminar</button>
+            </form>
+          </div>
+          {% endif %}
+        </div>
+        {% if proposal.is_confirmed %}<p class="pb-proposal-confirmed">✓ Elegida para el encuentro</p>{% endif %}
+        {% if proposal.can_confirm %}
+        <form method="post" action="{% url 'plans:confirm_plan_proposal' plan.id proposal.id %}" class="pb-confirm-form" data-confirm-delete="¿Confirmar esta propuesta como encuentro definitivo?">
+          {% csrf_token %}<button class="button button--primary" type="submit">✓ Confirmar este encuentro</button>
+        </form>
+        {% endif %}
+        {% if proposal.description %}<p>{{ proposal.description|linebreaksbr }}</p>{% endif %}
+        {% if election_method == 'votes' and not plan.selected_proposal_id %}
+        <div class="proposal-election-score"><strong>{{ proposal.votes }} voto{{ proposal.votes|pluralize }}</strong>{% if proposal.id == champion_id %}<span class="proposal-champion-badge">Campeona</span>{% endif %}
+          {% if proposal.id == voted_proposal_id %}
+          <span class="proposal-voted-label">Tu voto</span>
+          <form method="post" action="{% url 'plans:proposal_vote' plan.id proposal.id %}">{% csrf_token %}<button class="button button--quiet" type="submit" disabled aria-current="true">Voto actual</button></form>
+          <form method="post" action="{% url 'plans:proposal_vote_remove' plan.id %}">{% csrf_token %}<button class="button button--danger-quiet" type="submit">Quitar voto</button></form>
+          {% else %}
+          <form method="post" action="{% url 'plans:proposal_vote' plan.id proposal.id %}">{% csrf_token %}<button class="button button--primary" type="submit">Votar</button></form>
+          {% endif %}
+        </div>
+        {% elif election_method == 'combat' %}
+        <div class="proposal-election-score"><strong>{{ proposal.Score }} puntos</strong>{% if proposal.id == champion_id %}<span class="proposal-champion-badge">Campeona</span>{% endif %}</div>
+        {% endif %}
+        <dl class="proposal-meta">
+          {% if proposal.date_pick %}<div><dt>Fecha</dt><dd>{{ proposal.date_pick|date:"d/m/Y H:i" }}</dd></div>{% endif %}
+          {% if proposal.budget_min != None or proposal.budget_max != None %}
+          <div class="proposal-budget-range"><dt>Presupuesto</dt><dd>{% if proposal.budget_min != None and proposal.budget_max != None %}{{ proposal.budget_min|floatformat:2 }} – {{ proposal.budget_max|floatformat:2 }}{% elif proposal.budget_min != None %}Desde {{ proposal.budget_min|floatformat:2 }}{% else %}Hasta {{ proposal.budget_max|floatformat:2 }}{% endif %}</dd></div>
+          {% endif %}
+        </dl>
+        {% if proposal.date_pick %}
+        <section class="pb-weather" data-proposal-weather data-weather-url="{% url 'plans:proposal_weather' plan.id proposal.id %}" aria-label="Pronóstico para esta propuesta" aria-live="polite">
+          <div class="pb-weather-heading"><span aria-hidden="true">☁</span><strong>Clima para la fecha propuesta</strong></div>
+          <p class="pb-weather-status" data-weather-status>Consultando pronóstico…</p>
+          <div class="pb-weather-details" data-weather-details hidden>
+            <div class="pb-weather-primary"><span class="pb-weather-symbol" data-weather-symbol aria-hidden="true"></span><div><strong data-weather-condition></strong><span data-weather-temperature></span></div></div>
+            <div class="pb-weather-metrics"><span data-weather-rain></span><span data-weather-wind></span></div>
+            <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" class="pb-weather-source">Datos: Open-Meteo</a>
+            <small>Pronóstico orientativo, sujeto a cambios.</small>
+          </div>
+        </section>
+        {% endif %}
+        <div class="proposal-location pb-proposal-card-location">
+          <span class="proposal-location-label">Ubicación propuesta</span>
+          <a class="proposal-map-link" href="https://www.openstreetmap.org/?mlat={{ proposal.latitude|unlocalize }}&amp;mlon={{ proposal.longitude|unlocalize }}#map=16/{{ proposal.latitude|unlocalize }}/{{ proposal.longitude|unlocalize }}" target="_blank" rel="noopener noreferrer" aria-label="Abrir ubicación de {{ proposal.tittle }} en OpenStreetMap">
+            <div class="proposal-map-preview" data-proposal-preview data-lat="{{ proposal.latitude|unlocalize }}" data-lon="{{ proposal.longitude|unlocalize }}" role="img" aria-label="Mapa de la ubicación de {{ proposal.tittle }}"></div>
+            <span>Ver en OpenStreetMap</span>
+          </a>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>

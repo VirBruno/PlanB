@@ -454,7 +454,7 @@ class PlanViewsTests(TestCase):
         self.assertContains(response, 'aria-label="Cerrar propuesta ideal"')
         self.assertContains(response, "data-ideal-map")
         self.assertContains(response, "proposal-ideal-data")
-        self.assertContains(response, "/static/users/js/proposals.js?v=11")
+        self.assertContains(response, "/static/users/js/proposals.js?v=12")
         self.assertContains(response, "/static/users/css/proposals.css?v=5")
 
     @patch("apps.plans.views.proposal_service.list_proposals", return_value=[

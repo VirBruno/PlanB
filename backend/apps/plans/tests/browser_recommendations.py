@@ -57,6 +57,7 @@ window.fetch = async (url, options = {}) => {
   return new Response(JSON.stringify(window.recPayload), {headers: {'Content-Type': 'application/json'}});
 };
 window.addEventListener('load', async () => {
+  document.querySelector('[data-tool="sugerencias"]')?.click();
   const checks = [];
   const assert = (value, label) => { if (!value) throw Error(label); checks.push(label); };
   const wait = async predicate => {
@@ -227,8 +228,8 @@ window.addEventListener('load', async () => {
     assert(columns === (innerWidth > 1000 ? 2 : 1), 'Layout desktop/mobile coherente');
     const list = root.querySelector('[data-suggestions-list]');
     const panel = root.querySelector('.pb-suggestions-map-panel');
-    assert(document.querySelector('.pb-plan-proposals').compareDocumentPosition(original) & Node.DOCUMENT_POSITION_FOLLOWING,
-      'Sugerencias después de propuestas del grupo');
+    assert(original.closest('[data-tool-panel="sugerencias"]') && !original.closest('[data-plan-drawer]'),
+      'Sugerencias en workspace y fuera del historial');
     if (innerWidth > 1000) {
       assert(list.scrollHeight > list.clientHeight && getComputedStyle(list).overflowY === 'auto', 'Desktop usa listado con scroll propio');
       assert(Math.abs(list.getBoundingClientRect().height - panel.getBoundingClientRect().height) < 3, 'Listado y mapa equilibrados en altura');
@@ -255,7 +256,7 @@ window.addEventListener('load', async () => {
 """
 
 
-def main():
+def main(*, proposals=None, plan_fixture=None, group_role="member", all_scripts=False):
     from websockets.sync.client import connect
     chrome = Path(os.environ.get("PLANB_CHROME", r"C:\Program Files\Google\Chrome\Application\chrome.exe"))
     if not chrome.is_file():
@@ -269,7 +270,11 @@ def main():
             if path == "/fixture":
                 body = client.get(f"/planes/{PLAN_ID}/").content.decode()
                 body = re.sub(r'<script\b[^>]*src="([^"]+)"[^>]*>\s*</script>',
-                    lambda m: m[0] if any(name in m[1] for name in ("leaflet.js", "plan-recommendations.js")) else "", body)
+                    lambda m: m[0] if (all_scripts and any(name in m[1] for name in (
+                        "leaflet.js", "plan-recommendations.js", "plan-confirmed-workspace.js", "plan-expenses.js",
+                        "plan-weather-planner.js", "proposal-weather.js", "proposals.js")))
+                    or (not all_scripts and any(name in m[1] for name in (
+                        "leaflet.js", "plan-recommendations.js", "plan-confirmed-workspace.js"))) else "", body)
                 body = re.sub(r'<link\b[^>]*href="https?://[^>]+>', "", body)
                 payload, mime = body.replace("</head>", HARNESS + "</head>").encode(), "text/html; charset=utf-8"
             elif path.startswith("/static/"):
@@ -298,10 +303,11 @@ def main():
             "apps.users.services.session_service.current_user": {"id": USER_ID, "username": "Ana"},
             "apps.users.services.session_service.get_access_token": "browser-jwt",
             "apps.notifications.services.unread_count": 0,
-            "apps.plans.views.plan_service.get_plan": confirmed_plan(),
-            "apps.plans.views.group_service.get_group": {"id": GROUP_ID, "name": "Amigos", "role": "member"},
-            "apps.plans.views.proposal_service.list_proposals": [confirmed_proposal()],
+            "apps.plans.views.plan_service.get_plan": plan_fixture or confirmed_plan(),
+            "apps.plans.views.group_service.get_group": {"id": GROUP_ID, "name": "Amigos", "role": group_role},
+            "apps.plans.views.proposal_service.list_proposals": proposals if proposals is not None else [confirmed_proposal()],
             "apps.plans.views.profile_service.usernames_for_ids": {USER_ID: "Ana"},
+            "apps.plans.views.election_service.voted_proposal": None,
         }
         for target, value in fixtures.items():
             stack.enter_context(patch(target, return_value=value))
@@ -361,8 +367,17 @@ def main():
                           return {x:r.x + scrollX, y:r.y + scrollY, width:r.width, height:r.height, scale:1};
                         })()""", "returnByValue": True})["result"]["value"]
                         time.sleep(.2)  # Esperar la transición de superficies entre temas.
+                        if all_scripts or not clip.get("width"):
+                            clip = {"x": 0, "y": 0, "width": width, "height": height, "scale": 1}
                         data = cdp("Page.captureScreenshot", {"captureBeyondViewport": True, "clip": clip})["data"]
                         (output / f"suggestions-{width}-{theme}.png").write_bytes(base64.b64decode(data))
+                        if all_scripts and raw and json.loads(raw).get("ok"):
+                            for stage in ("compact", "drawer"):
+                                cdp("Runtime.evaluate", {"expression": f"window.layoutCapture('{stage}')"})
+                                time.sleep(.1)
+                                data = cdp("Page.captureScreenshot", {"captureBeyondViewport": False})["data"]
+                                (output / f"confirmed-{width}-{stage}-{theme}.png").write_bytes(base64.b64decode(data))
+                            cdp("Runtime.evaluate", {"expression": "window.layoutCapture('sugerencias')"})
                     if not raw:
                         raise SystemExit(f"Sin resultado del navegador: {output}")
                     report = json.loads(raw)

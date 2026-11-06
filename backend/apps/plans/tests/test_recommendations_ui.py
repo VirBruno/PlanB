@@ -44,7 +44,7 @@ class RecommendationUITests(TestCase):
     @patch.object(service, "generate_recommendations")
     def test_confirmed_detail_has_one_section_without_server_generation(self, generate, read):
         response = self.client.get(self.url)
-        self.assertContains(response, "Sugerencias con IA", count=1)
+        self.assertContains(response, "Sugerencias con IA", count=2)
         self.assertContains(response, "data-recommendations", count=1)
         self.assertContains(response, self.retry_url)
         self.assertContains(response, "plan-recommendations.js")
@@ -69,13 +69,61 @@ class RecommendationUITests(TestCase):
         self.assertContains(response, 'src="/static/leaflet.js"', count=1)
         self.assertContains(response, "data-recommendations", count=1)
 
-    def test_suggestions_follow_the_complete_group_proposals_section(self):
+    def test_suggestions_are_in_workspace_before_decision_history(self):
         response = self.client.get(self.url)
         html = response.content.decode()
         self.assertContains(response, "data-recommendations", count=1)
-        self.assertGreater(html.index("data-recommendations"), html.index("Ya compartiste tu propuesta"))
-        self.assertGreater(html.index("data-recommendations"), html.index("data-proposal-preview"))
+        self.assertLess(html.index("data-recommendations"), html.index("data-plan-drawer"))
+        self.assertGreater(html.index("data-recommendations"), html.index('data-tool-panel="sugerencias"'))
         self.assertContains(response, 'aria-label="Lugares sugeridos" tabindex="0"')
+
+    def test_confirmed_layout_has_three_initially_hidden_unique_tools(self):
+        response = self.client.get(self.url)
+        self.assertContains(response, "data-confirmed-layout", count=1)
+        for name in ("clima", "gastos", "sugerencias"):
+            self.assertContains(response, f'data-tool="{name}"', count=1)
+            self.assertContains(response, f'data-tool-panel="{name}" hidden', count=1)
+        for marker in ("data-plan-weather\n", "data-inline-expenses", "data-recommendations\n"):
+            self.assertContains(response, marker, count=1)
+        self.assertContains(response, "plan-confirmed-workspace.js", count=1)
+
+    def test_drawer_has_collapsed_history_and_no_active_tools(self):
+        response = self.client.get(self.url)
+        html = response.content.decode()
+        drawer = html.split('data-plan-drawer', 1)[1].split('</dialog>', 1)[0]
+        for section in ("proposals", "method", "voting", "result"):
+            self.assertIn(f'data-decision-block="{section}"><summary>', drawer)
+        for marker in ("data-plan-weather", "data-expenses-dialog", "data-recommendations"):
+            self.assertNotIn(marker, drawer)
+        self.assertContains(response, 'aria-controls="plan-details-drawer" aria-expanded="false"')
+
+    def test_hero_includes_selected_proposal_information_and_process_action(self):
+        proposals = self.fixtures["apps.plans.views.proposal_service.list_proposals"].return_value
+        proposals[0].update(description="Merienda para compartir", budget_min=100, budget_max=200)
+        response = self.client.get(self.url)
+        hero = response.content.decode().split('pb-decision-panel--confirmed', 1)[1].split('</section>', 1)[0]
+        self.assertIn("Merienda para compartir", hero)
+        self.assertIn("Presupuesto:", hero)
+        self.assertIn("Ver ubicación confirmada", hero)
+        self.assertIn("Ver proceso de decisión", hero)
+
+    def test_organizing_and_finished_keep_original_primary_proposals_flow(self):
+        for active_plan in (confirmed_plan(selected_proposal_id=None, confirmed_at=None), confirmed_plan(status=False)):
+            self.fixtures["apps.plans.views.plan_service.get_plan"].return_value = active_plan
+            response = self.client.get(self.url)
+            self.assertNotContains(response, "data-confirmed-layout")
+            self.assertNotContains(response, "plan-confirmed-workspace.js")
+            self.assertContains(response, 'id="proposals-title"')
+            self.assertContains(response, 'id="proposal-election"')
+            self.assertContains(response, 'class="pb-expense-card"')
+
+    def test_confirmed_owner_actions_and_expense_deep_link_remain_available(self):
+        self.fixtures["apps.plans.views.group_service.get_group"].return_value["role"] = "owner"
+        response = self.client.get(self.url + "?open=expenses")
+        self.assertContains(response, f'/planes/{PLAN_ID}/editar/')
+        self.assertContains(response, "Reabrir decisión")
+        self.assertContains(response, "data-inline-expenses", count=1)
+        self.assertContains(response, 'name="csrfmiddlewaretoken"')
 
     @override_settings(GEOAPIFY_API_KEY="key-that-must-never-reach-the-template")
     def test_frontend_receives_no_provider_key_or_raw_data(self):

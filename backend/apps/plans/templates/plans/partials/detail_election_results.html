@@ -1,0 +1,69 @@
+{% load l10n %}
+    {% if election_method == 'ideal' or show_ideal_popup %}
+    {% if election_method == 'ideal' %}
+    <a class="proposal-ideal-view" href="?ideal=1#proposal-ideal-card">Ver cálculo de ubicación y presupuesto</a>
+    {% endif %}
+    {% if ideal_summary %}
+    <dialog class="proposal-ideal-dialog" id="proposal-ideal-card" data-ideal-dialog aria-labelledby="proposal-ideal-title">
+      <section class="proposal-ideal">
+        <button class="proposal-ideal-close" type="button" data-close-ideal aria-label="Cerrar propuesta ideal" title="Cerrar propuesta ideal">&times;</button>
+        <div class="proposal-ideal-heading">
+          <div>
+            <p class="eyebrow eyebrow--blue">UBICACIÓN INTERMEDIA</p>
+            <h3 id="proposal-ideal-title">Propuesta ideal</h3>
+            <p>Área aproximada de 2 cuadras de radio (200 m), centrada entre las ubicaciones propuestas.</p>
+          </div>
+          <div class="proposal-ideal-budget">
+            <span>Presupuesto ideal</span>
+            {% if ideal_summary.ideal_budget != None %}
+            <strong>{{ ideal_summary.ideal_budget|floatformat:2 }}</strong>
+            <small>Promedio de {{ ideal_summary.budget_count }} propuesta{{ ideal_summary.budget_count|pluralize:"s" }} con presupuesto</small>
+            {% else %}
+            <strong>Sin datos</strong>
+            <small>Ninguna propuesta informó presupuesto</small>
+            {% endif %}
+          </div>
+        </div>
+        <div class="proposal-ideal-map" data-ideal-map role="img" aria-label="Mapa del centro geográfico y perímetro de las propuestas"></div>
+      </section>
+      {{ ideal_summary|json_script:"proposal-ideal-data" }}
+    </dialog>
+    {% endif %}
+    {% elif election_method == 'votes' %}
+    <section class="proposal-leaderboard" aria-labelledby="proposal-vote-title">
+      <div class="proposal-leaderboard-heading"><h3 id="proposal-vote-title">Votación</h3><p>{% if confirmed_layout %}Resultado de los votos para este encuentro.{% else %}Podés cambiar tu voto o quitarlo cuando quieras.{% endif %}</p></div>
+      {% if champion_id %}<p class="proposal-champion">Propuesta campeona: <strong>{{ leaderboard.0.tittle }}</strong></p>{% endif %}
+      <ol class="proposal-ranking">
+        {% for proposal in leaderboard %}
+        <li{% if proposal.id == champion_id %} class="is-champion"{% endif %}><span class="proposal-ranking-place">{{ forloop.counter }}</span><span class="proposal-ranking-name">{{ proposal.tittle }}<small>{% include 'components/user_avatar.html' with user_id=proposal.created_by username=proposal.creator_username scope='plan' scope_id=plan.id only %} {{ proposal.creator_username }}</small></span><strong>{{ proposal.votes }} voto{{ proposal.votes|pluralize }}</strong></li>
+        {% endfor %}
+      </ol>
+    </section>
+    {% elif election_method == 'combat' %}
+    <section class="proposal-leaderboard" id="proposal-combat" aria-labelledby="proposal-combat-title">
+      <div class="proposal-leaderboard-heading"><div><h3 id="proposal-combat-title">Combate</h3><p>La mejor partida de cada autor suma al marcador de su propuesta.</p></div></div>
+      {% if champion_id %}<p class="proposal-champion">Propuesta campeona: <strong>{{ leaderboard.0.tittle }}</strong></p>{% endif %}
+      <ol class="proposal-ranking">
+        {% for proposal in leaderboard %}
+        <li{% if proposal.id == champion_id %} class="is-champion"{% endif %}><span class="proposal-ranking-place">{{ forloop.counter }}</span><span class="proposal-ranking-name">{{ proposal.tittle }}<small>{% include 'components/user_avatar.html' with user_id=proposal.created_by username=proposal.creator_username scope='plan' scope_id=plan.id only %} {{ proposal.creator_username }}</small></span><strong>{% if election_method == 'votes' %}{{ proposal.votes }} voto{{ proposal.votes|pluralize }}{% else %}{{ proposal.Score }} pts{% endif %}</strong></li>
+        {% endfor %}
+      </ol>
+      {% if election_method == 'combat' %}
+      {% if my_proposal and not plan.selected_proposal_id %}
+      <div class="proposal-combat-game" data-combat-game>
+        <div class="proposal-combat-copy"><span>Tu propuesta</span><strong>{{ my_proposal.tittle }}</strong><span>Mejor puntaje: {{ my_proposal.Score }}</span></div>
+        <canvas class="proposal-combat-canvas" width="720" height="320" data-combat-canvas role="img" aria-label="Juego de vuelo: evitá los obstáculos para sumar puntos"></canvas>
+        <div class="proposal-combat-controls"><button class="button button--primary" type="button" data-combat-start>Jugar</button><button class="button button--quiet" type="button" data-combat-flap disabled>Volar</button><span data-combat-score aria-live="polite">Puntaje: 0</span></div>
+        <p class="proposal-combat-status" data-combat-status aria-live="polite">Presioná Espacio o Volar para mantenerte en el aire.</p>
+        <form method="post" action="{% url 'plans:proposal_score' plan.id my_proposal.id %}" data-combat-save hidden>
+          {% csrf_token %}<input type="hidden" name="score" value="0" data-combat-score-input>
+          <button class="button button--primary" type="submit">Guardar puntaje</button>
+        </form>
+      </div>
+      {% else %}
+      <p class="proposal-method-note">{% if confirmed_layout %}Las partidas forman parte del proceso de decisión del grupo.{% else %}Creá tu propuesta para poder jugar por ella.{% endif %}</p>
+      {% endif %}
+      {% endif %}
+    </section>
+    {% endif %}
+

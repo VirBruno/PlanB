@@ -44,6 +44,11 @@
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(map);
     L.marker([latitude, longitude]).addTo(map);
+    if (element.closest("[data-confirmed-layout]") && typeof ResizeObserver !== "undefined") {
+      new ResizeObserver(() => {
+        if (element.clientWidth && element.clientHeight) map.invalidateSize({pan: false});
+      }).observe(element);
+    }
   });
 
   const idealDataElement = document.getElementById("proposal-ideal-data");
