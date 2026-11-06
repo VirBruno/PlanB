@@ -9,6 +9,7 @@ SUPABASE_URL = "https://planb-test.invalid"
 SUPABASE_PUBLISHABLE_KEY = "sb_publishable_test_placeholder"
 SUPABASE_SECRET_KEY = "sb_secret_test_placeholder"
 GEOAPIFY_API_KEY = ""
+GEMINI_API_KEY = ""
 DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": ":memory:"}}
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False

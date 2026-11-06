@@ -2,6 +2,7 @@
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+GEMINI_MODEL = "gemini-3.8-flash"
 INSTALLED_APPS = [
     "django.contrib.sessions", "django.contrib.messages", "django.contrib.staticfiles",
     "apps.users.apps.UsersConfig",

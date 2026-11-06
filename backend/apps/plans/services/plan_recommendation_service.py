@@ -6,6 +6,7 @@ from django.views.decorators.debug import sensitive_variables
 from apps.groups.services import group_service
 from . import place_intent_service, plan_service, proposal_service, recommendation_store
 from .exceptions import PlanNotFound
+from .gemini_intent_service import GeminiIntentClient
 from .geoapify_service import GeoapifyClient
 from .place_ranking_service import google_maps_url, google_search_url, rank_candidates
 from .place_types import PlaceSearch, RecommendationError
@@ -68,13 +69,14 @@ def generate_recommendations(token, plan_id, *, replace=False):
     if generation_id is None:
         return get_recommendations(token, plan_id)
     items, error_code, location, criteria = [], None, None, None
+    interpretation = None
     try:
         proposal = proposal_service.get_proposal(
             token, plan_id=plan["id"], proposal_id=plan["selected_proposal_id"])
-        categories = place_intent_service.resolve_categories(proposal)
+        interpretation = GeminiIntentClient().interpret(proposal)
         provider = GeoapifyClient()
         location = place_intent_service.resolve_location(proposal, provider)
-        criteria = PlaceSearch(categories=categories, location=location)
+        criteria = PlaceSearch(categories=interpretation.categories, location=location)
         items = rank_candidates(provider.search(criteria), criteria)
     except RecommendationError as exc:
         error_code = exc.code
@@ -83,7 +85,8 @@ def generate_recommendations(token, plan_id, *, replace=False):
     recommendation_store.finish(
         plan, generation_id, items=items, error_code=error_code,
         base_location=asdict(location) if location else None,
-        criteria={"categories": list(criteria.categories), "radius_meters": criteria.radius_meters,
+        criteria={**interpretation.criteria(),
+                  "categories": list(criteria.categories), "radius_meters": criteria.radius_meters,
                   "candidate_limit": criteria.candidate_limit} if criteria else None,
     )
     # Revalidar acceso/decisión por si cambió mientras consultábamos al proveedor.

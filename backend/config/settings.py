@@ -15,6 +15,8 @@ SUPABASE_URL = os.environ["SUPABASE_URL"].rstrip("/")
 SUPABASE_PUBLISHABLE_KEY = os.environ["SUPABASE_PUBLISHABLE_KEY"]
 SUPABASE_SECRET_KEY = os.environ["SUPABASE_SECRET_KEY"]
 GEOAPIFY_API_KEY = os.getenv("GEOAPIFY_API_KEY", "").strip()
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "").strip() or GEMINI_MODEL
 DATABASES = {"default": {
     "ENGINE": "django.db.backends.postgresql",
     "NAME": os.environ["DB_NAME"], "USER": os.environ["DB_USER"],

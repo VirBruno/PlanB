@@ -10,7 +10,7 @@ from django.test import Client, SimpleTestCase, TestCase, override_settings
 
 from apps.groups.services.exceptions import GroupNotFound
 from apps.plans.services import (
-    geoapify_service, place_intent_service, plan_recommendation_service as service,
+    gemini_intent_service, geoapify_service, place_intent_service, plan_recommendation_service as service,
     recommendation_store as store,
 )
 from apps.plans.services.exceptions import PlanNotFound
@@ -179,18 +179,16 @@ class GeoapifyTests(SimpleTestCase):
 
 
 class IntentAndRankingTests(SimpleTestCase):
-    def test_minimal_intent_rules(self):
-        cases = (("Cena", "catering.restaurant"), ("café", "catering.cafe"),
-                 ("Merienda", "catering.cafe"), ("Picnic en la plaza", "leisure.park"),
-                 ("Compras supermercado", "commercial.supermarket"))
-        for text, category in cases:
-            self.assertIn(category, place_intent_service.resolve_categories({"tittle": text}))
+    def test_controlled_mapping_for_multiple_intents(self):
+        result = place_intent_service.validate_intents(
+            {"place_intents": ["bar", "nightclub"]}, model="gemini-3.8-flash")
+        self.assertEqual(result.categories, ("catering.bar", "catering.pub", "adult.nightclub"))
 
-    def test_unknown_and_ambiguous_intent_are_conservative(self):
-        for text in ("Encuentro", "Café o cena", "plazamiento", ""):
-            with self.assertRaises(RecommendationError) as caught:
-                place_intent_service.resolve_categories({"tittle": text})
-            self.assertEqual(caught.exception.code, "unsupported_intent")
+    def test_unsupported_is_not_mapped_to_default_categories(self):
+        with self.assertRaises(RecommendationError) as caught:
+            place_intent_service.validate_intents(
+                {"place_intents": ["unsupported"]}, model="gemini-3.8-flash")
+        self.assertEqual(caught.exception.code, "unsupported_intent")
 
     @patch.object(geoapify_service.GeoapifyClient, "geocode")
     def test_existing_coordinates_never_geocoded(self, geocode):
@@ -380,6 +378,7 @@ class OrchestrationTests(SimpleTestCase):
             "recommendation_store.read": {"side_effect": lambda *a: deepcopy(self.saved)},
             "recommendation_store.claim": {"return_value": TICKET},
             "recommendation_store.finish": {"side_effect": self.finish},
+            "GeminiIntentClient": {},
             "GeoapifyClient.search": {"return_value": [candidate(str(i)) for i in range(9)]},
             "GeoapifyClient.geocode": {},
         }
@@ -388,10 +387,18 @@ class OrchestrationTests(SimpleTestCase):
             patcher = patch(f"apps.plans.services.plan_recommendation_service.{name}", **kwargs)
             self.mocks[name] = patcher.start()
             self.addCleanup(patcher.stop)
+        self.interpret = self.mocks["GeminiIntentClient"].return_value.interpret
+        self.interpret.return_value = place_intent_service.validate_intents(
+            {"place_intents": ["cafe"]}, model="gemini-3.8-flash")
 
     def finish(self, plan_value, ticket, **kwargs):
-        self.saved = row(status="failed" if kwargs["error_code"] else "ready",
-                         error_code=kwargs["error_code"], items=kwargs["items"])
+        # Simula el contrato de finish_plan_recommendations: error conserva datos previos.
+        if kwargs["error_code"]:
+            self.saved = {**(self.saved or row()), "status": "failed",
+                          "error_code": kwargs["error_code"]}
+        else:
+            self.saved = row(status="ready", items=kwargs["items"],
+                             criteria=kwargs["criteria"], base_location=kwargs["base_location"])
         return True
 
     def test_generates_persists_top_five_and_reuses_for_other_members(self):
@@ -404,6 +411,8 @@ class OrchestrationTests(SimpleTestCase):
         self.mocks["GeoapifyClient.search"].assert_called_once()
         self.mocks["GeoapifyClient.geocode"].assert_not_called()
         self.mocks["recommendation_store.finish"].assert_called_once()
+        self.interpret.assert_called_once_with(
+            self.mocks["proposal_service.get_proposal"].return_value)
         self.assertEqual(self.mocks["proposal_service.get_proposal"].call_args.kwargs,
                          {"plan_id": PLAN_ID, "proposal_id": 47})
 
@@ -411,6 +420,7 @@ class OrchestrationTests(SimpleTestCase):
         self.assertEqual(service.get_recommendations("jwt", PLAN_ID)["status"], "not_generated")
         self.mocks["GeoapifyClient.search"].assert_not_called()
         self.mocks["recommendation_store.claim"].assert_not_called()
+        self.interpret.assert_not_called()
 
     def test_only_confirmed_active_plans(self):
         for changes in ({"selected_proposal_id": None}, {"status": False}, {"confirmed_at": None}):
@@ -419,6 +429,7 @@ class OrchestrationTests(SimpleTestCase):
                 self.assertEqual(operation("jwt", PLAN_ID)["status"], "not_confirmed")
         self.mocks["recommendation_store.read"].assert_not_called()
         self.mocks["GeoapifyClient.search"].assert_not_called()
+        self.interpret.assert_not_called()
 
     def test_outsider_rejected_before_read_or_write(self):
         self.mocks["group_service.get_group"].side_effect = GroupNotFound()
@@ -434,11 +445,13 @@ class OrchestrationTests(SimpleTestCase):
             self.saved = row(status=status)
             self.assertEqual(service.generate_recommendations("jwt", PLAN_ID)["status"], status)
         self.mocks["GeoapifyClient.search"].assert_not_called()
+        self.interpret.assert_not_called()
 
     def test_claim_lost_to_another_request_does_not_call_provider(self):
         self.mocks["recommendation_store.claim"].return_value = None
         service.generate_recommendations("jwt", PLAN_ID)
         self.mocks["GeoapifyClient.search"].assert_not_called()
+        self.interpret.assert_not_called()
 
     def test_provider_failures_persist_codes_without_changing_plan(self):
         for code in ("missing_api_key", "timeout", "http_error", "invalid_response"):
@@ -463,9 +476,115 @@ class OrchestrationTests(SimpleTestCase):
         self.assertEqual(len(service.generate_recommendations("jwt", PLAN_ID)["items"]), 1)
 
     def test_unknown_intent_persisted_without_provider_call(self):
-        self.mocks["proposal_service.get_proposal"].return_value = {"tittle": "Encuentro"}
+        self.interpret.side_effect = RecommendationError("unsupported_intent")
         result = service.generate_recommendations("jwt", PLAN_ID)
         self.assertEqual(result["error_code"], "unsupported_intent")
+        self.mocks["GeoapifyClient.search"].assert_not_called()
+
+    def test_gemini_failures_leave_plan_usable_and_never_call_geoapify(self):
+        for code in ("missing_api_key", "timeout", "http_error", "invalid_response", "unsupported_intent"):
+            with self.subTest(code=code):
+                self.saved = None
+                self.interpret.side_effect = RecommendationError(code)
+                result = service.generate_recommendations("jwt", PLAN_ID)
+                self.assertEqual((result["status"], result["error_code"]), ("failed", code))
+                self.assertEqual(self.active_plan, plan())
+        self.assertEqual(self.interpret.call_count, 5)
+        self.mocks["GeoapifyClient.search"].assert_not_called()
+        self.mocks["GeoapifyClient.geocode"].assert_not_called()
+
+    def test_explicit_retry_classifies_once_more_without_reconfirming(self):
+        self.interpret.side_effect = RecommendationError("timeout")
+        service.generate_recommendations("jwt", PLAN_ID)
+        service.generate_recommendations("jwt", PLAN_ID)
+        self.interpret.assert_called_once()
+        self.interpret.side_effect = None
+        result = service.generate_recommendations("jwt", PLAN_ID, replace=True)
+        self.assertEqual(result["status"], "ready")
+        self.assertEqual(self.interpret.call_count, 2)
+        self.mocks["recommendation_store.claim"].assert_called_with(self.active_plan, replace=True)
+        self.mocks["GeoapifyClient.search"].assert_called_once()
+        self.assertEqual(self.active_plan, plan())
+
+    def test_gemini_failure_preserves_previous_snapshot_via_existing_finish_contract(self):
+        self.saved = row(items=[{**candidate(), "rank": 1}], criteria={"previous": True},
+                         base_location={"latitude": BASE.latitude, "longitude": BASE.longitude},
+                         generated_at=CONFIRMED.isoformat())
+        previous = deepcopy(self.saved)
+        self.interpret.side_effect = RecommendationError("timeout")
+        result = service.generate_recommendations("jwt", PLAN_ID, replace=True)
+        self.assertEqual(result["status"], "failed")
+        for field in ("items", "criteria", "base_location", "generated_at"):
+            self.assertEqual(self.saved[field], previous[field])
+        self.mocks["recommendation_store.finish"].assert_called_once_with(
+            self.active_plan, TICKET, items=[], error_code="timeout", base_location=None, criteria=None)
+
+    @override_settings(GEMINI_API_KEY="fake-gemini-test-key")
+    def test_real_client_contract_continues_to_one_places_search_and_safe_criteria(self):
+        from apps.plans.tests.test_gemini_intent import gemini_response
+        self.mocks["proposal_service.get_proposal"].return_value = {
+            "tittle": "Tomar algo y después bailar", "description": "Con amigos",
+            "created_by": USER_ID, "latitude": BASE.latitude, "longitude": BASE.longitude,
+        }
+        self.mocks["GeoapifyClient.search"].return_value = [
+            candidate("bar", categories=["catering.bar"]),
+            candidate("dance", categories=["adult.nightclub"]),
+        ]
+        with patch.object(service, "GeminiIntentClient", gemini_intent_service.GeminiIntentClient), \
+             patch.object(gemini_intent_service.httpx, "post", return_value=gemini_response(
+                 {"place_intents": ["bar", "nightclub"]})) as post:
+            result = service.generate_recommendations("private-jwt", PLAN_ID)
+            service.generate_recommendations("another-member-jwt", PLAN_ID)
+            service.get_recommendations("jwt", PLAN_ID)
+        self.assertEqual(result["status"], "ready")
+        self.assertEqual({i["provider_place_id"] for i in result["items"]}, {"bar", "dance"})
+        post.assert_called_once()
+        self.mocks["GeoapifyClient.search"].assert_called_once()
+        self.assertEqual(self.mocks["GeoapifyClient.search"].call_args.args[0].categories,
+                         ("catering.bar", "catering.pub", "adult.nightclub"))
+        self.assertEqual(self.saved["criteria"], {
+            "interpreter": "gemini", "model": "gemini-3.8-flash", "place_intents": ["bar", "nightclub"],
+            "categories": ["catering.bar", "catering.pub", "adult.nightclub"],
+            "radius_meters": 5000, "candidate_limit": 20,
+        })
+        self.assertNotIn("criteria", result)
+        self.assertNotIn("private-jwt", str(self.saved))
+        self.assertNotIn("Tomar algo", str(self.saved))
+
+    @override_settings(GEMINI_API_KEY="")
+    def test_missing_gemini_key_is_controlled_through_real_client(self):
+        with patch.object(service, "GeminiIntentClient", gemini_intent_service.GeminiIntentClient), \
+             patch.object(gemini_intent_service.httpx, "post") as post:
+            result = service.generate_recommendations("jwt", PLAN_ID)
+        self.assertEqual(result["error_code"], "missing_api_key")
+        post.assert_not_called()
+        self.mocks["GeoapifyClient.search"].assert_not_called()
+
+    @override_settings(GEMINI_API_KEY="fake-gemini-test-key")
+    def test_invalid_real_gemini_output_never_reaches_geoapify(self):
+        from apps.plans.tests.test_gemini_intent import gemini_response
+        for output, code in (({"place_intents": ["unsupported"]}, "unsupported_intent"),
+                             ({"place_intents": ["catering.restaurant"]}, "invalid_response"),
+                             ({"place_intents": []}, "invalid_response")):
+            with self.subTest(output=output), \
+                 patch.object(service, "GeminiIntentClient", gemini_intent_service.GeminiIntentClient), \
+                 patch.object(gemini_intent_service.httpx, "post", return_value=gemini_response(output)) as post:
+                self.saved = None
+                result = service.generate_recommendations("jwt", PLAN_ID)
+                self.assertEqual(result["error_code"], code)
+                post.assert_called_once()
+        self.mocks["GeoapifyClient.search"].assert_not_called()
+        self.mocks["GeoapifyClient.geocode"].assert_not_called()
+
+    def test_legacy_ready_snapshot_is_reused_without_gemini_or_rewriting_criteria(self):
+        self.saved = row(items=[{**candidate(), "rank": 1}], criteria={"categories": ["catering.cafe"]})
+        previous = deepcopy(self.saved)
+        result = service.generate_recommendations("jwt", PLAN_ID)
+        self.assertEqual(result["status"], "ready")
+        self.assertEqual(self.saved, previous)
+        self.interpret.assert_not_called()
+        self.mocks["recommendation_store.claim"].assert_not_called()
+        self.mocks["recommendation_store.finish"].assert_not_called()
         self.mocks["GeoapifyClient.search"].assert_not_called()
 
     def test_reopened_during_search_does_not_return_stale_snapshot(self):
@@ -559,7 +678,7 @@ class RecommendationSDKTests(SimpleTestCase):
             store.claim(plan())
 
 
-@override_settings(GEOAPIFY_API_KEY="fake-geoapify-test-key")
+@override_settings(GEOAPIFY_API_KEY="fake-geoapify-test-key", GEMINI_API_KEY="fake-gemini-test-key")
 class RecommendationFlowTests(SimpleTestCase):
     """Flujo completo de servicios y SDK; sólo la red remota se simula."""
     def test_member_generation_then_other_member_read_reuses_snapshot(self):
@@ -586,7 +705,8 @@ class RecommendationFlowTests(SimpleTestCase):
                 payload = TICKET
             elif path == "/rest/v1/rpc/finish_plan_recommendations":
                 body = json.loads(request.content)
-                saved[PLAN_ID] = row(items=body["p_items"])
+                self.assertIsNone(body["p_error_code"])
+                saved[PLAN_ID] = row(items=body["p_items"], criteria=body["p_criteria"])
                 payload = True
             else:
                 raise AssertionError(f"Solicitud inesperada: {path}")
@@ -600,8 +720,11 @@ class RecommendationFlowTests(SimpleTestCase):
             return httpx.Response(200, json={"type": "FeatureCollection", "features": [feature()]},
                                   request=httpx.Request("GET", url))
 
+        from apps.plans.tests.test_gemini_intent import gemini_response
         with patch.object(clients, "http_client", side_effect=factory), \
-                patch.object(geoapify_service.httpx, "get", side_effect=places):
+                patch.object(geoapify_service.httpx, "get", side_effect=places), \
+                patch.object(gemini_intent_service.httpx, "post", return_value=gemini_response(
+                    {"place_intents": ["cafe"]})) as post:
             first = service.generate_recommendations("member1-jwt", PLAN_ID)
             second = service.generate_recommendations("member2-jwt", PLAN_ID)
             third = service.get_recommendations("member2-jwt", PLAN_ID)
@@ -610,9 +733,14 @@ class RecommendationFlowTests(SimpleTestCase):
         self.assertEqual(first["status"], "ready")
         self.assertEqual(len(first["items"]), 1)
         self.assertEqual(calls, [geoapify_service.PLACES_URL])
+        post.assert_called_once()
+        self.assertEqual(saved[PLAN_ID]["criteria"]["interpreter"], "gemini")
+        self.assertEqual(saved[PLAN_ID]["criteria"]["place_intents"], ["cafe"])
         self.assertEqual(sum(r.url.path.endswith("claim_plan_recommendations") for r in requests), 1)
         self.assertNotIn("fake-geoapify-test-key", str(saved))
         self.assertNotIn("fake-geoapify-test-key", str(first))
+        self.assertNotIn("fake-gemini-test-key", str(saved))
+        self.assertNotIn("fake-gemini-test-key", str(first))
         self.assertTrue(all("/rpc/" in r.url.path or r.headers["apikey"] == "sb_publishable_test_placeholder"
                             for r in requests))
 
