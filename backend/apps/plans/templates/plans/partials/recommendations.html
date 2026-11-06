@@ -1,0 +1,36 @@
+<section class="pb-suggestions" data-recommendations
+         data-url="{% url 'plans:recommendations' plan.id %}"
+         data-retry-url="{% url 'plans:retry_recommendations' plan.id %}"
+         aria-labelledby="pb-suggestions-title">
+  <header class="pb-suggestions-heading">
+    <div>
+      <p class="pb-suggestions-kicker">UN LUGAR PARA ESTE PLAN</p>
+      <h2 id="pb-suggestions-title"><span aria-hidden="true">✨</span> Sugerencias con IA</h2>
+      <p>Lugares que pueden encajar con el encuentro. Por ahora, según el tipo de actividad elegida.</p>
+    </div>
+    <span class="pb-suggestions-shared">Para todo el grupo</span>
+  </header>
+  <div class="pb-suggestions-feedback" data-suggestions-feedback data-state="loading">
+    <span class="pb-suggestions-spinner" data-suggestions-spinner aria-hidden="true"></span>
+    <div><p data-suggestions-status role="status" aria-live="polite">Consultando las sugerencias del plan…</p>
+      <p class="pb-suggestions-hint" data-suggestions-hint></p></div>
+    <form data-suggestions-retry-form method="post" action="{% url 'plans:retry_recommendations' plan.id %}">
+      {% csrf_token %}
+      <button type="submit" class="button button--quiet" data-suggestions-retry hidden>Reintentar</button>
+    </form>
+    <button type="button" class="button button--quiet" data-suggestions-refresh hidden>Consultar estado</button>
+  </div>
+  <div class="pb-suggestions-layout" data-suggestions-results hidden>
+    <ol class="pb-suggestions-list" data-suggestions-list aria-label="Lugares sugeridos" tabindex="0"></ol>
+    <aside class="pb-suggestions-map-panel" aria-labelledby="pb-suggestions-map-title">
+      <div class="pb-suggestions-map-heading"><h3 id="pb-suggestions-map-title">Explorá la zona</h3>
+        <span>Los mismos números, en el mapa</span></div>
+      <div class="pb-suggestions-map" data-suggestions-map role="region" aria-label="Mapa de lugares sugeridos"></div>
+      <p class="pb-suggestions-map-note" data-suggestions-map-note role="status"></p>
+      <p class="pb-suggestions-map-caption">Distancias aproximadas en línea recta desde el punto del plan.</p>
+    </aside>
+  </div>
+  <p class="pb-suggestions-source" data-suggestions-source hidden>Lugares: Geoapify / OpenStreetMap.
+    Los datos disponibles pueden variar. Google y Maps abren búsquedas externas y pueden mostrar información adicional.</p>
+  <noscript><p>Activá JavaScript para consultar las sugerencias y su mapa. El resto del plan sigue disponible.</p></noscript>
+</section>
