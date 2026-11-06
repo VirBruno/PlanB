@@ -1,0 +1,8 @@
+{% load l10n %}
+<div class="proposal-location pb-proposal-card-location">
+  <span class="proposal-location-label">Ubicación propuesta</span>
+  <a class="proposal-map-link" href="https://www.openstreetmap.org/?mlat={{ proposal.latitude|unlocalize }}&amp;mlon={{ proposal.longitude|unlocalize }}#map=16/{{ proposal.latitude|unlocalize }}/{{ proposal.longitude|unlocalize }}" target="_blank" rel="noopener noreferrer" aria-label="Abrir ubicación de {{ proposal.tittle }} en OpenStreetMap">
+    <div class="proposal-map-preview" data-proposal-preview data-lat="{{ proposal.latitude|unlocalize }}" data-lon="{{ proposal.longitude|unlocalize }}" role="img" aria-label="Mapa de la ubicación de {{ proposal.tittle }}"></div>
+    <span>Ver en OpenStreetMap</span>
+  </a>
+</div>

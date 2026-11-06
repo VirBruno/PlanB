@@ -1,0 +1,12 @@
+{% if proposal.date_pick %}
+<section class="pb-weather" data-proposal-weather data-weather-url="{% url 'plans:proposal_weather' plan.id proposal.id %}" aria-label="Pronóstico para esta propuesta" aria-live="polite">
+  <div class="pb-weather-heading"><span aria-hidden="true">☁</span><strong>Clima para la fecha propuesta</strong></div>
+  <p class="pb-weather-status" data-weather-status>Consultando pronóstico…</p>
+  <div class="pb-weather-details" data-weather-details hidden>
+    <div class="pb-weather-primary"><span class="pb-weather-symbol" data-weather-symbol aria-hidden="true"></span><div><strong data-weather-condition></strong><span data-weather-temperature></span></div></div>
+    <div class="pb-weather-metrics"><span data-weather-rain></span><span data-weather-wind></span></div>
+    <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" class="pb-weather-source">Datos: Open-Meteo</a>
+    <small>Pronóstico orientativo, sujeto a cambios.</small>
+  </div>
+</section>
+{% endif %}

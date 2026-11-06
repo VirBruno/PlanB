@@ -46,6 +46,8 @@
 .pb-expenses-row > div { min-width: 0; overflow-wrap: anywhere; }
 .pb-expenses-row > strong { white-space: nowrap; }
 .pb-expenses-row h4, .pb-expenses-row p { margin: 0 0 8px; }
+.pb-expense-row-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; }
+.pb-expense-row-meta > span { display: inline-flex; align-items: center; gap: 6px; }
 .pb-expenses-row details { color: var(--muted); font-size: .85rem; }
 .pb-expenses-row summary { cursor: pointer; }
 .pb-expenses-row li { margin-top: 8px; }
@@ -60,6 +62,10 @@
 .pb-expense-transfer { display: flex; align-items: center; justify-content: space-between; gap: 18px;
   margin: 12px 0; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--white); }
 .pb-expense-transfer > p { flex: 1; min-width: 0; margin: 0; padding: 0; border: 0; background: none; overflow-wrap: anywhere; line-height: 1.6; }
+.pb-transfer-route { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; }
+.pb-transfer-route > span:not(.pb-transfer-direction) { display: inline-flex; align-items: center; gap: 6px; }
+.pb-transfer-direction { color: var(--muted); }
+.pb-transfer-amount { display: block; margin-top: 8px; font-variant-numeric: tabular-nums; }
 .pb-expense-transfer form { display: flex; flex-direction: column; align-items: stretch; gap: 9px; max-width: 45%; min-width: 0; margin: 0; }
 .pb-expenses-dialog .pb-expense-transfer .pb-debt-notify {
   min-height: 44px; max-width: 100%; padding: 12px 17px; border: 1px solid #1F4D3A;

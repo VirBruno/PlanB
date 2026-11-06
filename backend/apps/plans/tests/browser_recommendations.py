@@ -372,7 +372,7 @@ def main(*, proposals=None, plan_fixture=None, group_role="member", all_scripts=
                         data = cdp("Page.captureScreenshot", {"captureBeyondViewport": True, "clip": clip})["data"]
                         (output / f"suggestions-{width}-{theme}.png").write_bytes(base64.b64decode(data))
                         if all_scripts and raw and json.loads(raw).get("ok"):
-                            for stage in ("compact", "drawer"):
+                            for stage in ("compact", "drawer", "gastos", "balances", "clima"):
                                 cdp("Runtime.evaluate", {"expression": f"window.layoutCapture('{stage}')"})
                                 time.sleep(.1)
                                 data = cdp("Page.captureScreenshot", {"captureBeyondViewport": False})["data"]

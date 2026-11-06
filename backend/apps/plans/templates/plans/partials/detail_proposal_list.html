@@ -1,6 +1,9 @@
 {% load l10n %}
     <ul class="proposal-list pb-proposals-grid">
       {% for proposal in proposals %}
+      {% if confirmed_layout and proposal.is_confirmed %}
+      <li class="pb-confirmed-history-reference"><span>✓ Elegida para el encuentro</span><strong>{{ proposal.tittle }}</strong><small>Propuesta por {{ proposal.creator_username }} · {{ proposal.date_pick|date:"d/m/Y H:i" }}</small><p>La propuesta completa está en Encuentro confirmado.</p></li>
+      {% else %}
       <li class="proposal-item pb-proposal-card">
         <div class="proposal-heading pb-proposal-card-heading">
           <div>
@@ -44,25 +47,9 @@
           <div class="proposal-budget-range"><dt>Presupuesto</dt><dd>{% if proposal.budget_min != None and proposal.budget_max != None %}{{ proposal.budget_min|floatformat:2 }} – {{ proposal.budget_max|floatformat:2 }}{% elif proposal.budget_min != None %}Desde {{ proposal.budget_min|floatformat:2 }}{% else %}Hasta {{ proposal.budget_max|floatformat:2 }}{% endif %}</dd></div>
           {% endif %}
         </dl>
-        {% if proposal.date_pick %}
-        <section class="pb-weather" data-proposal-weather data-weather-url="{% url 'plans:proposal_weather' plan.id proposal.id %}" aria-label="Pronóstico para esta propuesta" aria-live="polite">
-          <div class="pb-weather-heading"><span aria-hidden="true">☁</span><strong>Clima para la fecha propuesta</strong></div>
-          <p class="pb-weather-status" data-weather-status>Consultando pronóstico…</p>
-          <div class="pb-weather-details" data-weather-details hidden>
-            <div class="pb-weather-primary"><span class="pb-weather-symbol" data-weather-symbol aria-hidden="true"></span><div><strong data-weather-condition></strong><span data-weather-temperature></span></div></div>
-            <div class="pb-weather-metrics"><span data-weather-rain></span><span data-weather-wind></span></div>
-            <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" class="pb-weather-source">Datos: Open-Meteo</a>
-            <small>Pronóstico orientativo, sujeto a cambios.</small>
-          </div>
-        </section>
-        {% endif %}
-        <div class="proposal-location pb-proposal-card-location">
-          <span class="proposal-location-label">Ubicación propuesta</span>
-          <a class="proposal-map-link" href="https://www.openstreetmap.org/?mlat={{ proposal.latitude|unlocalize }}&amp;mlon={{ proposal.longitude|unlocalize }}#map=16/{{ proposal.latitude|unlocalize }}/{{ proposal.longitude|unlocalize }}" target="_blank" rel="noopener noreferrer" aria-label="Abrir ubicación de {{ proposal.tittle }} en OpenStreetMap">
-            <div class="proposal-map-preview" data-proposal-preview data-lat="{{ proposal.latitude|unlocalize }}" data-lon="{{ proposal.longitude|unlocalize }}" role="img" aria-label="Mapa de la ubicación de {{ proposal.tittle }}"></div>
-            <span>Ver en OpenStreetMap</span>
-          </a>
-        </div>
+        {% include 'plans/partials/proposal_weather.html' %}
+        {% include 'plans/partials/proposal_location.html' %}
       </li>
+      {% endif %}
       {% endfor %}
     </ul>

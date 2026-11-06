@@ -101,11 +101,38 @@ class RecommendationUITests(TestCase):
         proposals = self.fixtures["apps.plans.views.proposal_service.list_proposals"].return_value
         proposals[0].update(description="Merienda para compartir", budget_min=100, budget_max=200)
         response = self.client.get(self.url)
-        hero = response.content.decode().split('pb-decision-panel--confirmed', 1)[1].split('</section>', 1)[0]
+        hero = response.content.decode().split('pb-decision-panel--confirmed', 1)[1].split('<section class="pb-meeting-tools"', 1)[0]
         self.assertIn("Merienda para compartir", hero)
         self.assertIn("Presupuesto:", hero)
         self.assertIn("Ver ubicación confirmada", hero)
         self.assertIn("Ver proceso de decisión", hero)
+        self.assertIn('class="pb-confirmed-author"', hero)
+        self.assertIn('data-user-avatar', hero)
+        self.assertIn("Elegida para el encuentro", hero)
+        self.assertIn("data-proposal-weather", hero)
+        self.assertIn("data-proposal-preview", hero)
+
+    def test_selected_proposal_weather_and_map_are_only_in_hero(self):
+        proposal = self.fixtures["apps.plans.views.proposal_service.list_proposals"].return_value[0]
+        proposal["description"] = "Descripción exclusiva de la propuesta elegida"
+        response = self.client.get(self.url)
+        self.assertContains(response, proposal["description"], count=1)
+        self.assertContains(response, "data-proposal-weather", count=1)
+        self.assertContains(response, "data-proposal-preview", count=1)
+        drawer = response.content.decode().split('data-plan-drawer', 1)[1].split('</dialog>', 1)[0]
+        self.assertIn("pb-confirmed-history-reference", drawer)
+        self.assertNotIn("data-proposal-weather", drawer)
+        self.assertNotIn("data-proposal-preview", drawer)
+
+    def test_other_proposals_keep_weather_and_maps_in_history(self):
+        proposals = self.fixtures["apps.plans.views.proposal_service.list_proposals"].return_value
+        proposals.append({**confirmed_proposal(), "id": 48, "tittle": "Otra alternativa"})
+        response = self.client.get(self.url)
+        drawer = response.content.decode().split('data-plan-drawer', 1)[1].split('</dialog>', 1)[0]
+        self.assertIn("Otra alternativa", drawer)
+        self.assertEqual(drawer.count("data-proposal-weather"), 1)
+        self.assertEqual(drawer.count("data-proposal-preview"), 1)
+        self.assertContains(response, "data-proposal-weather", count=2)
 
     def test_organizing_and_finished_keep_original_primary_proposals_flow(self):
         for active_plan in (confirmed_plan(selected_proposal_id=None, confirmed_at=None), confirmed_plan(status=False)):

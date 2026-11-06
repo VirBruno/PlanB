@@ -19,6 +19,27 @@
 .pb-confirmed-main .pb-confirmed-proposal-context, .pb-confirmed-main .pb-confirmed-budget { color: var(--muted); font-size: .8rem; margin: 8px 0; }
 .pb-confirmed-main .pb-decision-meta { margin-top: 16px; gap: 12px 24px; flex-wrap: wrap; }
 .pb-confirmed-main .pb-decision-meta > * { font-size: .85rem; }
+.pb-confirmed-hero-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 28px; align-items: start; margin-bottom: 12px; }
+.pb-confirmed-info, .pb-confirmed-location { min-width: 0; }
+.pb-app-shell .pb-plan-detail.pb-confirmed-main .pb-confirmed-info .pb-decision-badge { margin-bottom: 4px !important; }
+.pb-confirmed-byline, .pb-confirmed-author { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: .76rem; color: var(--muted); }
+.pb-confirmed-byline { gap: 10px 16px; }
+.pb-app-shell .pb-plan-detail.pb-confirmed-main .pb-confirmed-elected { margin: 10px 0 0 !important; font-size: .72rem; font-weight: 700; color: var(--muted); }
+.pb-app-shell .pb-plan-detail.pb-confirmed-main .pb-confirmed-info .pb-weather { margin: 16px 0 0; padding: 12px 0 0; border: 0; border-top: 1px solid var(--glass-border); border-radius: 0; background: none; gap: 8px; }
+.pb-confirmed-info .pb-weather-details { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
+.pb-confirmed-info .pb-weather-primary, .pb-confirmed-info .pb-weather-metrics { flex-basis: 100%; }
+.pb-confirmed-info .pb-weather-metrics > span { border: 0; padding: 2px 0; }
+.pb-confirmed-info .pb-weather-metrics { gap: 4px 18px; }
+.pb-confirmed-info .pb-weather-details small { display: block; }
+.pb-confirmed-info .pb-weather-source { width: fit-content; }
+.pb-app-shell .pb-plan-detail.pb-confirmed-main .pb-confirmed-location .proposal-location { margin: 0; padding: 0; border: 0; }
+.pb-confirmed-location .proposal-location-label { display: block; margin-bottom: 10px; font-size: .75rem; font-weight: 700; color: var(--muted); }
+.pb-confirmed-location .proposal-map-link { display: block; font-size: .72rem; color: var(--text); }
+.pb-confirmed-location .proposal-map-link > span { display: inline-block; margin-top: 8px; }
+.pb-app-shell .pb-plan-detail.pb-confirmed-main .pb-confirmed-location .proposal-map-preview { height: 300px !important; width: 100%; box-sizing: border-box; border-radius: 14px; }
+.pb-confirmed-history-reference { display: grid; gap: 8px; padding: 16px; border-left: 3px solid var(--glass-border); list-style: none; }
+.pb-confirmed-history-reference > span, .pb-confirmed-history-reference > small, .pb-confirmed-history-reference p { color: var(--muted); font-size: .75rem; }
+.pb-confirmed-history-reference p { margin: 0; line-height: 1.6; }
 .pb-confirmed-main .pb-phase-actions { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--glass-border); }
 .pb-confirmed-actions { display: inline-block; vertical-align: top; margin: 0 0 0 20px; max-width: 100%; }
 .pb-confirmed-actions > summary { display: list-item; width: fit-content; min-height: 44px; padding: 12px 0; box-sizing: border-box; color: var(--muted); font-size: .78rem; cursor: pointer; }
@@ -48,6 +69,35 @@
 .pb-tool-workspace .pb-weather-compare { margin-top: 0; }
 .pb-tool-workspace .pb-suggestions { margin: 0; }
 .pb-expenses-inline { padding: 22px; border: 1px solid var(--glass-border); border-radius: 18px; background: var(--white); min-width: 0; }
+.pb-expenses-inline .pb-expenses-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; gap: 14px; }
+.pb-expenses-inline .pb-expenses-overview > div { display: grid; grid-template-rows: auto 1fr auto; align-content: start; gap: 8px; padding: 20px; background: var(--canvas); }
+.pb-expenses-inline .pb-expenses-overview strong { align-self: start; margin: 0; font-size: clamp(1.3rem, 2.6vw, 1.8rem); font-variant-numeric: tabular-nums; }
+.pb-expenses-inline .pb-expenses-overview small { line-height: 1.5; }
+.pb-expenses-inline h3 { font-size: 1rem; margin: 0; }
+.pb-expenses-inline .pb-expenses-section-head { padding-bottom: 14px; border-bottom: 1px solid var(--glass-border); }
+.pb-expenses-inline .pb-expenses-section-head .button { min-height: 44px; flex: none; }
+.pb-expenses-inline .pb-expenses-section-head .button, .pb-expenses-inline .pb-expense-transfer .pb-debt-notify { background: #1F4D3A; border-color: #1F4D3A; color: #FFFDF8; box-shadow: none; }
+html[data-theme='dark'] .pb-expenses-inline .pb-expenses-section-head .button, html[data-theme='dark'] .pb-expenses-inline .pb-expense-transfer .pb-debt-notify { background: #F4D06F; border-color: #F4D06F; color: #1F4D3A; }
+.pb-expenses-inline .pb-expenses-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px; align-items: start; padding: 20px 0; }
+.pb-expenses-inline .pb-expenses-row h4 { font-size: .94rem; line-height: 1.5; }
+.pb-expenses-inline .pb-expenses-row > strong { font-variant-numeric: tabular-nums; font-size: 1rem; padding-top: 3px; }
+.pb-expenses-inline .pb-expense-row-meta { font-size: .75rem; line-height: 1.5; }
+.pb-expenses-inline .pb-expenses-row details { margin-top: 12px; }
+.pb-expenses-inline .pb-expenses-row summary { width: fit-content; min-height: 32px; display: list-item; padding-top: 4px; font-size: .76rem; }
+.pb-expenses-inline .pb-expenses-row ul { margin: 4px 0 0; padding: 0; list-style: none; max-width: 440px; }
+.pb-expenses-inline .pb-expenses-row li { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 8px 0; }
+.pb-expenses-inline .pb-expenses-row li > strong { margin-left: auto; font-variant-numeric: tabular-nums; }
+.pb-expenses-inline .pb-expenses-note { margin: 10px 0 18px; max-width: 80ch; line-height: 1.6; font-size: .78rem; }
+.pb-expenses-inline table { width: 100%; min-width: 500px; border-collapse: collapse; font-size: .82rem; font-variant-numeric: tabular-nums; }
+.pb-expenses-inline th, .pb-expenses-inline td { padding: 15px 12px; border-bottom: 1px solid var(--glass-border); text-align: right; white-space: nowrap; }
+.pb-expenses-inline th:first-child { text-align: left; }
+.pb-expenses-inline thead th { background: var(--canvas); font-size: .72rem; color: var(--muted); }
+.pb-expenses-inline tbody th { font-weight: 600; }
+.pb-expenses-inline th small { display: block; color: var(--muted); font-weight: 400; }
+.pb-expenses-inline tbody td:last-child { font-weight: 750; }
+.pb-expenses-inline .pb-expense-transfer { background: var(--canvas); padding: 18px; }
+.pb-expenses-inline .pb-expense-transfer > p { font-size: .85rem; }
+.pb-expenses-inline .pb-expense-transfer .pb-debt-notify { min-height: 44px; white-space: normal; overflow-wrap: anywhere; font-size: .78rem; }
 dialog.pb-plan-drawer { position: fixed; inset: 0 0 0 auto; margin: 0; width: min(540px, calc(100vw - 40px)); max-width: none; height: 100dvh; max-height: 100dvh; padding: 0; border: 0; border-left: 1px solid var(--glass-border); border-radius: 20px 0 0 20px; background: var(--white); color: var(--text); box-sizing: border-box; overflow: hidden; box-shadow: -12px 0 45px #0002; }
 dialog.pb-plan-drawer[open] { display: flex; flex-direction: column; }
 dialog.pb-plan-drawer::backdrop { background: #10251c66; }
@@ -72,6 +122,7 @@ dialog.pb-plan-drawer::backdrop { background: #10251c66; }
 .pb-app-shell .pb-plan-detail.pb-confirmed-main .pb-plan-drawer .proposal-meta > div { min-width: 0 !important; max-width: 100%; width: 100%; box-sizing: border-box; }
 .pb-app-shell .pb-plan-detail.pb-confirmed-main .pb-plan-drawer .proposal-meta dd { white-space: normal; overflow-wrap: anywhere; }
 @media (max-width: 1100px) { .pb-tool-selectors { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 900px) { .pb-confirmed-hero-grid { grid-template-columns: minmax(0, 1fr); gap: 20px; } .pb-app-shell .pb-plan-detail.pb-confirmed-main .pb-confirmed-location .proposal-map-preview { height: 220px !important; } }
 @media (max-width: 600px) {
   .pb-app-shell .pb-plan-detail.pb-confirmed-main > .pb-decision-panel { padding: 18px !important; }
   .pb-confirmed-actions { margin-left: 0; }
@@ -82,8 +133,14 @@ dialog.pb-plan-drawer::backdrop { background: #10251c66; }
   .pb-tool-action { flex-basis: auto; padding-left: 0; font-size: .7rem; }
   .pb-tool-workspace-heading > span { max-width: 40%; }
   .pb-expenses-inline { padding: 15px; }
+  .pb-expenses-inline .pb-expenses-overview { gap: 10px; }
+  .pb-expenses-inline .pb-expenses-overview > div { padding: 14px; }
+  .pb-expenses-inline .pb-expenses-section-head { flex-direction: row; align-items: center; flex-wrap: wrap; gap: 12px; }
+  .pb-expenses-inline .pb-expenses-row { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .pb-expenses-inline .pb-expenses-row > strong { grid-row: 1; margin-bottom: 8px; font-size: 1.05rem; }
   dialog.pb-plan-drawer { inset: 0; width: 100vw; border: 0; border-radius: 0; }
   .pb-plan-drawer-heading { padding: 18px; }
   .pb-plan-drawer-body { padding: 18px; }
 }
+@media (max-width: 370px) { .pb-expenses-inline .pb-expenses-overview { grid-template-columns: minmax(0, 1fr); } }
 @media (prefers-reduced-motion: reduce) { .pb-tool-selector { transition: none; } }

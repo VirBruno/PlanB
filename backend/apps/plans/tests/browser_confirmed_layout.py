@@ -21,6 +21,12 @@ window.layoutItems = Array.from({length: 5}, (_, i) => ({
   google_search_url:'https://www.google.com/search?q=cafe'
 }));
 window.layoutGenerated = false;
+// Sustituir tiles antes de inicializar los previews, también el hero visible.
+document.addEventListener('load',event=>{
+  if(event.target.tagName!=='SCRIPT'||!event.target.src.includes('leaflet.js'))return;
+  const realTiles=L.tileLayer;
+  L.tileLayer=(url,options)=>realTiles('data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"><rect width="256" height="256" fill="#e9e5db"/><path d="M0 80H256M0 180H256M80 0V256M180 0V256" stroke="#fff" stroke-width="10"/></svg>'),options);
+},true);
 window.fetch = async (url, options={}) => {
   const path = new URL(url, location.href).pathname;
   const method = options.method || 'GET';
@@ -33,11 +39,11 @@ window.fetch = async (url, options={}) => {
   }
   if (path.endsWith('/gastos/')) return method === 'POST' ? respond({saved:true},201)
     : new Response(window.layoutPanel,{headers:{'Content-Type':'text/html'}});
+  if (path.endsWith('/gastos/notificar/')) return respond({sent:true,message:'Notificación enviada.'});
   if (path.includes('/clima/localidades/')) return respond({cities:[{id:123,name:'La Plata',province:'Buenos Aires'}]});
-  if (path.includes('/clima/pronostico/')) return respond({status:'available',city:'La Plata',province:'Buenos Aires',days:[
-    {date:'2026-11-07',condition:'Despejado',icon:'clear',temp_min:12,temp_max:24,rain_probability:10,wind_max:12},
-    {date:'2026-11-08',condition:'Nublado',icon:'cloudy',temp_min:13,temp_max:23,rain_probability:20,wind_max:15}]});
-  if (path.includes('/propuestas/') && path.endsWith('/clima/')) return respond({status:'unavailable',reason:'out_of_range'});
+  if (path.includes('/clima/pronostico/')) return respond({status:'available',city:'La Plata',province:'Buenos Aires',days:
+    Array.from({length:16},(_,i)=>({date:'2026-11-'+String(7+i).padStart(2,'0'),condition:i?'Nublado':'Despejado',icon:i?'cloud':'sun',temperature_min:12,temperature_max:24,rain_probability:10,wind_max:12}))});
+  if (path.includes('/propuestas/') && path.endsWith('/clima/')) return respond({status:'available',condition:'Parcialmente nublado',icon:'sun-cloud',temperature_min:12,temperature_max:24,rain_probability:10,wind_max:15});
   throw Error('Request inesperado: '+path);
 };
 window.addEventListener('load',async()=>{
@@ -50,8 +56,6 @@ window.addEventListener('load',async()=>{
   const panel=name=>root.querySelector('[data-tool-panel="'+name+'"]');
   const postCount=()=>window.layoutCalls.filter(c=>c.path.endsWith('/recomendaciones/')&&c.method==='POST').length;
   const toolCount=()=>[...root.querySelectorAll('[data-tool-panel]')].filter(p=>!p.hidden).length;
-  const realTiles=L.tileLayer;
-  L.tileLayer=(url,options)=>realTiles('data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"><rect width="256" height="256" fill="#e9e5db"/><path d="M0 80H256M0 180H256M80 0V256M180 0V256" stroke="#fff" stroke-width="10"/></svg>'),options);
   window.layoutCapture=stage=>{
     if(drawer.open)drawer.close();
     const active=root.querySelector('[data-tool][aria-expanded="true"]');
@@ -61,16 +65,28 @@ window.addEventListener('load',async()=>{
       root.querySelector('[data-open-plan-details]').click();
       drawer.querySelector('.pb-plan-drawer-body').scrollTop=0;
     }
-    else if(stage==='sugerencias')control('sugerencias').click();
-    window.scrollTo(0,0);
+    else if(stage==='balances'){control('gastos').click();root.querySelector('.pb-expenses-people').scrollIntoView({block:'start'});return;}
+    else if(['sugerencias','gastos','clima'].includes(stage))control(stage).click();
+    if(['gastos','clima'].includes(stage))panel(stage).scrollIntoView({block:'start'});
+    else window.scrollTo(0,0);
   };
   try{
     await wait(()=>window.layoutGenerated&&root.querySelectorAll('.pb-suggestion').length===5);
     assert(toolCount()===0,'Ninguna herramienta expandida inicialmente');
     assert(!drawer.open,'Drawer cerrado inicialmente');
     assert(root.querySelectorAll('[data-tool]').length===3,'Tres accesos compactos');
-    assert(root.querySelector('.pb-decision-panel').getBoundingClientRect().height<420,'Hero compacto');
-    assert(root.getBoundingClientRect().height<1100,'Detalle inicial compacto sin historia abierta');
+    const hero=root.querySelector('.pb-decision-panel');
+    const heroWeather=hero.querySelector('[data-proposal-weather]');
+    await wait(()=>!heroWeather.querySelector('[data-weather-details]').hidden);
+    assert(hero.getBoundingClientRect().height<(innerWidth>900?600:1050),'Hero enriquecido de altura controlada');
+    assert(root.getBoundingClientRect().height<1600,'Detalle inicial sin historia abierta');
+    assert(hero.querySelector('.pb-confirmed-author .pb-user-avatar'),'Hero conserva avatar y autor');
+    assert(heroWeather.textContent.includes('Parcialmente nublado')&&heroWeather.textContent.includes('Mín. 12 °C · Máx. 24 °C')&&heroWeather.textContent.includes('10%')&&heroWeather.textContent.includes('15 km/h'),'Hero muestra condición, temperaturas, lluvia y viento reales del endpoint');
+    const heroMap=hero.querySelector('[data-proposal-preview]');
+    assert(heroMap._leaflet_id&&heroMap.clientWidth>150&&heroMap.clientHeight>=190,'Mapa confirmado reutiliza preview Leaflet');
+    const infoRect=hero.querySelector('.pb-confirmed-info').getBoundingClientRect();
+    const mapRect=hero.querySelector('.pb-confirmed-location').getBoundingClientRect();
+    assert(innerWidth>900?mapRect.left>infoRect.right-1:mapRect.top>=infoRect.bottom,'Hero en dos columnas desktop y mapa después del clima en mobile');
     assert(postCount()===1,'IA genera automáticamente una vez aun oculta');
     assert(root.querySelector('[data-ia-tool-status]').textContent.includes('5 lugares'),'Estado de IA sin endpoint adicional');
     assert(!window.layoutCalls.some(c=>c.path.endsWith('/gastos/')),'Gastos no se consulta para decorar tarjeta');
@@ -85,7 +101,14 @@ window.addEventListener('load',async()=>{
     await wait(()=>root.querySelector('[data-weather-cities] button'));
     root.querySelector('[data-weather-cities] button').click();
     await wait(()=>!root.querySelector('[data-weather-forecast]').hidden);
-    assert(root.querySelectorAll('[data-weather-days] button').length===2,'Comparador carga pronóstico');
+    assert(root.querySelectorAll('[data-weather-days] button').length===16,'Comparador carga pronóstico');
+    const days=root.querySelector('[data-weather-days]');
+    assert(getComputedStyle(days).scrollbarWidth==='none'&&getComputedStyle(days).overflowX==='auto','Carrusel oculta scrollbar y conserva overflow desplazable');
+    assert(days.tabIndex===0&&days.scrollWidth>days.clientWidth,'Carrusel accesible por teclado con días fuera de vista');
+    days.scrollLeft=300;await new Promise(r=>setTimeout(r,80));
+    assert(days.scrollLeft>0,'Carrusel mantiene desplazamiento horizontal');
+    days.querySelector('button:last-child').focus();
+    assert(document.activeElement===days.lastElementChild,'Días conservan foco por teclado');
     root.querySelectorAll('[data-weather-days] button')[1].click();
     const weatherText=root.querySelector('[data-weather-selected]').textContent;
     control('gastos').click();
@@ -94,6 +117,12 @@ window.addEventListener('load',async()=>{
     const expense=root.querySelector('[data-inline-expenses]');
     assert(expense.tagName==='SECTION'&&!expense.closest('dialog'),'Gastos completo inline, fuera del drawer');
     assert(expense.querySelector('table')&&expense.querySelector('[data-expense-form]'),'Balances y formulario real conservados');
+    const metrics=[...expense.querySelectorAll('.pb-expenses-overview > div')].map(node=>node.getBoundingClientRect());
+    assert(Math.abs(metrics[0].height-metrics[1].height)<2,'Resumen de gastos con bloques de igual altura');
+    assert(getComputedStyle(expense.querySelector('tbody td')).textAlign==='right','Tabla de balances alinea cifras a la derecha');
+    assert(expense.querySelector('.pb-transfer-route')&&expense.querySelector('.pb-transfer-amount'),'Para saldar separa recorrido y monto');
+    const reminder=expense.querySelector('[data-debt-reminder-form]');
+    assert(reminder&&reminder.querySelector('[name="csrfmiddlewaretoken"]')&&reminder.querySelector('[name="debtor_id"]'),'Notificar conserva permiso y campos existentes');
     expense.querySelector('[data-add-expense]').click();
     const form=expense.querySelector('[data-expense-form]');
     form.elements.description.value='Cena compartida';
@@ -138,14 +167,14 @@ window.addEventListener('load',async()=>{
     assert(document.activeElement===first,'Focus trap Tab vuelve al inicio');
     drawer.querySelector('[data-decision-block="proposals"]').open=true;
     await new Promise(r=>setTimeout(r,50));
-    assert(drawer.querySelectorAll('.pb-proposal-card').length===3,'Listado completo de propuestas accesible');
+    assert(drawer.querySelectorAll('.pb-proposal-card').length===2&&drawer.querySelectorAll('.pb-confirmed-history-reference').length===1,'Historial conserva alternativas y referencia compacta de la elegida');
     assert(drawer.querySelector('[data-proposal-preview]').clientWidth>150,'Preview de propuesta recupera tamaño');
     assert(drawer.querySelector('.pb-plan-drawer-body').scrollWidth<=drawer.querySelector('.pb-plan-drawer-body').clientWidth+1,'Drawer sin scroll horizontal con propuestas abiertas');
     drawer.querySelector('[data-decision-block="method"]').open=true;
     drawer.querySelector('[data-decision-block="voting"]').open=true;
     assert(drawer.querySelector('#proposal-election-title')&&drawer.querySelector('#proposal-vote-title'),'Método y votación siguen accesibles');
     first.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));
-    await wait(()=>!drawer.open);await new Promise(r=>setTimeout(r,20));
+    await wait(()=>!drawer.open&&document.activeElement===opener&&opener.getAttribute('aria-expanded')==='false');
     assert(document.activeElement===opener&&opener.getAttribute('aria-expanded')==='false','Escape cierra y devuelve foco');
     root.querySelector('[data-decision-target]').click();
     assert(drawer.open&&drawer.querySelector('[data-decision-block="result"]').open,'Hero abre proceso en resultado');
@@ -163,6 +192,8 @@ window.addEventListener('load',async()=>{
     assert(document.documentElement.scrollHeight<=initialHeight+2,'Cerrar herramientas vuelve a la página compacta');
     assert(document.documentElement.scrollWidth<=innerWidth+1,'Sin scroll horizontal');
     assert(postCount()===1,'Toda la navegación conserva una generación efectiva');
+    assert(window.layoutCalls.filter(c=>c.path===heroWeather.dataset.weatherUrl).length===1,'Clima elegido se consulta una vez sin duplicación en drawer');
+    assert(heroMap._leaflet_id&&root.querySelectorAll('.pb-confirmed-location [data-proposal-preview]').length===1,'Mapa elegido conserva instancia única');
     window.layoutCapture('sugerencias');
     const result=document.createElement('pre');result.id='browser-results';result.textContent=JSON.stringify({ok:true,width:innerWidth,checks});document.body.append(result);
   }catch(error){const result=document.createElement('pre');result.id='browser-results';result.textContent=JSON.stringify({ok:false,width:innerWidth,checks,error:error.message});document.body.append(result);}
@@ -173,6 +204,7 @@ window.addEventListener('load',async()=>{
 
 def main():
     summary = summarize(snapshot(expense()), USER_ID)
+    summary['transfers'][0]['can_notify'] = True
     panel = render_to_string('plans/expenses/panel.html', {
         'summary': summary, 'form': ExpenseForm(members=summary['members']),
         'plan': confirmed_plan(), 'csrf_token': 'fixture-csrf-token',
