@@ -276,7 +276,7 @@ def main(*, proposals=None, plan_fixture=None, group_role="member", all_scripts=
                     or (not all_scripts and any(name in m[1] for name in (
                         "leaflet.js", "plan-recommendations.js", "plan-confirmed-workspace.js"))) else "", body)
                 body = re.sub(r'<link\b[^>]*href="https?://[^>]+>', "", body)
-                payload, mime = body.replace("</head>", HARNESS + "</head>").encode(), "text/html; charset=utf-8"
+                payload, mime = body.replace("</head>", "<style>#browser-results{display:none}</style>" + HARNESS + "</head>").encode(), "text/html; charset=utf-8"
             elif path.startswith("/static/"):
                 asset = finders.find(path.removeprefix("/static/"))
                 if not asset:
@@ -360,6 +360,38 @@ def main(*, proposals=None, plan_fixture=None, group_role="member", all_scripts=
                         if raw:
                             break
                         time.sleep(.05)
+                    if all_scripts and raw and json.loads(raw).get("ok"):
+                        # Teclado nativo: los eventos sintéticos no reproducen el foco de Leaflet.
+                        cdp("Runtime.evaluate", {"expression": """(() => {
+                          const element = document.querySelector('[data-interactive-proposal-map]');
+                          element.scrollIntoView({block:'center'}); element.focus();
+                          window.layoutBeforePan = window.layoutMaps.get(element).getCenter().lng;
+                        })()"""})
+                        for event_type in ("keyDown", "keyUp"):
+                            cdp("Input.dispatchKeyEvent", {"type": event_type, "key": "ArrowRight", "code": "ArrowRight", "windowsVirtualKeyCode": 39, "nativeVirtualKeyCode": 39})
+                        time.sleep(.3)
+                        panned = cdp("Runtime.evaluate", {"expression": "Math.abs(window.layoutMaps.get(document.querySelector('[data-interactive-proposal-map]')).getCenter().lng-window.layoutBeforePan)>.00001", "returnByValue": True})["result"]["value"]
+                        report = json.loads(raw)
+                        if panned:
+                            report["checks"].append("Flecha nativa desplaza el mapa confirmado")
+                        else:
+                            report.update(ok=False, error="Teclado nativo no desplaza el mapa confirmado")
+                        raw = json.dumps(report)
+                        cdp("Emulation.setEmulatedMedia", {"features": [{"name": "prefers-reduced-motion", "value": "reduce"}]})
+                        reduced_motion = cdp("Runtime.evaluate", {"expression": """(() => {
+                          window.layoutCapture('drawer');
+                          const drawer = document.querySelector('[data-plan-drawer]');
+                          const noAnimation = getComputedStyle(drawer).animationName === 'none';
+                          drawer.querySelector('[data-close-plan-details]').click();
+                          return noAnimation && !drawer.open;
+                        })()""", "returnByValue": True})["result"]["value"]
+                        cdp("Emulation.setEmulatedMedia", {"features": []})
+                        report = json.loads(raw)
+                        if reduced_motion:
+                            report["checks"].append("Movimiento reducido omite animación y cierra inmediatamente")
+                        else:
+                            report.update(ok=False, error="Drawer no respeta movimiento reducido")
+                        raw = json.dumps(report)
                     for theme in ("light", "dark"):
                         clip = cdp("Runtime.evaluate", {"expression": """(() => {
                           document.documentElement.dataset.theme = '""" + theme + """';
@@ -372,9 +404,9 @@ def main(*, proposals=None, plan_fixture=None, group_role="member", all_scripts=
                         data = cdp("Page.captureScreenshot", {"captureBeyondViewport": True, "clip": clip})["data"]
                         (output / f"suggestions-{width}-{theme}.png").write_bytes(base64.b64decode(data))
                         if all_scripts and raw and json.loads(raw).get("ok"):
-                            for stage in ("compact", "drawer", "gastos", "balances", "clima"):
+                            for stage in ("compact", "drawer", "gastos", "balances", "clima", "sugerencias"):
                                 cdp("Runtime.evaluate", {"expression": f"window.layoutCapture('{stage}')"})
-                                time.sleep(.1)
+                                time.sleep(.35)  # Esperar la entrada completa del drawer.
                                 data = cdp("Page.captureScreenshot", {"captureBeyondViewport": False})["data"]
                                 (output / f"confirmed-{width}-{stage}-{theme}.png").write_bytes(base64.b64decode(data))
                             cdp("Runtime.evaluate", {"expression": "window.layoutCapture('sugerencias')"})

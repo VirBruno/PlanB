@@ -24,7 +24,6 @@
       </div>
       {% if confirmed_layout %}
       {% include 'plans/partials/proposal_weather.html' with proposal=confirmed_proposal %}
-      </div><div class="pb-confirmed-location">{% include 'plans/partials/proposal_location.html' with proposal=confirmed_proposal %}</div></div>
       {% endif %}
       {% if confirmed_layout %}<button class="pb-view-decision" type="button" data-open-plan-details data-decision-target="result" aria-controls="plan-details-drawer" aria-expanded="false">Ver proceso de decisión <span aria-hidden="true">↗</span></button>{% endif %}
       {% if confirmed_layout and can_manage %}<details class="pb-confirmed-actions"><summary>Acciones del encuentro</summary>{% endif %}
@@ -43,6 +42,7 @@
       </div>
       {% endif %}
       {% if confirmed_layout and can_manage %}</details>{% endif %}
+      {% if confirmed_layout %}</div><div class="pb-confirmed-location">{% include 'plans/partials/proposal_location.html' with proposal=confirmed_proposal interactive_map=True %}</div></div>{% endif %}
     {% else %}
       <div class="pb-decision-badge pb-decision-badge--pending">{% if plan.status %}⌛ EN ORGANIZACIÓN{% else %}• PLAN INACTIVO{% endif %}</div>
       <h2 id="pb-decision-title">{% if plan.status %}Todavía no hay encuentro confirmado{% else %}Este plan está inactivo{% endif %}</h2>

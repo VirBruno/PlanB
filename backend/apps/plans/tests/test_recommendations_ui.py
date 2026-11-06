@@ -119,10 +119,12 @@ class RecommendationUITests(TestCase):
         self.assertContains(response, proposal["description"], count=1)
         self.assertContains(response, "data-proposal-weather", count=1)
         self.assertContains(response, "data-proposal-preview", count=1)
+        self.assertContains(response, "data-interactive-proposal-map", count=1)
         drawer = response.content.decode().split('data-plan-drawer', 1)[1].split('</dialog>', 1)[0]
         self.assertIn("pb-confirmed-history-reference", drawer)
         self.assertNotIn("data-proposal-weather", drawer)
         self.assertNotIn("data-proposal-preview", drawer)
+        self.assertNotIn("data-interactive-proposal-map", drawer)
 
     def test_other_proposals_keep_weather_and_maps_in_history(self):
         proposals = self.fixtures["apps.plans.views.proposal_service.list_proposals"].return_value

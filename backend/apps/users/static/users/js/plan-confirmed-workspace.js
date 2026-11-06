@@ -11,7 +11,8 @@
   const labels = new Map(controls.map(button => [button, button.querySelector(".pb-tool-action").textContent]));
   let active = null;
   let returnFocus = null;
-  let previousOverflow = "";
+  let previousOverflow = null;
+  let drawerCloseTimer = null;
 
   function selectTool(name, focus = false) {
     if (active === "gastos" && name !== "gastos") {
@@ -52,7 +53,10 @@
   });
 
   function openDrawer(section, opener) {
+    window.clearTimeout(drawerCloseTimer);
+    drawer.classList.remove("is-closing");
     if (!drawer.open) {
+      restoreDrawer();
       returnFocus = opener || openers[0];
       previousOverflow = document.body.style.overflow;
       drawer.showModal();
@@ -67,21 +71,48 @@
       heading.scrollIntoView({block: "start", behavior: "instant"});
     } else drawer.querySelector("[data-close-plan-details]").focus({preventScroll: true});
   }
+  function finishDrawerClose() {
+    if (drawer.classList.contains("is-closing")) {
+      drawer.close();
+      restoreDrawer();
+    }
+  }
+  function closeDrawer() {
+    if (!drawer.open || drawer.classList.contains("is-closing")) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      drawer.close();
+      restoreDrawer();
+      return;
+    }
+    drawer.classList.add("is-closing");
+    // Respaldo si el navegador no emite animationend o la animación se cancela.
+    drawerCloseTimer = window.setTimeout(finishDrawerClose, 350);
+  }
+  drawer.addEventListener("animationend", event => {
+    if (event.target === drawer && event.animationName === "pb-plan-drawer-exit") finishDrawerClose();
+  });
+  drawer.addEventListener("cancel", event => { event.preventDefault(); closeDrawer(); });
   openers.forEach(button => button.addEventListener("click", () => openDrawer(button.dataset.decisionTarget, button)));
-  drawer.querySelector("[data-close-plan-details]").addEventListener("click", () => drawer.close());
-  drawer.addEventListener("close", () => {
+  drawer.querySelector("[data-close-plan-details]").addEventListener("click", closeDrawer);
+  function restoreDrawer() {
+    window.clearTimeout(drawerCloseTimer);
+    drawer.classList.remove("is-closing");
+    if (previousOverflow === null) return;
     document.body.style.overflow = previousOverflow;
+    previousOverflow = null;
     openers.forEach(button => button.setAttribute("aria-expanded", "false"));
     returnFocus?.focus({preventScroll: true});
-  });
+  }
+  // Un close nativo puede llegar después de una reapertura en el mismo frame.
+  drawer.addEventListener("close", () => { if (!drawer.open) restoreDrawer(); });
   drawer.addEventListener("click", event => {
     const rect = drawer.getBoundingClientRect();
     if (event.target === drawer && (event.clientX < rect.left || event.clientX > rect.right
-        || event.clientY < rect.top || event.clientY > rect.bottom)) drawer.close();
+        || event.clientY < rect.top || event.clientY > rect.bottom)) closeDrawer();
   });
   drawer.addEventListener("keydown", event => {
     if (event.target.closest("dialog") !== drawer) return;
-    if (event.key === "Escape") { event.preventDefault(); drawer.close(); return; }
+    if (event.key === "Escape") { event.preventDefault(); closeDrawer(); return; }
     if (event.key !== "Tab") return;
     const focusable = [...drawer.querySelectorAll('button:not(:disabled),a[href],summary,input:not(:disabled),select:not(:disabled),textarea:not(:disabled),[tabindex="0"]')]
       .filter(node => node.getClientRects().length);

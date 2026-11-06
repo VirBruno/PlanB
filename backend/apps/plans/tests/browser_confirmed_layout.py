@@ -21,9 +21,12 @@ window.layoutItems = Array.from({length: 5}, (_, i) => ({
   google_search_url:'https://www.google.com/search?q=cafe'
 }));
 window.layoutGenerated = false;
+window.layoutMaps = new Map();
 // Sustituir tiles antes de inicializar los previews, también el hero visible.
 document.addEventListener('load',event=>{
   if(event.target.tagName!=='SCRIPT'||!event.target.src.includes('leaflet.js'))return;
+  const realMap=L.map;
+  L.map=(element,options)=>{const map=realMap(element,options);window.layoutMaps.set(element,map);return map;};
   const realTiles=L.tileLayer;
   L.tileLayer=(url,options)=>realTiles('data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"><rect width="256" height="256" fill="#e9e5db"/><path d="M0 80H256M0 180H256M80 0V256M180 0V256" stroke="#fff" stroke-width="10"/></svg>'),options);
 },true);
@@ -67,7 +70,7 @@ window.addEventListener('load',async()=>{
     }
     else if(stage==='balances'){control('gastos').click();root.querySelector('.pb-expenses-people').scrollIntoView({block:'start'});return;}
     else if(['sugerencias','gastos','clima'].includes(stage))control(stage).click();
-    if(['gastos','clima'].includes(stage))panel(stage).scrollIntoView({block:'start'});
+    if(['gastos','clima','sugerencias'].includes(stage))panel(stage).scrollIntoView({block:'start'});
     else window.scrollTo(0,0);
   };
   try{
@@ -75,6 +78,7 @@ window.addEventListener('load',async()=>{
     assert(toolCount()===0,'Ninguna herramienta expandida inicialmente');
     assert(!drawer.open,'Drawer cerrado inicialmente');
     assert(root.querySelectorAll('[data-tool]').length===3,'Tres accesos compactos');
+    assert(new Set(['clima','gastos','sugerencias'].map(name=>getComputedStyle(control(name)).backgroundColor)).size===3,'Herramientas con tres acentos de la paleta existente');
     const hero=root.querySelector('.pb-decision-panel');
     const heroWeather=hero.querySelector('[data-proposal-weather]');
     await wait(()=>!heroWeather.querySelector('[data-weather-details]').hidden);
@@ -84,13 +88,27 @@ window.addEventListener('load',async()=>{
     assert(heroWeather.textContent.includes('Parcialmente nublado')&&heroWeather.textContent.includes('Mín. 12 °C · Máx. 24 °C')&&heroWeather.textContent.includes('10%')&&heroWeather.textContent.includes('15 km/h'),'Hero muestra condición, temperaturas, lluvia y viento reales del endpoint');
     const heroMap=hero.querySelector('[data-proposal-preview]');
     assert(heroMap._leaflet_id&&heroMap.clientWidth>150&&heroMap.clientHeight>=190,'Mapa confirmado reutiliza preview Leaflet');
+    assert(!heroMap.closest('a')&&heroMap.getAttribute('role')==='region','Mapa interactivo separado del enlace externo');
+    const confirmedMap=window.layoutMaps.get(heroMap);
+    const initialZoom=confirmedMap.getZoom(), initialCenter=confirmedMap.getCenter();
+    const zoomIn=heroMap.querySelector('.leaflet-control-zoom-in');
+    assert(zoomIn&&zoomIn.getClientRects().length&&confirmedMap.dragging.enabled()&&confirmedMap.scrollWheelZoom.enabled(),'Mapa permite arrastre, rueda y controles visibles');
+    await new Promise(resolve=>{confirmedMap.once('zoomend',resolve);zoomIn.click();});
+    assert(confirmedMap.getZoom()===initialZoom+1,'Control + acerca el mapa');
+    await new Promise(resolve=>{confirmedMap.once('zoomend',resolve);heroMap.querySelector('.leaflet-control-zoom-out').click();});
+    assert(confirmedMap.getZoom()===initialZoom,'Zoom permite acercar y alejar sin navegar fuera del plan');
+    heroMap.focus();
+    assert(document.activeElement===heroMap&&confirmedMap.keyboard.enabled(),'Mapa accesible por teclado');
+    confirmedMap.setView(initialCenter,initialZoom,{animate:false});
     const infoRect=hero.querySelector('.pb-confirmed-info').getBoundingClientRect();
     const mapRect=hero.querySelector('.pb-confirmed-location').getBoundingClientRect();
     assert(innerWidth>900?mapRect.left>infoRect.right-1:mapRect.top>=infoRect.bottom,'Hero en dos columnas desktop y mapa después del clima en mobile');
+    assert(innerWidth<=900||Math.abs(mapRect.height-infoRect.height)<2,'Mapa ocupa la altura completa del contenido del encuentro en desktop');
     assert(postCount()===1,'IA genera automáticamente una vez aun oculta');
     assert(root.querySelector('[data-ia-tool-status]').textContent.includes('5 lugares'),'Estado de IA sin endpoint adicional');
     assert(!window.layoutCalls.some(c=>c.path.endsWith('/gastos/')),'Gastos no se consulta para decorar tarjeta');
     const initialHeight=document.documentElement.scrollHeight;
+    const initialSelectorsHeight=root.querySelector('.pb-tool-selectors').getBoundingClientRect().height;
     control('clima').click();
     assert(toolCount()===1&&!panel('clima').hidden,'Abre sólo clima');
     const province=root.querySelector('[data-weather-province]');
@@ -154,6 +172,8 @@ window.addEventListener('load',async()=>{
     assert(map._leaflet_id===mapId&&postCount()===1,'Reapertura no recrea mapa ni genera recomendaciones');
     const opener=root.querySelector('[data-open-plan-details]');opener.click();
     assert(drawer.open&&drawer.matches(':modal'),'Drawer modal con fondo inerte nativo');
+    assert(getComputedStyle(drawer).animationName==='pb-plan-drawer-enter','Drawer entra con deslizamiento lateral');
+    await wait(()=>drawer.getAnimations().every(animation=>animation.playState==='finished'));
     assert(document.activeElement===drawer.querySelector('[data-close-plan-details]'),'Foco inicial en cerrar');
     assert(drawer.querySelectorAll('[data-decision-block]').length===4,'Cuatro acordeones de historia');
     assert(![...drawer.querySelectorAll('[data-decision-block]')].some(d=>d.open),'Historia colapsada por defecto');
@@ -174,22 +194,34 @@ window.addEventListener('load',async()=>{
     drawer.querySelector('[data-decision-block="voting"]').open=true;
     assert(drawer.querySelector('#proposal-election-title')&&drawer.querySelector('#proposal-vote-title'),'Método y votación siguen accesibles');
     first.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));
+    assert(drawer.open&&drawer.matches(':modal')&&drawer.classList.contains('is-closing'),'Salida animada conserva modalidad y fondo inerte');
+    assert(getComputedStyle(drawer).animationName==='pb-plan-drawer-exit','Escape inicia deslizamiento de salida');
     await wait(()=>!drawer.open&&document.activeElement===opener&&opener.getAttribute('aria-expanded')==='false');
     assert(document.activeElement===opener&&opener.getAttribute('aria-expanded')==='false','Escape cierra y devuelve foco');
     root.querySelector('[data-decision-target]').click();
     assert(drawer.open&&drawer.querySelector('[data-decision-block="result"]').open,'Hero abre proceso en resultado');
     assert(document.activeElement.id==='decision-history-title','Proceso recibe el foco');
-    drawer.querySelector('[data-close-plan-details]').click();await new Promise(r=>setTimeout(r,20));
+    drawer.querySelector('[data-close-plan-details]').click();await wait(()=>!drawer.open&&document.activeElement===root.querySelector('[data-decision-target]'));
     assert(!drawer.open,'Botón X cierra drawer');
-    opener.click();const rect=drawer.getBoundingClientRect();
+    opener.click();await wait(()=>drawer.getAnimations().every(animation=>animation.playState==='finished'));const rect=drawer.getBoundingClientRect();
     drawer.dispatchEvent(new MouseEvent('click',{clientX:rect.left-1,clientY:20,bubbles:true}));
+    await wait(()=>!drawer.open&&document.activeElement===opener);
     assert(!drawer.open,'Click en backdrop cierra drawer');
+    opener.click();await wait(()=>drawer.getAnimations().every(animation=>animation.playState==='finished'));
+    drawer.querySelector('[data-close-plan-details]').click();
+    root.querySelector('[data-decision-target]').click();
+    await new Promise(r=>setTimeout(r,400));
+    assert(drawer.open&&!drawer.classList.contains('is-closing'),'Reabrir durante salida cancela el cierre pendiente');
+    drawer.querySelector('[data-close-plan-details]').click();
+    await wait(()=>!drawer.open&&document.activeElement===opener);
     history.replaceState(null,'',location.pathname+'#clima');window.dispatchEvent(new HashChangeEvent('hashchange'));
     assert(!panel('clima').hidden,'Hash abre clima');
     history.replaceState(null,'',location.pathname+'#decision');window.dispatchEvent(new HashChangeEvent('hashchange'));
     assert(drawer.open,'Hash abre decisión');drawer.close();
+    await wait(()=>document.body.style.overflow!=='hidden');
     history.replaceState(null,'',location.pathname);window.layoutCapture('compact');
-    assert(document.documentElement.scrollHeight<=initialHeight+2,'Cerrar herramientas vuelve a la página compacta');
+    const summaryGrowth=root.querySelector('.pb-tool-selectors').getBoundingClientRect().height-initialSelectorsHeight;
+    assert(document.documentElement.scrollHeight<=initialHeight+summaryGrowth+2,'Cerrar herramientas vuelve a la página compacta con resumen actualizado');
     assert(document.documentElement.scrollWidth<=innerWidth+1,'Sin scroll horizontal');
     assert(postCount()===1,'Toda la navegación conserva una generación efectiva');
     assert(window.layoutCalls.filter(c=>c.path===heroWeather.dataset.weatherUrl).length===1,'Clima elegido se consulta una vez sin duplicación en drawer');

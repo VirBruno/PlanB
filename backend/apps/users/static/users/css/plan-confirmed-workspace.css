@@ -1,43 +1,51 @@
 /* Sólo el detalle confirmado: decisión → herramientas → contexto bajo demanda. */
 .pb-app-shell .pb-app-content:has([data-confirmed-layout]) { max-width: none; }
-.pb-confirmed-layout { width: min(100%, 1200px); margin: 0 auto; min-width: 0; }
+.pb-confirmed-layout { --meeting-sage: #E4EFDD; --meeting-sage-line: #BED3B5; --meeting-gold: #F7EDC9; --meeting-gold-line: #E2CD8E; --meeting-lavender: #EEE7F7; --meeting-lavender-line: #CEBAE6; --meeting-purple: #71518E; width: min(100%, 1200px); margin: 0 auto; min-width: 0; }
+html[data-theme='dark'] .pb-confirmed-layout { --meeting-sage: #34513C; --meeting-sage-line: #61815C; --meeting-gold: #49442F; --meeting-gold-line: #8D7B47; --meeting-lavender: #41394E; --meeting-lavender-line: #817096; --meeting-purple: #D4BEED; }
 .pb-confirmed-heading { display: flex; justify-content: space-between; align-items: center; gap: 18px; margin: 8px 0 20px; }
 .pb-confirmed-heading > div { min-width: 0; }
 .pb-confirmed-heading .back-link { display: inline-block; margin: 0 0 10px; color: var(--muted); font-size: .8rem; }
 .pb-confirmed-heading h1 { margin: 0; color: var(--text); font-size: clamp(1.5rem, 3vw, 2.2rem); line-height: 1.18; letter-spacing: -.04em; overflow-wrap: anywhere; }
-.pb-confirmed-heading > button { flex: none; min-height: 44px; }
+.pb-confirmed-heading > button { flex: none; min-height: 44px; padding: 10px 16px; border: 1px solid var(--meeting-sage-line); border-radius: 12px; background: var(--meeting-sage); color: var(--text); }
+.pb-confirmed-heading > button:hover { background: var(--meeting-gold); border-color: var(--meeting-gold-line); color: var(--text); }
 .pb-app-shell .pb-plan-detail.pb-confirmed-main { padding: 0; border: 0; background: none; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
-.pb-app-shell .pb-plan-detail.pb-confirmed-main > .pb-decision-panel { margin: 0; padding: clamp(20px, 3vw, 30px) !important; border: 1px solid var(--glass-border) !important; border-radius: 20px; background: var(--white) !important; box-shadow: none; }
-.pb-app-shell .pb-plan-detail.pb-confirmed-main > .pb-decision-panel::before { display: none; }
+.pb-app-shell .pb-plan-detail.pb-confirmed-main > .pb-decision-panel { margin: 0; padding: clamp(20px, 3vw, 30px) !important; border: 1px solid var(--meeting-sage-line) !important; border-radius: 20px; background: linear-gradient(115deg, var(--meeting-sage), var(--white) 75%) !important; box-shadow: 0 8px 24px #1f4d3a08; }
+.pb-app-shell .pb-plan-detail.pb-confirmed-main > .pb-decision-panel::before { display: block; width: 5px; background: #A7C957; }
 .pb-app-shell .pb-plan-detail.pb-confirmed-main > .pb-decision-panel h2 { font-size: clamp(1.5rem, 2.5vw, 2rem) !important; margin: 10px 0 !important; line-height: 1.2; letter-spacing: -.035em; }
 .pb-confirmed-facts { display: flex; flex-wrap: wrap; gap: 0 20px; }
 .pb-app-shell .pb-plan-detail.pb-confirmed-main .pb-confirmed-facts { gap: 6px 20px; margin-top: 10px; }
-.pb-app-shell .pb-plan-detail.pb-confirmed-main .pb-confirmed-facts > p { margin: 0 !important; font-size: .78rem; }
+.pb-app-shell .pb-plan-detail.pb-confirmed-main .pb-confirmed-facts > p { margin: 0 !important; padding: 6px 10px; border-radius: 8px; background: var(--meeting-sage); font-size: .78rem; }
 .pb-app-shell .pb-plan-detail.pb-confirmed-main .pb-confirmed-description { margin: 8px 0 !important; font-size: .86rem; line-height: 1.6; }
 .pb-app-shell .pb-plan-detail.pb-confirmed-main .pb-decision-meta { margin: 12px 0 8px !important; }
 .pb-confirmed-main .pb-confirmed-description { max-width: 72ch; line-height: 1.65; }
 .pb-confirmed-main .pb-confirmed-proposal-context, .pb-confirmed-main .pb-confirmed-budget { color: var(--muted); font-size: .8rem; margin: 8px 0; }
 .pb-confirmed-main .pb-decision-meta { margin-top: 16px; gap: 12px 24px; flex-wrap: wrap; }
 .pb-confirmed-main .pb-decision-meta > * { font-size: .85rem; }
-.pb-confirmed-hero-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 28px; align-items: start; margin-bottom: 12px; }
+.pb-confirmed-hero-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 28px; align-items: stretch; }
 .pb-confirmed-info, .pb-confirmed-location { min-width: 0; }
 .pb-app-shell .pb-plan-detail.pb-confirmed-main .pb-confirmed-info .pb-decision-badge { margin-bottom: 4px !important; }
 .pb-confirmed-byline, .pb-confirmed-author { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: .76rem; color: var(--muted); }
 .pb-confirmed-byline { gap: 10px 16px; }
 .pb-app-shell .pb-plan-detail.pb-confirmed-main .pb-confirmed-elected { margin: 10px 0 0 !important; font-size: .72rem; font-weight: 700; color: var(--muted); }
-.pb-app-shell .pb-plan-detail.pb-confirmed-main .pb-confirmed-info .pb-weather { margin: 16px 0 0; padding: 12px 0 0; border: 0; border-top: 1px solid var(--glass-border); border-radius: 0; background: none; gap: 8px; }
+.pb-app-shell .pb-plan-detail.pb-confirmed-main .pb-confirmed-info .pb-weather { margin: 16px 0 0; padding: 12px; border: 1px solid var(--meeting-sage-line); border-radius: 14px; background: var(--white); gap: 8px; }
 .pb-confirmed-info .pb-weather-details { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
 .pb-confirmed-info .pb-weather-primary, .pb-confirmed-info .pb-weather-metrics { flex-basis: 100%; }
 .pb-confirmed-info .pb-weather-metrics > span { border: 0; padding: 2px 0; }
 .pb-confirmed-info .pb-weather-metrics { gap: 4px 18px; }
 .pb-confirmed-info .pb-weather-details small { display: block; }
 .pb-confirmed-info .pb-weather-source { width: fit-content; }
-.pb-app-shell .pb-plan-detail.pb-confirmed-main .pb-confirmed-location .proposal-location { margin: 0; padding: 0; border: 0; }
+.pb-confirmed-location { display: flex; }
+.pb-app-shell .pb-plan-detail.pb-confirmed-main .pb-confirmed-location .proposal-location { display: flex; flex-direction: column; flex: 1; min-width: 0; margin: 0; padding: 0; border: 0; }
 .pb-confirmed-location .proposal-location-label { display: block; margin-bottom: 10px; font-size: .75rem; font-weight: 700; color: var(--muted); }
 .pb-confirmed-location .proposal-map-link { display: block; font-size: .72rem; color: var(--text); }
 .pb-confirmed-location .proposal-map-link > span { display: inline-block; margin-top: 8px; }
-.pb-app-shell .pb-plan-detail.pb-confirmed-main .pb-confirmed-location .proposal-map-preview { height: 300px !important; width: 100%; box-sizing: border-box; border-radius: 14px; }
-.pb-confirmed-history-reference { display: grid; gap: 8px; padding: 16px; border-left: 3px solid var(--glass-border); list-style: none; }
+.pb-app-shell .pb-plan-detail.pb-confirmed-main .pb-confirmed-location .proposal-map-link > span { color: var(--text); }
+.pb-app-shell .pb-plan-detail.pb-confirmed-main .pb-confirmed-location .proposal-map-preview { flex: 1; min-height: 300px; height: auto !important; width: 100%; box-sizing: border-box; border-radius: 14px; }
+.pb-confirmed-location > .proposal-location > .proposal-map-link { margin-top: 10px; }
+.pb-confirmed-location .proposal-map-preview .leaflet-control-zoom { display: block; }
+.pb-confirmed-location .leaflet-control-zoom a { width: 36px; height: 36px; line-height: 36px; background: var(--white); color: var(--text); }
+.pb-confirmed-location .proposal-map-preview:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+.pb-confirmed-history-reference { display: grid; gap: 8px; padding: 16px; border: 1px solid var(--meeting-sage-line); border-left: 3px solid #A7C957; border-radius: 12px; background: var(--meeting-sage); list-style: none; }
 .pb-confirmed-history-reference > span, .pb-confirmed-history-reference > small, .pb-confirmed-history-reference p { color: var(--muted); font-size: .75rem; }
 .pb-confirmed-history-reference p { margin: 0; line-height: 1.6; }
 .pb-confirmed-main .pb-phase-actions { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--glass-border); }
@@ -60,6 +68,14 @@
 .pb-tool-action { flex-basis: 100%; padding-left: 27px; font-size: .73rem; font-weight: 750; }
 .pb-tool-selector[aria-expanded='true'] { border-color: var(--text); background: var(--canvas); }
 .pb-tool-selector:hover { border-color: var(--text); }
+.pb-tool-selector[data-tool='clima'] { --tool-surface: var(--meeting-gold); --tool-line: var(--meeting-gold-line); --tool-badge: #F4D06F; }
+.pb-tool-selector[data-tool='gastos'] { --tool-surface: var(--meeting-sage); --tool-line: var(--meeting-sage-line); --tool-badge: #A7C957; }
+.pb-tool-selector[data-tool='sugerencias'] { --tool-surface: var(--meeting-lavender); --tool-line: var(--meeting-lavender-line); --tool-badge: #C7B3EE; }
+.pb-tool-selector { background: var(--tool-surface); border-color: var(--tool-line); box-shadow: 0 4px 12px #1f4d3a06; transition: border-color .18s, box-shadow .18s, transform .18s; }
+.pb-tool-selector:hover, .pb-tool-selector[aria-expanded='true'] { background: var(--tool-surface); border-color: var(--text); box-shadow: inset 0 0 0 1px var(--tool-line), 0 6px 16px #1f4d3a0d; }
+@media (hover: hover) { .pb-tool-selector:hover { transform: translateY(-2px); } }
+.pb-tool-number { display: grid; place-items: center; flex: 0 0 32px; height: 32px; align-self: center; padding: 0; border-radius: 11px; background: var(--tool-badge); color: #1F4D3A; font-weight: 800; }
+.pb-tool-action { padding-left: 44px; }
 .pb-confirmed-layout button:focus-visible, .pb-plan-drawer summary:focus-visible { outline: 3px solid var(--blue); outline-offset: 4px; }
 .pb-confirmed-layout [data-tool-panel][hidden] { display: none !important; }
 .pb-tool-workspace > section { min-width: 0; margin-top: 24px; }
@@ -68,9 +84,26 @@
 .pb-tool-workspace-heading button { min-height: 44px; font-size: .75rem; }
 .pb-tool-workspace .pb-weather-compare { margin-top: 0; }
 .pb-tool-workspace .pb-suggestions { margin: 0; }
+.pb-confirmed-main .pb-tool-workspace .pb-weather-compare { border-color: var(--meeting-gold-line) !important; }
+.pb-confirmed-main .pb-tool-workspace .pb-weather-compare-toggle { background: var(--meeting-gold); }
+.pb-confirmed-main .pb-climate-day { background: var(--meeting-gold); border-color: var(--meeting-gold-line); }
+.pb-confirmed-main .pb-climate-day.is-selected { background: var(--meeting-sage); border-color: var(--meeting-sage-line); box-shadow: inset 0 0 0 1px var(--meeting-sage-line); }
+.pb-confirmed-main .pb-climate-selected { background: var(--meeting-sage); border-color: var(--meeting-sage-line); }
+.pb-confirmed-main .pb-climate-selected-metrics span { background: var(--white); }
+.pb-confirmed-main .pb-climate-kicker { color: var(--text) !important; }
+.pb-confirmed-main .pb-climate-note a { color: var(--text); }
+.pb-confirmed-main .pb-suggestions { border-color: var(--meeting-lavender-line); }
+.pb-confirmed-main .pb-suggestions-kicker { color: var(--meeting-purple); }
+.pb-confirmed-main .pb-suggestions-shared, .pb-confirmed-main .pb-suggestions-map-heading { background: var(--meeting-lavender); }
+.pb-confirmed-main .pb-suggestions-shared, .pb-confirmed-main .pb-suggestions-map-panel { border-color: var(--meeting-lavender-line); }
+.pb-confirmed-main .pb-suggestion-art { background: var(--meeting-lavender); color: var(--meeting-purple); }
+.pb-confirmed-main .pb-suggestion.is-selected { background: var(--meeting-sage); border-color: var(--meeting-sage-line); box-shadow: inset 3px 0 #A7C957; }
+.pb-confirmed-main .pb-suggestions-summary:not([hidden]) { padding: 12px 15px; border-left: 3px solid #C7B3EE; border-radius: 0 10px 10px 0; background: var(--meeting-lavender); color: var(--text); }
 .pb-expenses-inline { padding: 22px; border: 1px solid var(--glass-border); border-radius: 18px; background: var(--white); min-width: 0; }
 .pb-expenses-inline .pb-expenses-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; gap: 14px; }
-.pb-expenses-inline .pb-expenses-overview > div { display: grid; grid-template-rows: auto 1fr auto; align-content: start; gap: 8px; padding: 20px; background: var(--canvas); }
+.pb-expenses-inline .pb-expenses-overview > div { display: grid; grid-template-rows: auto 1fr auto; align-content: start; gap: 8px; padding: 20px; background: var(--meeting-sage); border-color: var(--meeting-sage-line); }
+.pb-expenses-inline .pb-expenses-overview > div:nth-child(2) { background: var(--meeting-gold); border-color: var(--meeting-gold-line); }
+.pb-expenses-inline .pb-expenses-header { border-bottom: 1px solid var(--meeting-sage-line); }
 .pb-expenses-inline .pb-expenses-overview strong { align-self: start; margin: 0; font-size: clamp(1.3rem, 2.6vw, 1.8rem); font-variant-numeric: tabular-nums; }
 .pb-expenses-inline .pb-expenses-overview small { line-height: 1.5; }
 .pb-expenses-inline h3 { font-size: 1rem; margin: 0; }
@@ -91,17 +124,25 @@ html[data-theme='dark'] .pb-expenses-inline .pb-expenses-section-head .button, h
 .pb-expenses-inline table { width: 100%; min-width: 500px; border-collapse: collapse; font-size: .82rem; font-variant-numeric: tabular-nums; }
 .pb-expenses-inline th, .pb-expenses-inline td { padding: 15px 12px; border-bottom: 1px solid var(--glass-border); text-align: right; white-space: nowrap; }
 .pb-expenses-inline th:first-child { text-align: left; }
-.pb-expenses-inline thead th { background: var(--canvas); font-size: .72rem; color: var(--muted); }
+.pb-expenses-inline thead th { background: var(--meeting-sage); font-size: .72rem; color: var(--text); }
+.pb-expenses-inline tbody tr:nth-child(even) { background: color-mix(in srgb, var(--meeting-sage) 35%, transparent); }
 .pb-expenses-inline tbody th { font-weight: 600; }
 .pb-expenses-inline th small { display: block; color: var(--muted); font-weight: 400; }
 .pb-expenses-inline tbody td:last-child { font-weight: 750; }
-.pb-expenses-inline .pb-expense-transfer { background: var(--canvas); padding: 18px; }
+.pb-expenses-inline .pb-expense-transfer { background: var(--meeting-sage); border-color: var(--meeting-sage-line); padding: 18px; }
 .pb-expenses-inline .pb-expense-transfer > p { font-size: .85rem; }
 .pb-expenses-inline .pb-expense-transfer .pb-debt-notify { min-height: 44px; white-space: normal; overflow-wrap: anywhere; font-size: .78rem; }
 dialog.pb-plan-drawer { position: fixed; inset: 0 0 0 auto; margin: 0; width: min(540px, calc(100vw - 40px)); max-width: none; height: 100dvh; max-height: 100dvh; padding: 0; border: 0; border-left: 1px solid var(--glass-border); border-radius: 20px 0 0 20px; background: var(--white); color: var(--text); box-sizing: border-box; overflow: hidden; box-shadow: -12px 0 45px #0002; }
-dialog.pb-plan-drawer[open] { display: flex; flex-direction: column; }
+dialog.pb-plan-drawer[open] { display: flex; flex-direction: column; animation: pb-plan-drawer-enter .28s cubic-bezier(.22, 1, .36, 1) both; }
+dialog.pb-plan-drawer[open].is-closing { animation: pb-plan-drawer-exit .22s ease-in both; }
 dialog.pb-plan-drawer::backdrop { background: #10251c66; }
-.pb-plan-drawer-heading { position: sticky; top: 0; display: flex; flex: none; align-items: center; justify-content: space-between; gap: 16px; padding: 24px; border-bottom: 1px solid var(--glass-border); background: var(--white); z-index: 1; }
+dialog.pb-plan-drawer[open]::backdrop { animation: pb-plan-backdrop-enter .28s ease-out both; }
+dialog.pb-plan-drawer.is-closing::backdrop { animation: pb-plan-backdrop-exit .22s ease-in both; }
+@keyframes pb-plan-drawer-enter { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@keyframes pb-plan-drawer-exit { from { transform: translateX(0); } to { transform: translateX(100%); } }
+@keyframes pb-plan-backdrop-enter { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pb-plan-backdrop-exit { from { opacity: 1; } to { opacity: 0; } }
+.pb-plan-drawer-heading { position: sticky; top: 0; display: flex; flex: none; align-items: center; justify-content: space-between; gap: 16px; padding: 24px; border-bottom: 1px solid var(--meeting-sage-line); background: var(--meeting-sage); z-index: 1; }
 .pb-plan-drawer-heading span { color: var(--muted); font-size: .64rem; font-weight: 750; letter-spacing: .1em; }
 .pb-plan-drawer-heading h2 { margin: 7px 0 0; font-size: 1.35rem; letter-spacing: -.03em; }
 .pb-plan-drawer-heading button { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border: 1px solid var(--glass-border); border-radius: 50%; background: var(--canvas); color: var(--text); font-size: 1.5rem; cursor: pointer; }
@@ -114,6 +155,7 @@ dialog.pb-plan-drawer::backdrop { background: #10251c66; }
 .pb-decision-history > details { border-top: 1px solid var(--glass-border); padding: 0; }
 .pb-decision-history > details > summary { display: list-item; padding: 18px 0; cursor: pointer; font-size: .85rem; font-weight: 750; }
 .pb-decision-history > details > summary > span { color: var(--muted); margin-left: 8px; font-size: .76rem; }
+.pb-decision-history > details[open] > summary { color: var(--text); background: var(--meeting-lavender); border-radius: 10px; padding-left: 12px; }
 .pb-decision-history > details > p { font-size: .82rem; line-height: 1.7; }
 .pb-confirmed-main .pb-plan-drawer .pb-proposals-grid { grid-template-columns: minmax(0, 1fr); gap: 14px; padding-bottom: 18px; }
 .pb-confirmed-main .pb-plan-drawer .proposal-election, .pb-confirmed-main .pb-plan-drawer .proposal-leaderboard { margin: 0 0 18px; padding: 16px; max-width: 100%; }
@@ -122,7 +164,7 @@ dialog.pb-plan-drawer::backdrop { background: #10251c66; }
 .pb-app-shell .pb-plan-detail.pb-confirmed-main .pb-plan-drawer .proposal-meta > div { min-width: 0 !important; max-width: 100%; width: 100%; box-sizing: border-box; }
 .pb-app-shell .pb-plan-detail.pb-confirmed-main .pb-plan-drawer .proposal-meta dd { white-space: normal; overflow-wrap: anywhere; }
 @media (max-width: 1100px) { .pb-tool-selectors { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 900px) { .pb-confirmed-hero-grid { grid-template-columns: minmax(0, 1fr); gap: 20px; } .pb-app-shell .pb-plan-detail.pb-confirmed-main .pb-confirmed-location .proposal-map-preview { height: 220px !important; } }
+@media (max-width: 900px) { .pb-confirmed-hero-grid { grid-template-columns: minmax(0, 1fr); gap: 20px; } .pb-app-shell .pb-plan-detail.pb-confirmed-main .pb-confirmed-location .proposal-map-preview { flex: none; min-height: 260px; height: 260px !important; } }
 @media (max-width: 600px) {
   .pb-app-shell .pb-plan-detail.pb-confirmed-main > .pb-decision-panel { padding: 18px !important; }
   .pb-confirmed-actions { margin-left: 0; }
@@ -143,4 +185,4 @@ dialog.pb-plan-drawer::backdrop { background: #10251c66; }
   .pb-plan-drawer-body { padding: 18px; }
 }
 @media (max-width: 370px) { .pb-expenses-inline .pb-expenses-overview { grid-template-columns: minmax(0, 1fr); } }
-@media (prefers-reduced-motion: reduce) { .pb-tool-selector { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .pb-tool-selector, .pb-tool-selector:hover { transition: none; transform: none; } dialog.pb-plan-drawer[open], dialog.pb-plan-drawer[open].is-closing, dialog.pb-plan-drawer[open]::backdrop { animation: none; } }

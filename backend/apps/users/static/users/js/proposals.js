@@ -29,13 +29,14 @@
     const latitude = Number(element.dataset.lat);
     const longitude = Number(element.dataset.lon);
     if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
+    const interactive = element.hasAttribute("data-interactive-proposal-map");
     const map = L.map(element, {
-      dragging: false,
-      scrollWheelZoom: false,
-      doubleClickZoom: false,
-      boxZoom: false,
-      keyboard: false,
-      zoomControl: false,
+      dragging: interactive,
+      scrollWheelZoom: interactive,
+      doubleClickZoom: interactive,
+      boxZoom: interactive,
+      keyboard: interactive,
+      zoomControl: interactive,
       attributionControl: true,
     }).setView([latitude, longitude], 14);
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
