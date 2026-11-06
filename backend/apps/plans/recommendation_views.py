@@ -19,7 +19,8 @@ def _response(request, plan_id, *, retry=False):
             result = plan_recommendation_service.get_recommendations(token, str(plan_id))
             # No convertir Reintentar en un recálculo arbitrario de un ready.
             # La RPC existente mantiene el lock y la protección de pending reciente.
-            if result["status"] in ("failed", "pending"):
+            if result["status"] in ("failed", "pending") or (
+                    result["status"] == "ready" and (result.get("can_update") or result.get("can_refresh"))):
                 result = plan_recommendation_service.generate_recommendations(
                     token, str(plan_id), replace=True,
                 )

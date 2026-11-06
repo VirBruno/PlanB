@@ -18,6 +18,7 @@ from apps.plans.services.place_ranking_service import (
     distance_meters, google_maps_url, google_search_url, rank_candidates,
 )
 from apps.plans.services.place_types import Location, PlaceSearch, RecommendationError
+from apps.plans.services.recommendation_inputs import input_fingerprint
 from apps.plans.tests.test_services import GROUP_ID, PLAN_ID, USER_ID, plan_row
 from apps.users.services import clients
 from apps.users.services.exceptions import SessionExpired
@@ -502,7 +503,9 @@ class OrchestrationTests(SimpleTestCase):
         result = service.generate_recommendations("jwt", PLAN_ID, replace=True)
         self.assertEqual(result["status"], "ready")
         self.assertEqual(self.interpret.call_count, 2)
-        self.mocks["recommendation_store.claim"].assert_called_with(self.active_plan, replace=True)
+        self.mocks["recommendation_store.claim"].assert_called_with(
+            self.active_plan, replace=True,
+            input_fingerprint=input_fingerprint(self.active_plan, self.mocks["proposal_service.get_proposal"].return_value))
         self.mocks["GeoapifyClient.search"].assert_called_once()
         self.assertEqual(self.active_plan, plan())
 
@@ -544,6 +547,7 @@ class OrchestrationTests(SimpleTestCase):
                          ("catering.bar", "catering.pub", "adult.nightclub"))
         self.assertEqual(self.saved["criteria"], {
             "interpreter": "gemini", "model": "gemini-3.8-flash", "place_intents": ["bar", "nightclub"],
+            "input_fingerprint": input_fingerprint(self.active_plan, self.mocks["proposal_service.get_proposal"].return_value),
             "categories": ["catering.bar", "catering.pub", "adult.nightclub"],
             "radius_meters": 5000, "candidate_limit": 20,
         })

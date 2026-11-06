@@ -1,5 +1,9 @@
 # Interpretación del plan confirmado · Prompt 3
 
+Este informe registra el bloque original. El summary, el fingerprint y la
+actualización de snapshots posteriores se documentan en el
+[cierre del Prompt 4](recomendaciones-cierre.md).
+
 ## 1. Arquitectura elegida
 
 Se inspeccionó la rama `feature/ai-place-recommendations` antes de editar. Ya

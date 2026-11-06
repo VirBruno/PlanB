@@ -63,7 +63,7 @@
     const key = `${method}:${endpoint.href}`;
     if (requests.has(key)) return requests.get(key);
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000);
+    const timeout = setTimeout(() => controller.abort(), 90000);
     const promise = (async () => {
       try {
         const response = await fetch(endpoint.href, {
@@ -89,6 +89,7 @@
     root.dataset.recommendationsInitialized = "true";
     const get = selector => root.querySelector(selector);
     const feedback = get("[data-suggestions-feedback]");
+    const summary = get("[data-suggestions-summary]");
     const status = get("[data-suggestions-status]");
     const hint = get("[data-suggestions-hint]");
     const spinner = get("[data-suggestions-spinner]");
@@ -103,6 +104,7 @@
     let map = null;
     let markers = [];
     let resizeObserver = null;
+    let hasSnapshot = false;
 
     function message(state, text, detail = "") {
       feedback.dataset.state = state;
@@ -227,6 +229,11 @@
 
     function render(payload) {
       const items = payload.items.slice(0, 5).filter(item => item && typeof item === "object");
+      hasSnapshot = Boolean(payload.has_snapshot || items.length || payload.status === "ready");
+      summary.textContent = hasSnapshot && typeof payload.ai_summary === "string"
+        && payload.ai_summary.length <= 320 ? payload.ai_summary.trim() : "";
+      summary.hidden = !summary.textContent;
+      retry.textContent = "Reintentar";
       results.hidden = !items.length;
       get("[data-suggestions-source]").hidden = !items.length;
       list.replaceChildren(...items.map(renderCard));
@@ -235,15 +242,24 @@
         message("ready", items.length ? `${items.length} ${items.length === 1 ? "lugar para explorar" : "lugares para explorar"} con el grupo.`
           : "No encontramos lugares compatibles cerca del punto elegido.",
         items.length ? "Seleccioná un lugar para ubicarlo en el mapa." : "Podés seguir organizando el encuentro con la ubicación confirmada.");
+        if (payload.is_stale) {
+          message("ready", "Estas sugerencias corresponden a una versión anterior del plan.");
+        }
+        if (payload.can_refresh) {
+          retry.textContent = "Actualizar sugerencias";
+          retry.hidden = false;
+        }
       } else if (payload.status === "failed") {
-        message("failed", "No pudimos generar sugerencias en este momento.",
-          items.length ? "Conservamos las sugerencias anteriores para que puedas seguir consultándolas."
+        message("failed", hasSnapshot ? "No pudimos actualizar las sugerencias. Estás viendo la última versión disponible."
+          : "No pudimos generar sugerencias en este momento.",
+          hasSnapshot ? "Podés seguir consultándolas y reintentar la actualización."
             : payload.error_code === "unsupported_intent" ? "Todavía no encontramos una categoría de lugares para esta actividad."
               : "El encuentro sigue confirmado. Podés volver a intentarlo cuando quieras.");
         retry.hidden = false;
+        if (hasSnapshot) retry.textContent = "Reintentar actualización";
       } else if (payload.status === "pending") {
-        message("pending", "No terminamos de generar las sugerencias todavía.",
-          items.length ? "Mientras tanto, podés consultar las sugerencias anteriores."
+        message("pending", hasSnapshot ? "Estamos actualizando las sugerencias…" : "No terminamos de generar las sugerencias todavía.",
+          hasSnapshot ? "Mientras tanto, podés consultar la última versión disponible."
             : "Otra consulta puede estar generándolas. Volvé a consultar el estado en unos momentos.");
         refresh.hidden = false;
         const updated = Date.parse(payload.updated_at);
@@ -260,16 +276,21 @@
       if (busy) return;
       busy = true;
       retry.disabled = refresh.disabled = true;
-      message("loading", retrying ? "Estamos buscando opciones que encajen con este plan…" : "Consultando las sugerencias del plan…");
+      message("loading", hasSnapshot ? "Estamos actualizando las sugerencias…"
+        : retrying ? "Estamos buscando opciones que encajen con este plan…" : "Consultando las sugerencias del plan…",
+      hasSnapshot ? "Podés consultar la última versión disponible mientras tanto." : "");
       try {
         let payload = await request(retrying ? root.dataset.retryUrl : root.dataset.url, retrying ? "POST" : "GET", form);
-        if (payload.status === "not_generated" && !retrying) {
+        if ((payload.status === "not_generated" || payload.can_update === true) && !retrying) {
+          if (payload.status !== "not_generated") render(payload);
           if (!generations.has(root.dataset.url)) {
             generations.set(root.dataset.url, request(root.dataset.url, "POST", form));
           }
           const generation = generations.get(root.dataset.url);
           if (generation) {
-            message("loading", "Estamos buscando opciones que encajen con este plan…");
+            message("loading", hasSnapshot ? "Estamos actualizando las sugerencias…"
+              : "Estamos buscando opciones que encajen con este plan…",
+            hasSnapshot ? "Podés consultar la última versión disponible mientras tanto." : "");
             try { payload = await generation; }
             catch (error) { generations.set(root.dataset.url, null); throw error; }
           }
@@ -277,9 +298,11 @@
         render(payload);
       } catch {
         // No borrar un conjunto ya visible ni afectar al resto del detalle.
-        message("unavailable", "No pudimos consultar las sugerencias en este momento.",
+        message("unavailable", hasSnapshot ? "No pudimos actualizar las sugerencias. Estás viendo la última versión disponible."
+          : "No pudimos consultar las sugerencias en este momento.",
           "El resto del plan sigue disponible. Consultá el estado o volvé a iniciar sesión si venció.");
         refresh.hidden = false;
+        if (hasSnapshot) { retry.hidden = false; retry.textContent = "Reintentar actualización"; }
       } finally {
         busy = false;
         retry.disabled = refresh.disabled = false;

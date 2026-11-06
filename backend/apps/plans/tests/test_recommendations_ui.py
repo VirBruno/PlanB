@@ -141,3 +141,25 @@ class RecommendationUITests(TestCase):
     def test_storage_failure_does_not_block_detail(self, read):
         self.assertEqual(self.client.post(self.retry_url).status_code, 503)
         self.assertContains(self.client.get(self.url), "Sugerencias con IA")
+
+    def test_summary_placeholder_is_hidden_and_before_results(self):
+        response = self.client.get(self.url)
+        self.assertContains(response, 'data-suggestions-summary hidden></p>', count=1)
+        html = response.content.decode()
+        self.assertLess(html.index("data-suggestions-summary"), html.index("data-suggestions-results"))
+
+    @patch.object(service, "get_recommendations", return_value={
+        "status": "ready", "items": [], "can_refresh": True,
+    })
+    @patch.object(service, "generate_recommendations", return_value={"status": "ready", "items": []})
+    def test_explicit_refresh_can_upgrade_legacy_ready(self, generate, read):
+        self.assertEqual(self.client.post(self.retry_url).status_code, 200)
+        generate.assert_called_once_with("ui-jwt", PLAN_ID, replace=True)
+
+    @patch.object(service, "get_recommendations", return_value={
+        "status": "ready", "items": [], "can_update": True,
+    })
+    @patch.object(service, "generate_recommendations", return_value={"status": "ready", "items": []})
+    def test_explicit_refresh_can_update_stale_ready(self, generate, read):
+        self.assertEqual(self.client.post(self.retry_url).status_code, 200)
+        generate.assert_called_once_with("ui-jwt", PLAN_ID, replace=True)

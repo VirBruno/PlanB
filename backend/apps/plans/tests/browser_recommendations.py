@@ -34,6 +34,8 @@ window.recCalls = [];
 window.recPayload = {status: 'not_generated', items: []};
 window.recFail = false;
 window.recDelay = null;
+window.recPostDelay = null;
+window.recPostPayload = null;
 window.recItem = (index = 0) => ({
   provider_place_id: 'poi-' + index, name: ['Café de la Plaza', 'El Porteño', 'Rincón del Encuentro', 'La Esquina', 'Café Güemes'][index],
   categories: ['catering.cafe'], address: 'Calle ' + (10 + index) + ', La Plata',
@@ -46,7 +48,9 @@ window.fetch = async (url, options = {}) => {
   window.recCalls.push({url: String(url), method: options.method || 'GET',
     fields: options.body ? [...options.body.keys()] : [], credentials: options.credentials});
   if (window.recDelay) await window.recDelay;
+  if (options.method === 'POST' && window.recPostDelay) await window.recPostDelay;
   if (window.recFail) return new Response('{}', {status: 503});
+  if (options.method === 'POST' && window.recPostPayload) window.recPayload = window.recPostPayload;
   if ((options.method || 'GET') === 'POST' && window.recPayload.status === 'not_generated') {
     window.recPayload = {status: 'ready', items: Array.from({length: 5}, (_, i) => window.recItem(i))};
   }
@@ -160,11 +164,59 @@ window.addEventListener('load', async () => {
     await wait(() => state(root) === 'unavailable');
     assert(cards(root).length === 1 && document.querySelector('#plan-title'), 'Error conserva cards y resto del detalle');
     window.recFail = false;
+    const previousSummary = 'Para este plan buscamos cafeterías cerca del punto acordado.';
+    const nextSummary = 'Para esta salida buscamos bares y lugares para bailar cerca del punto acordado.';
+    const summaryNode = root => root.querySelector('[data-suggestions-summary]');
+    root = await make({status: 'ready', items: [window.recItem()], ai_summary: previousSummary});
+    assert(!summaryNode(root).hidden && summaryNode(root).textContent === previousSummary, 'Summary general visible como texto');
+    assert(summaryNode(root).compareDocumentPosition(root.querySelector('[data-suggestions-results]'))
+      & Node.DOCUMENT_POSITION_FOLLOWING, 'Summary antes de cards y mapa');
+    root = await make({status: 'ready', items: [window.recItem()]});
+    assert(summaryNode(root).hidden && summaryNode(root).getBoundingClientRect().height === 0, 'Sin summary no deja bloque vacío');
+    root = await make({status: 'ready', items: [window.recItem()], ai_summary: 'x'.repeat(321)});
+    assert(summaryNode(root).hidden && cards(root).length === 1, 'Summary excesivo no afecta cards');
+    root = await make({status: 'ready', items: [window.recItem()], ai_summary: '<img src=x onerror="window.recXSS=true">'});
+    assert(!summaryNode(root).querySelector('img') && !window.recXSS, 'Summary nunca se interpreta como HTML');
+    root = await make({status: 'failed', has_snapshot: true, items: [window.recItem()], ai_summary: previousSummary});
+    assert(cards(root).length === 1 && summaryNode(root).textContent === previousSummary
+      && root.textContent.includes('última versión disponible')
+      && root.querySelector('[data-suggestions-retry]').textContent === 'Reintentar actualización', 'Fallo conserva snapshot, summary y acción de actualización');
+    root = await make({status: 'pending', has_snapshot: true, items: [window.recItem()], ai_summary: previousSummary,
+      updated_at: new Date().toISOString()});
+    assert(cards(root).length === 1 && !summaryNode(root).hidden
+      && root.textContent.includes('Estamos actualizando'), 'Pending conserva datos y anuncia actualización');
+    const beforeStale = window.recCalls.length;
+    let releaseUpdate;
+    window.recPostDelay = new Promise(resolve => { releaseUpdate = resolve; });
+    window.recPostPayload = {status: 'ready', items: [window.recItem(1)], ai_summary: nextSummary, can_update: false};
+    const staleRoot = make({status: 'ready', has_snapshot: true, is_stale: true, can_update: true,
+      items: [window.recItem()], ai_summary: previousSummary});
+    await wait(() => window.recCalls.length === beforeStale + 2);
+    root = [...document.querySelectorAll('[data-recommendations]')].find(node => !node.hidden);
+    assert(state(root) === 'loading' && cards(root).length === 1 && summaryNode(root).textContent === previousSummary
+      && !root.querySelector('[data-suggestions-map]').hidden, 'Snapshot y mapa siguen visibles durante recálculo automático');
+    releaseUpdate(); window.recPostDelay = null;
+    root = await staleRoot;
+    assert(state(root) === 'ready' && summaryNode(root).textContent === nextSummary
+      && cards(root)[0].textContent.includes('El Porteño'), 'Éxito reemplaza lugares y summary');
+    assert(window.recCalls.length === beforeStale + 2, 'Stale hace un GET y un POST sin polling');
+    window.recPostPayload = null;
+    const beforeLegacy = window.recCalls.length;
+    root = await make({status: 'ready', can_refresh: true, items: [window.recItem()]});
+    assert(window.recCalls.length === beforeLegacy + 1
+      && !root.querySelector('[data-suggestions-retry]').hidden
+      && root.querySelector('[data-suggestions-retry]').textContent === 'Actualizar sugerencias', 'Legacy ofrece actualización explícita sin generación automática');
+    window.recPostPayload = {status: 'ready', can_refresh: false, items: [window.recItem()], ai_summary: nextSummary};
+    root.querySelector('[data-suggestions-retry-form]').requestSubmit();
+    await wait(() => state(root) === 'ready');
+    assert(window.recCalls.length === beforeLegacy + 2 && root.querySelector('[data-suggestions-retry]').hidden,
+      'Actualización explícita legacy genera una vez y retira la acción');
+    window.recPostPayload = null;
     const realLeaflet = window.L; window.L = null;
     root = await make({status: 'ready', items: [window.recItem()]});
     assert(cards(root).length === 1 && root.textContent.includes('El mapa no está disponible'), 'Fallo del mapa no bloquea cards');
     window.L = realLeaflet;
-    root = await make({status: 'ready', items: Array.from({length: 5}, (_, i) => window.recItem(i))});
+    root = await make({status: 'ready', ai_summary: previousSummary, items: Array.from({length: 5}, (_, i) => window.recItem(i))});
     await document.fonts.ready;
     document.documentElement.dataset.theme = 'light';
     const light = getComputedStyle(root).backgroundColor;
@@ -257,7 +309,7 @@ def main():
         Thread(target=server.serve_forever, daemon=True).start()
         stack.callback(server.server_close)
         stack.callback(server.shutdown)
-        for width in (320, 390, 820, 1440):
+        for width, height in ((320, 900), (390, 900), (820, 1000), (1366, 768), (1440, 900), (1920, 1080)):
             profile = output / f"profile-{width}"
             process = subprocess.Popen([str(chrome), "--headless", "--disable-gpu", "--no-sandbox",
                 "--no-proxy-server", "--disable-background-networking",
@@ -293,7 +345,7 @@ def main():
                                     raise RuntimeError(message["error"])
                                 return message.get("result", {})
 
-                    cdp("Emulation.setDeviceMetricsOverride", {"width": width, "height": 1000, "deviceScaleFactor": 1, "mobile": False})
+                    cdp("Emulation.setDeviceMetricsOverride", {"width": width, "height": height, "deviceScaleFactor": 1, "mobile": False})
                     cdp("Page.navigate", {"url": f"http://127.0.0.1:{server.server_port}/fixture"})
                     raw = None
                     for _ in range(450):

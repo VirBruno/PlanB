@@ -11,6 +11,7 @@ from .geoapify_service import GeoapifyClient
 from .place_ranking_service import google_maps_url, google_search_url, rank_candidates
 from .place_types import PlaceSearch, RecommendationError
 from .proposal_exceptions import ProposalNotFound, ProposalUnavailable
+from .recommendation_inputs import input_fingerprint
 
 
 def _authorized_plan(token, plan_id):
@@ -26,7 +27,20 @@ def _confirmed(plan):
             and plan.get("confirmed_at") is not None)
 
 
-def _snapshot(row):
+def _criteria(row):
+    value = row.get("criteria") if row else None
+    return value if isinstance(value, dict) else {}
+
+
+def _proposal(token, plan):
+    try:
+        return proposal_service.get_proposal(
+            token, plan_id=plan["id"], proposal_id=plan["selected_proposal_id"])
+    except (ProposalNotFound, ProposalUnavailable):
+        return None
+
+
+def _snapshot(row, fingerprint=None):
     if row is None:
         return {"status": "not_generated", "items": [], "error_code": None}
     result = {key: row.get(key) for key in (
@@ -41,6 +55,17 @@ def _snapshot(row):
         item["google_maps_url"] = google_maps_url(item)
         item["google_search_url"] = google_search_url(item)
     result["result_code"] = "no_results" if row["status"] == "ready" and not row["items"] else None
+    criteria = _criteria(row)
+    result["has_snapshot"] = bool(row.get("generated_at") or row["items"] or row["status"] == "ready")
+    result["ai_summary"] = (place_intent_service.sanitize_summary(criteria.get("summary"))
+                            if result["has_snapshot"] else None)
+    previous = criteria.get("input_fingerprint")
+    attempted = criteria.get("attempted_input_fingerprint")
+    result["is_stale"] = bool(previous and fingerprint and previous != fingerprint)
+    result["can_update"] = bool(fingerprint and row["status"] != "pending"
+                                and (previous or attempted) and previous != fingerprint
+                                and attempted != fingerprint)
+    result["can_refresh"] = row["status"] == "ready" and not previous
     return result
 
 
@@ -49,12 +74,17 @@ def get_recommendations(token, plan_id):
     plan = _authorized_plan(token, plan_id)
     if not _confirmed(plan):
         return {"status": "not_confirmed", "items": [], "error_code": None}
-    return _snapshot(recommendation_store.read(token, plan))
+    row = recommendation_store.read(token, plan)
+    criteria = _criteria(row)
+    # Legacy no dispara llamadas a proveedores ni requiere leer contenido para validarse.
+    proposal = _proposal(token, plan) if (criteria.get("input_fingerprint")
+                                         or criteria.get("attempted_input_fingerprint")) else None
+    return _snapshot(row, input_fingerprint(plan, proposal) if proposal is not None else None)
 
 
 @sensitive_variables()
 def generate_recommendations(token, plan_id, *, replace=False):
-    """Idempotente por decisión. replace es interno para futuros reintentos explícitos.
+    """Idempotente por decisión/inputs. replace sólo expresa una acción explícita.
 
     No reintenta fallos/pending al recargar, ni utiliza datos de ubicación del cliente.
     La reserva y el reemplazo son transacciones cortas; la red queda fuera de DB.
@@ -63,16 +93,26 @@ def generate_recommendations(token, plan_id, *, replace=False):
     if not _confirmed(plan):
         return {"status": "not_confirmed", "items": [], "error_code": None}
     row = recommendation_store.read(token, plan)
-    if row is not None and not replace:
+    if row is not None and not replace and (row["status"] == "pending" or not (
+            _criteria(row).get("input_fingerprint") or _criteria(row).get("attempted_input_fingerprint"))):
         return _snapshot(row)
-    generation_id = recommendation_store.claim(plan, replace=replace)
+    proposal = _proposal(token, plan)
+    fingerprint = input_fingerprint(plan, proposal) if proposal is not None else None
+    if row is not None and not replace:
+        snapshot = _snapshot(row, fingerprint)
+        if not snapshot["can_update"]:
+            return snapshot
+    # Una lectura fallida no debe destruir ni reemplazar datos útiles.
+    if proposal is None and row is not None:
+        return _snapshot(row)
+    generation_id = recommendation_store.claim(plan, replace=replace, input_fingerprint=fingerprint)
     if generation_id is None:
         return get_recommendations(token, plan_id)
     items, error_code, location, criteria = [], None, None, None
     interpretation = None
     try:
-        proposal = proposal_service.get_proposal(
-            token, plan_id=plan["id"], proposal_id=plan["selected_proposal_id"])
+        if proposal is None:
+            raise RecommendationError("proposal_unavailable")
         interpretation = GeminiIntentClient().interpret(proposal)
         provider = GeoapifyClient()
         location = place_intent_service.resolve_location(proposal, provider)
@@ -85,7 +125,7 @@ def generate_recommendations(token, plan_id, *, replace=False):
     recommendation_store.finish(
         plan, generation_id, items=items, error_code=error_code,
         base_location=asdict(location) if location else None,
-        criteria={**interpretation.criteria(),
+        criteria={**interpretation.criteria(), "input_fingerprint": fingerprint,
                   "categories": list(criteria.categories), "radius_meters": criteria.radius_meters,
                   "candidate_limit": criteria.candidate_limit} if criteria else None,
     )
