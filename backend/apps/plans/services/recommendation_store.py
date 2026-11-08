@@ -1,5 +1,6 @@
 """Lecturas con JWT/RLS; escrituras sólo por RPC backend, sin payload del navegador."""
 from math import isfinite
+import re
 from uuid import UUID
 
 from django.views.decorators.debug import sensitive_variables
@@ -69,11 +70,16 @@ def _write(function, payload):
         _translate(exc)
 
 
-def claim(plan, *, replace=False):
-    ticket = _write("claim_plan_recommendations", {
+def claim(plan, *, replace=False, input_fingerprint=None):
+    payload = {
         "p_plan_id": plan["id"], "p_proposal_id": plan["selected_proposal_id"],
         "p_confirmed_at": plan["confirmed_at"].isoformat(), "p_replace": replace,
-    })
+    }
+    if input_fingerprint is not None:
+        if not isinstance(input_fingerprint, str) or not re.fullmatch(r"[0-9a-f]{64}", input_fingerprint):
+            raise ValueError("Fingerprint inválido")
+        payload["p_input_fingerprint"] = input_fingerprint
+    ticket = _write("claim_plan_recommendations", payload)
     if ticket is not None:
         try:
             return str(UUID(ticket))

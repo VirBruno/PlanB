@@ -376,7 +376,9 @@ class ExpenseViewTests(TestCase):
         self.assertContains(response, "+$20.000,00")
         self.assertContains(response, "-$10.000,00")
         self.assertContains(response, "Para saldar")
-        self.assertContains(response, "Facundo</strong> debe", html=False)
+        self.assertContains(response, "Facundo</strong>", html=False)
+        self.assertContains(response, 'class="pb-transfer-route"')
+        self.assertContains(response, 'class="sr-only">debe pagar a</span>')
         self.assertNotContains(response, "Notificar")
 
     def test_unavailable_is_not_misrepresented_as_empty(self):

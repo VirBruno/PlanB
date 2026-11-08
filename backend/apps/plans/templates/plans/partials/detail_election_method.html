@@ -1,0 +1,32 @@
+{% load l10n %}
+    <section class="proposal-election" id="proposal-election" aria-labelledby="proposal-election-title">
+      <div class="proposal-election-heading">
+        <div>
+          <p class="eyebrow eyebrow--blue">ELECCIÓN DEL GRUPO</p>
+          <h3 id="proposal-election-title">Método de elección</h3>
+        </div>
+        {% if election_method %}<span class="proposal-method-active">{% if election_method == 'ideal' %}Punto de encuentro{% elif election_method == 'votes' %}Votación{% else %}Combate{% endif %}</span>{% else %}<span class="proposal-method-active">Sin elegir</span>{% endif %}
+      </div>
+      {% if can_manage and not plan.selected_proposal_id %}
+      <details class="proposal-method-picker" {% if not election_method %}open{% endif %}>
+        <summary data-method-picker>Elija su Método de elección</summary>
+        <form method="post" action="{% url 'plans:proposal_election_method' plan.id %}">
+          {% csrf_token %}
+          <div class="proposal-method-options" role="group" aria-label="Métodos de elección">
+            <button class="proposal-method-option{% if election_method == 'ideal' %} is-active{% endif %}" type="submit" name="method" value="ideal" {% if election_method == 'ideal' %}aria-pressed="true"{% endif %}>
+              <strong>1. Punto de encuentro</strong><span>Calcula ubicación intermedia y presupuesto de referencia.</span>
+            </button>
+            <button class="proposal-method-option{% if election_method == 'votes' %} is-active{% endif %}" type="submit" name="method" value="votes" {% if election_method == 'votes' %}aria-pressed="true"{% endif %}>
+              <strong>2. Votación</strong><span>Cada integrante elige una propuesta.</span>
+            </button>
+            <button class="proposal-method-option{% if election_method == 'combat' %} is-active{% endif %}" type="submit" name="method" value="combat" {% if election_method == 'combat' %}aria-pressed="true"{% endif %}>
+              <strong>3. Combate</strong><span>Jugá una partida y sumá puntos para tu propuesta.</span>
+            </button>
+          </div>
+        </form>
+      </details>
+      {% else %}
+      <p class="proposal-method-note">El owner del grupo define el método para este plan.</p>
+      {% endif %}
+    </section>
+

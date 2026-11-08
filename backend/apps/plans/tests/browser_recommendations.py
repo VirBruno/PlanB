@@ -34,6 +34,8 @@ window.recCalls = [];
 window.recPayload = {status: 'not_generated', items: []};
 window.recFail = false;
 window.recDelay = null;
+window.recPostDelay = null;
+window.recPostPayload = null;
 window.recItem = (index = 0) => ({
   provider_place_id: 'poi-' + index, name: ['Café de la Plaza', 'El Porteño', 'Rincón del Encuentro', 'La Esquina', 'Café Güemes'][index],
   categories: ['catering.cafe'], address: 'Calle ' + (10 + index) + ', La Plata',
@@ -46,13 +48,16 @@ window.fetch = async (url, options = {}) => {
   window.recCalls.push({url: String(url), method: options.method || 'GET',
     fields: options.body ? [...options.body.keys()] : [], credentials: options.credentials});
   if (window.recDelay) await window.recDelay;
+  if (options.method === 'POST' && window.recPostDelay) await window.recPostDelay;
   if (window.recFail) return new Response('{}', {status: 503});
+  if (options.method === 'POST' && window.recPostPayload) window.recPayload = window.recPostPayload;
   if ((options.method || 'GET') === 'POST' && window.recPayload.status === 'not_generated') {
     window.recPayload = {status: 'ready', items: Array.from({length: 5}, (_, i) => window.recItem(i))};
   }
   return new Response(JSON.stringify(window.recPayload), {headers: {'Content-Type': 'application/json'}});
 };
 window.addEventListener('load', async () => {
+  document.querySelector('[data-tool="sugerencias"]')?.click();
   const checks = [];
   const assert = (value, label) => { if (!value) throw Error(label); checks.push(label); };
   const wait = async predicate => {
@@ -160,11 +165,59 @@ window.addEventListener('load', async () => {
     await wait(() => state(root) === 'unavailable');
     assert(cards(root).length === 1 && document.querySelector('#plan-title'), 'Error conserva cards y resto del detalle');
     window.recFail = false;
+    const previousSummary = 'Para este plan buscamos cafeterías cerca del punto acordado.';
+    const nextSummary = 'Para esta salida buscamos bares y lugares para bailar cerca del punto acordado.';
+    const summaryNode = root => root.querySelector('[data-suggestions-summary]');
+    root = await make({status: 'ready', items: [window.recItem()], ai_summary: previousSummary});
+    assert(!summaryNode(root).hidden && summaryNode(root).textContent === previousSummary, 'Summary general visible como texto');
+    assert(summaryNode(root).compareDocumentPosition(root.querySelector('[data-suggestions-results]'))
+      & Node.DOCUMENT_POSITION_FOLLOWING, 'Summary antes de cards y mapa');
+    root = await make({status: 'ready', items: [window.recItem()]});
+    assert(summaryNode(root).hidden && summaryNode(root).getBoundingClientRect().height === 0, 'Sin summary no deja bloque vacío');
+    root = await make({status: 'ready', items: [window.recItem()], ai_summary: 'x'.repeat(321)});
+    assert(summaryNode(root).hidden && cards(root).length === 1, 'Summary excesivo no afecta cards');
+    root = await make({status: 'ready', items: [window.recItem()], ai_summary: '<img src=x onerror="window.recXSS=true">'});
+    assert(!summaryNode(root).querySelector('img') && !window.recXSS, 'Summary nunca se interpreta como HTML');
+    root = await make({status: 'failed', has_snapshot: true, items: [window.recItem()], ai_summary: previousSummary});
+    assert(cards(root).length === 1 && summaryNode(root).textContent === previousSummary
+      && root.textContent.includes('última versión disponible')
+      && root.querySelector('[data-suggestions-retry]').textContent === 'Reintentar actualización', 'Fallo conserva snapshot, summary y acción de actualización');
+    root = await make({status: 'pending', has_snapshot: true, items: [window.recItem()], ai_summary: previousSummary,
+      updated_at: new Date().toISOString()});
+    assert(cards(root).length === 1 && !summaryNode(root).hidden
+      && root.textContent.includes('Estamos actualizando'), 'Pending conserva datos y anuncia actualización');
+    const beforeStale = window.recCalls.length;
+    let releaseUpdate;
+    window.recPostDelay = new Promise(resolve => { releaseUpdate = resolve; });
+    window.recPostPayload = {status: 'ready', items: [window.recItem(1)], ai_summary: nextSummary, can_update: false};
+    const staleRoot = make({status: 'ready', has_snapshot: true, is_stale: true, can_update: true,
+      items: [window.recItem()], ai_summary: previousSummary});
+    await wait(() => window.recCalls.length === beforeStale + 2);
+    root = [...document.querySelectorAll('[data-recommendations]')].find(node => !node.hidden);
+    assert(state(root) === 'loading' && cards(root).length === 1 && summaryNode(root).textContent === previousSummary
+      && !root.querySelector('[data-suggestions-map]').hidden, 'Snapshot y mapa siguen visibles durante recálculo automático');
+    releaseUpdate(); window.recPostDelay = null;
+    root = await staleRoot;
+    assert(state(root) === 'ready' && summaryNode(root).textContent === nextSummary
+      && cards(root)[0].textContent.includes('El Porteño'), 'Éxito reemplaza lugares y summary');
+    assert(window.recCalls.length === beforeStale + 2, 'Stale hace un GET y un POST sin polling');
+    window.recPostPayload = null;
+    const beforeLegacy = window.recCalls.length;
+    root = await make({status: 'ready', can_refresh: true, items: [window.recItem()]});
+    assert(window.recCalls.length === beforeLegacy + 1
+      && !root.querySelector('[data-suggestions-retry]').hidden
+      && root.querySelector('[data-suggestions-retry]').textContent === 'Actualizar sugerencias', 'Legacy ofrece actualización explícita sin generación automática');
+    window.recPostPayload = {status: 'ready', can_refresh: false, items: [window.recItem()], ai_summary: nextSummary};
+    root.querySelector('[data-suggestions-retry-form]').requestSubmit();
+    await wait(() => state(root) === 'ready');
+    assert(window.recCalls.length === beforeLegacy + 2 && root.querySelector('[data-suggestions-retry]').hidden,
+      'Actualización explícita legacy genera una vez y retira la acción');
+    window.recPostPayload = null;
     const realLeaflet = window.L; window.L = null;
     root = await make({status: 'ready', items: [window.recItem()]});
     assert(cards(root).length === 1 && root.textContent.includes('El mapa no está disponible'), 'Fallo del mapa no bloquea cards');
     window.L = realLeaflet;
-    root = await make({status: 'ready', items: Array.from({length: 5}, (_, i) => window.recItem(i))});
+    root = await make({status: 'ready', ai_summary: previousSummary, items: Array.from({length: 5}, (_, i) => window.recItem(i))});
     await document.fonts.ready;
     document.documentElement.dataset.theme = 'light';
     const light = getComputedStyle(root).backgroundColor;
@@ -175,8 +228,8 @@ window.addEventListener('load', async () => {
     assert(columns === (innerWidth > 1000 ? 2 : 1), 'Layout desktop/mobile coherente');
     const list = root.querySelector('[data-suggestions-list]');
     const panel = root.querySelector('.pb-suggestions-map-panel');
-    assert(document.querySelector('.pb-plan-proposals').compareDocumentPosition(original) & Node.DOCUMENT_POSITION_FOLLOWING,
-      'Sugerencias después de propuestas del grupo');
+    assert(original.closest('[data-tool-panel="sugerencias"]') && !original.closest('[data-plan-drawer]'),
+      'Sugerencias en workspace y fuera del historial');
     if (innerWidth > 1000) {
       assert(list.scrollHeight > list.clientHeight && getComputedStyle(list).overflowY === 'auto', 'Desktop usa listado con scroll propio');
       assert(Math.abs(list.getBoundingClientRect().height - panel.getBoundingClientRect().height) < 3, 'Listado y mapa equilibrados en altura');
@@ -203,7 +256,7 @@ window.addEventListener('load', async () => {
 """
 
 
-def main():
+def main(*, proposals=None, plan_fixture=None, group_role="member", all_scripts=False):
     from websockets.sync.client import connect
     chrome = Path(os.environ.get("PLANB_CHROME", r"C:\Program Files\Google\Chrome\Application\chrome.exe"))
     if not chrome.is_file():
@@ -217,9 +270,13 @@ def main():
             if path == "/fixture":
                 body = client.get(f"/planes/{PLAN_ID}/").content.decode()
                 body = re.sub(r'<script\b[^>]*src="([^"]+)"[^>]*>\s*</script>',
-                    lambda m: m[0] if any(name in m[1] for name in ("leaflet.js", "plan-recommendations.js")) else "", body)
+                    lambda m: m[0] if (all_scripts and any(name in m[1] for name in (
+                        "leaflet.js", "plan-recommendations.js", "plan-confirmed-workspace.js", "plan-expenses.js",
+                        "plan-weather-planner.js", "proposal-weather.js", "proposals.js")))
+                    or (not all_scripts and any(name in m[1] for name in (
+                        "leaflet.js", "plan-recommendations.js", "plan-confirmed-workspace.js"))) else "", body)
                 body = re.sub(r'<link\b[^>]*href="https?://[^>]+>', "", body)
-                payload, mime = body.replace("</head>", HARNESS + "</head>").encode(), "text/html; charset=utf-8"
+                payload, mime = body.replace("</head>", "<style>#browser-results{display:none}</style>" + HARNESS + "</head>").encode(), "text/html; charset=utf-8"
             elif path.startswith("/static/"):
                 asset = finders.find(path.removeprefix("/static/"))
                 if not asset:
@@ -246,10 +303,11 @@ def main():
             "apps.users.services.session_service.current_user": {"id": USER_ID, "username": "Ana"},
             "apps.users.services.session_service.get_access_token": "browser-jwt",
             "apps.notifications.services.unread_count": 0,
-            "apps.plans.views.plan_service.get_plan": confirmed_plan(),
-            "apps.plans.views.group_service.get_group": {"id": GROUP_ID, "name": "Amigos", "role": "member"},
-            "apps.plans.views.proposal_service.list_proposals": [confirmed_proposal()],
+            "apps.plans.views.plan_service.get_plan": plan_fixture or confirmed_plan(),
+            "apps.plans.views.group_service.get_group": {"id": GROUP_ID, "name": "Amigos", "role": group_role},
+            "apps.plans.views.proposal_service.list_proposals": proposals if proposals is not None else [confirmed_proposal()],
             "apps.plans.views.profile_service.usernames_for_ids": {USER_ID: "Ana"},
+            "apps.plans.views.election_service.voted_proposal": None,
         }
         for target, value in fixtures.items():
             stack.enter_context(patch(target, return_value=value))
@@ -257,7 +315,7 @@ def main():
         Thread(target=server.serve_forever, daemon=True).start()
         stack.callback(server.server_close)
         stack.callback(server.shutdown)
-        for width in (320, 390, 820, 1440):
+        for width, height in ((320, 900), (390, 900), (820, 1000), (1366, 768), (1440, 900), (1920, 1080)):
             profile = output / f"profile-{width}"
             process = subprocess.Popen([str(chrome), "--headless", "--disable-gpu", "--no-sandbox",
                 "--no-proxy-server", "--disable-background-networking",
@@ -293,7 +351,7 @@ def main():
                                     raise RuntimeError(message["error"])
                                 return message.get("result", {})
 
-                    cdp("Emulation.setDeviceMetricsOverride", {"width": width, "height": 1000, "deviceScaleFactor": 1, "mobile": False})
+                    cdp("Emulation.setDeviceMetricsOverride", {"width": width, "height": height, "deviceScaleFactor": 1, "mobile": False})
                     cdp("Page.navigate", {"url": f"http://127.0.0.1:{server.server_port}/fixture"})
                     raw = None
                     for _ in range(450):
@@ -302,6 +360,38 @@ def main():
                         if raw:
                             break
                         time.sleep(.05)
+                    if all_scripts and raw and json.loads(raw).get("ok"):
+                        # Teclado nativo: los eventos sintéticos no reproducen el foco de Leaflet.
+                        cdp("Runtime.evaluate", {"expression": """(() => {
+                          const element = document.querySelector('[data-interactive-proposal-map]');
+                          element.scrollIntoView({block:'center'}); element.focus();
+                          window.layoutBeforePan = window.layoutMaps.get(element).getCenter().lng;
+                        })()"""})
+                        for event_type in ("keyDown", "keyUp"):
+                            cdp("Input.dispatchKeyEvent", {"type": event_type, "key": "ArrowRight", "code": "ArrowRight", "windowsVirtualKeyCode": 39, "nativeVirtualKeyCode": 39})
+                        time.sleep(.3)
+                        panned = cdp("Runtime.evaluate", {"expression": "Math.abs(window.layoutMaps.get(document.querySelector('[data-interactive-proposal-map]')).getCenter().lng-window.layoutBeforePan)>.00001", "returnByValue": True})["result"]["value"]
+                        report = json.loads(raw)
+                        if panned:
+                            report["checks"].append("Flecha nativa desplaza el mapa confirmado")
+                        else:
+                            report.update(ok=False, error="Teclado nativo no desplaza el mapa confirmado")
+                        raw = json.dumps(report)
+                        cdp("Emulation.setEmulatedMedia", {"features": [{"name": "prefers-reduced-motion", "value": "reduce"}]})
+                        reduced_motion = cdp("Runtime.evaluate", {"expression": """(() => {
+                          window.layoutCapture('drawer');
+                          const drawer = document.querySelector('[data-plan-drawer]');
+                          const noAnimation = getComputedStyle(drawer).animationName === 'none';
+                          drawer.querySelector('[data-close-plan-details]').click();
+                          return noAnimation && !drawer.open;
+                        })()""", "returnByValue": True})["result"]["value"]
+                        cdp("Emulation.setEmulatedMedia", {"features": []})
+                        report = json.loads(raw)
+                        if reduced_motion:
+                            report["checks"].append("Movimiento reducido omite animación y cierra inmediatamente")
+                        else:
+                            report.update(ok=False, error="Drawer no respeta movimiento reducido")
+                        raw = json.dumps(report)
                     for theme in ("light", "dark"):
                         clip = cdp("Runtime.evaluate", {"expression": """(() => {
                           document.documentElement.dataset.theme = '""" + theme + """';
@@ -309,8 +399,17 @@ def main():
                           return {x:r.x + scrollX, y:r.y + scrollY, width:r.width, height:r.height, scale:1};
                         })()""", "returnByValue": True})["result"]["value"]
                         time.sleep(.2)  # Esperar la transición de superficies entre temas.
+                        if all_scripts or not clip.get("width"):
+                            clip = {"x": 0, "y": 0, "width": width, "height": height, "scale": 1}
                         data = cdp("Page.captureScreenshot", {"captureBeyondViewport": True, "clip": clip})["data"]
                         (output / f"suggestions-{width}-{theme}.png").write_bytes(base64.b64decode(data))
+                        if all_scripts and raw and json.loads(raw).get("ok"):
+                            for stage in ("compact", "drawer", "gastos", "balances", "clima", "sugerencias"):
+                                cdp("Runtime.evaluate", {"expression": f"window.layoutCapture('{stage}')"})
+                                time.sleep(.35)  # Esperar la entrada completa del drawer.
+                                data = cdp("Page.captureScreenshot", {"captureBeyondViewport": False})["data"]
+                                (output / f"confirmed-{width}-{stage}-{theme}.png").write_bytes(base64.b64decode(data))
+                            cdp("Runtime.evaluate", {"expression": "window.layoutCapture('sugerencias')"})
                     if not raw:
                         raise SystemExit(f"Sin resultado del navegador: {output}")
                     report = json.loads(raw)

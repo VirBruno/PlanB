@@ -1,0 +1,83 @@
+{% load l10n %}
+<div class="pb-confirmed-layout" data-confirmed-layout>
+  <header class="pb-confirmed-heading">
+    <div>
+      <a class="back-link" href="{% url 'groups:detail' group.id %}">← {{ group.name }}</a>
+      <h1 id="plan-title">{{ plan.name }}</h1>
+    </div>
+    <button type="button" class="button button--quiet" data-open-plan-details
+            aria-expanded="false" aria-controls="plan-details-drawer">Detalles del plan <span aria-hidden="true">↗</span></button>
+  </header>
+  <section class="group-panel pb-plan-detail pb-confirmed-main" aria-labelledby="plan-title">
+    {% if confirmed_proposal %}
+      {% include 'plans/partials/detail_decision.html' %}
+    {% else %}
+      <section class="pb-decision-panel pb-decision-panel--confirmed" aria-labelledby="pb-decision-title">
+        <div class="pb-decision-badge">✓ ENCUENTRO CONFIRMADO</div>
+        <h2 id="pb-decision-title">Encuentro confirmado</h2>
+        <p>La propuesta elegida no está disponible en este listado.</p>
+        {% if plan.scheduled_at %}<p>{{ plan.scheduled_at|date:"d/m/Y H:i" }}</p>{% endif %}
+        <button class="button button--quiet" type="button" data-open-plan-details data-decision-target="result"
+                aria-controls="plan-details-drawer" aria-expanded="false">Ver proceso de decisión</button>
+      </section>
+    {% endif %}
+    <section class="pb-meeting-tools" aria-labelledby="meeting-tools-title">
+      <div class="pb-meeting-tools-heading"><h2 id="meeting-tools-title">Organizar el encuentro</h2><p>Elegí qué necesitás consultar.</p></div>
+      <div class="pb-tool-selectors" aria-label="Herramientas del encuentro">
+        <button type="button" class="pb-tool-selector" data-tool="clima" aria-expanded="false" aria-controls="meeting-tool-clima">
+          <span class="pb-tool-number" aria-hidden="true">01</span><span><strong>Clima</strong><small>Revisar clima y alternativas</small></span><span class="pb-tool-action">Explorar <span aria-hidden="true">↗</span></span>
+        </button>
+        <button type="button" class="pb-tool-selector" data-tool="gastos" data-open-expenses aria-expanded="false" aria-controls="meeting-tool-gastos">
+          <span class="pb-tool-number" aria-hidden="true">02</span><span><strong>Gastos compartidos</strong><small data-expense-card-summary>Organizar cuentas entre todos</small></span><span class="pb-tool-action">Gestionar <span aria-hidden="true">↗</span></span>
+        </button>
+        <button type="button" class="pb-tool-selector" data-tool="sugerencias" aria-expanded="false" aria-controls="meeting-tool-sugerencias">
+          <span class="pb-tool-number" aria-hidden="true">03</span><span><strong>Sugerencias con IA</strong><small data-ia-tool-status>Lugares para este encuentro</small></span><span class="pb-tool-action">Explorar <span aria-hidden="true">↗</span></span>
+        </button>
+      </div>
+      <div class="pb-tool-workspace">
+        <section id="meeting-tool-clima" data-tool-panel="clima" hidden aria-label="Herramienta de clima">
+          <div class="pb-tool-workspace-heading"><span>CLIMA Y ALTERNATIVAS</span><button type="button" class="button button--quiet" data-close-tool>Cerrar herramienta <span aria-hidden="true">×</span></button></div>
+          {% include 'plans/partials/detail_weather.html' %}
+        </section>
+        <section id="meeting-tool-gastos" data-tool-panel="gastos" hidden aria-label="Herramienta de gastos">
+          {% include 'plans/expenses/modal.html' %}
+        </section>
+        <section id="meeting-tool-sugerencias" data-tool-panel="sugerencias" hidden aria-label="Herramienta de sugerencias">
+          <div class="pb-tool-workspace-heading"><span>LUGARES PARA EL GRUPO</span><button type="button" class="button button--quiet" data-close-tool>Cerrar herramienta <span aria-hidden="true">×</span></button></div>
+          {% include 'plans/partials/recommendations.html' %}
+        </section>
+      </div>
+    </section>
+    <dialog id="plan-details-drawer" class="pb-plan-drawer" data-plan-drawer aria-modal="true" aria-labelledby="plan-details-title">
+      <header class="pb-plan-drawer-heading"><div><span>CONTEXTO DEL ENCUENTRO</span><h2 id="plan-details-title">Detalles del plan</h2></div><button type="button" data-close-plan-details aria-label="Cerrar detalles del plan">×</button></header>
+      <div class="pb-plan-drawer-body">
+        <section class="pb-plan-secondary" aria-labelledby="plan-information-title">
+          <h3 id="plan-information-title">Información del plan</h3>
+          {% if plan.description %}<p>{{ plan.description|linebreaksbr }}</p>{% endif %}
+          <p class="pb-plan-created">Creado el {{ plan.created_at|date:"d/m/Y" }}</p>
+          {% if can_manage %}<div class="pb-plan-secondary-actions"><a href="{% url 'plans:edit' plan.id %}">Editar plan</a><a href="{% url 'plans:delete_confirmation' plan.id %}">Eliminar plan</a></div>{% endif %}
+        </section>
+        <section class="pb-plan-proposals pb-decision-history" aria-labelledby="decision-history-title">
+          <h3 id="decision-history-title" tabindex="-1">Cómo llegamos a esta decisión</h3>
+          <p>Las alternativas y el resultado que compartió el grupo.</p>
+          <details data-decision-block="proposals"><summary>Propuestas <span>{{ proposals|length }}</span></summary>
+            {% if proposals %}{% include 'plans/partials/detail_proposal_list.html' %}{% else %}<p>Todavía no hay propuestas para este plan.</p>{% endif %}
+            {% if not can_create_proposal %}<p class="empty-proposals">Ya compartiste tu propuesta para este plan.</p>{% endif %}
+          </details>
+          <details data-decision-block="method"><summary>Método de elección</summary>
+            {% if proposals %}{% include 'plans/partials/detail_election_method.html' %}{% else %}<p>No hay un método registrado para estas propuestas.</p>{% endif %}
+          </details>
+          <details data-decision-block="voting"><summary>{% if election_method == 'combat' %}Combate{% else %}Votación y comparación{% endif %}</summary>
+            {% if proposals %}{% include 'plans/partials/detail_election_results.html' %}{% endif %}
+            {% if not election_method %}<p>No se utilizó un método de elección registrado.</p>{% endif %}
+          </details>
+          <details data-decision-block="result"><summary>Resultado</summary>
+            {% if confirmed_proposal %}<p>Propuesta elegida: <strong>{{ confirmed_proposal.tittle }}</strong></p><p>Compartida por {{ confirmed_proposal.creator_username }}.</p>{% else %}<p>El encuentro conserva la propuesta seleccionada por el grupo.</p>{% endif %}
+            <p>La información definitiva está en Encuentro confirmado.</p>
+          </details>
+        </section>
+      </div>
+    </dialog>
+  </section>
+  <noscript><p>Con JavaScript desactivado, las herramientas y los detalles se muestran a continuación.</p><style>.pb-confirmed-layout [data-tool-panel][hidden]{display:block!important}.pb-confirmed-layout .pb-plan-drawer{display:block;position:static;width:auto;max-width:100%;height:auto;max-height:none}.pb-confirmed-layout .pb-tool-selectors,.pb-confirmed-layout [data-open-plan-details],.pb-confirmed-layout [data-close-plan-details],.pb-confirmed-layout [data-close-tool]{display:none}</style></noscript>
+</div>

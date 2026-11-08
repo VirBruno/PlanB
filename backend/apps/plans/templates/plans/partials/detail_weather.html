@@ -1,0 +1,75 @@
+{% load l10n %}
+  {% if plan.scheduled_at %}
+  <details class="pb-weather-compare" data-weather-compare {% if confirmed_layout %}open{% endif %}>
+    <summary class="pb-weather-compare-toggle">
+      <span class="pb-weather-compare-main"><span class="pb-weather-compare-icon" aria-hidden="true">☀</span> ¿Querés comparar otro día o lugar?</span>
+      <span class="pb-weather-compare-hint">Explorar alternativas <span aria-hidden="true">⌄</span></span>
+    </summary>
+  {% endif %}
+  <section class="pb-climate-planner" data-plan-weather
+           data-cities-url="{% url 'plans:plan_weather_cities' plan.id %}"
+           data-forecast-url="{% url 'plans:plan_weather_forecast' plan.id %}"
+           aria-labelledby="pb-plan-weather-title">
+    <div class="pb-climate-head">
+      <div>
+        <span class="pb-climate-kicker">PLANIFICÁ MEJOR</span>
+        <h2 id="pb-plan-weather-title"><span aria-hidden="true">☀</span> {% if scheduled_local %}Compará otras fechas y destinos{% else %}Explorá el clima{% endif %}</h2>
+        <p>Elegí una provincia y localidad argentina para comparar el pronóstico de los próximos 16 días.</p>
+      </div>
+      <span class="pb-climate-horizon">Hasta 16 días</span>
+    </div>
+    <div class="pb-climate-form">
+      <div class="pb-climate-field">
+        <label for="pb-climate-province">Provincia</label>
+        <select id="pb-climate-province" data-weather-province>
+          <option value="">Elegí una provincia</option>
+          <option value="buenos-aires">Buenos Aires</option>
+          <option value="caba">Ciudad Autónoma de Buenos Aires</option>
+          <option value="catamarca">Catamarca</option>
+          <option value="chaco">Chaco</option>
+          <option value="chubut">Chubut</option>
+          <option value="cordoba">Córdoba</option>
+          <option value="corrientes">Corrientes</option>
+          <option value="entre-rios">Entre Ríos</option>
+          <option value="formosa">Formosa</option>
+          <option value="jujuy">Jujuy</option>
+          <option value="la-pampa">La Pampa</option>
+          <option value="la-rioja">La Rioja</option>
+          <option value="mendoza">Mendoza</option>
+          <option value="misiones">Misiones</option>
+          <option value="neuquen">Neuquén</option>
+          <option value="rio-negro">Río Negro</option>
+          <option value="salta">Salta</option>
+          <option value="san-juan">San Juan</option>
+          <option value="san-luis">San Luis</option>
+          <option value="santa-cruz">Santa Cruz</option>
+          <option value="santa-fe">Santa Fe</option>
+          <option value="santiago-del-estero">Santiago del Estero</option>
+          <option value="tierra-del-fuego">Tierra del Fuego</option>
+          <option value="tucuman">Tucumán</option>
+        </select>
+      </div>
+      <form class="pb-climate-city-form" data-weather-search-form role="search">
+        <div class="pb-climate-field">
+          <label for="pb-climate-city">Localidad</label>
+          <input id="pb-climate-city" type="search" placeholder="Ej.: Mar del Plata" minlength="3" maxlength="70" autocomplete="off" data-weather-query disabled>
+        </div>
+        <button type="submit" class="button button--primary" data-weather-search disabled>Buscar</button>
+      </form>
+    </div>
+    <div class="pb-climate-results" data-weather-cities hidden aria-label="Elegí una localidad"></div>
+    <p class="pb-climate-status" data-weather-message aria-live="polite">Seleccioná provincia y localidad para explorar el pronóstico.</p>
+    <div class="pb-climate-forecast" data-weather-forecast hidden>
+      <div class="pb-climate-forecast-head">
+        <div><span class="pb-climate-kicker">PRONÓSTICO DISPONIBLE</span><h3 data-weather-city-title></h3></div>
+        <small>Deslizá para ver más días · seleccioná uno para ver sus condiciones</small>
+      </div>
+      <div class="pb-climate-days" data-weather-days aria-label="Comparación de días" tabindex="0"></div>
+      <div class="pb-climate-selected" data-weather-selected aria-live="polite"></div>
+      <p class="pb-climate-note">Los datos son orientativos y pueden cambiar. Comparar alternativas no modifica la fecha ni el lugar guardados en el plan. <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Clima: Open-Meteo</a> · <a href="https://www.geonames.org/" target="_blank" rel="noopener noreferrer">Localidades: GeoNames</a>.</p>
+    </div>
+  </section>
+  {% if plan.scheduled_at %}
+  </details>
+  {% endif %}
+

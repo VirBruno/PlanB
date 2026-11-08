@@ -311,8 +311,18 @@ local o un proyecto de prueba autorizado. Ver
 El backend permite generar y consultar un snapshot compartido de hasta cinco
 lugares Geoapify por plan confirmado. Requiere revisar y aplicar manualmente
 `supabase/migrations/202611050001_plan_recommendations.sql` y configurar
-`GEOAPIFY_API_KEY` sólo en el servidor. El detalle confirmado muestra cards y mapa
+`GEOAPIFY_API_KEY` y `GEMINI_API_KEY` sólo en el servidor. Gemini interpreta la
+actividad de la propuesta ganadora con JSON Schema; Geoapify aporta los lugares.
+El modelo predeterminado es `gemini-3.8-flash`, con override opcional `GEMINI_MODEL`.
+El detalle confirmado muestra cards y mapa
 Leaflet/OSM, reutiliza snapshots y genera automáticamente sólo si faltan. Incluye
 reintento explícito y estados locales sin afectar la confirmación.
 Ver [backend y seguridad](docs/testing/recomendaciones.md) y
-[interfaz, pruebas y pasos manuales](docs/testing/recomendaciones-ui.md).
+[interfaz, pruebas y pasos manuales](docs/testing/recomendaciones-ui.md), e
+[interpretación Gemini y validación del Prompt 3](docs/testing/recomendaciones-gemini.md).
+
+El cierre del asistente agrega contexto general de IA y actualización de snapshots
+por inputs relevantes, conservando la última versión si falla un recálculo.
+La nueva firma de reserva requiere revisar y aplicar manualmente
+`supabase/migrations/202611060001_recommendation_fingerprint_claim.sql` antes de
+desplegar el backend actualizado. Ver [informe, SQL y pruebas del Prompt 4](docs/testing/recomendaciones-cierre.md).

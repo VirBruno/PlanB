@@ -9,6 +9,8 @@
   const retry = dialog.querySelector("[data-reload-expenses]");
   let busy = false;
   let previousOverflow = "";
+  const inline = dialog.hasAttribute("data-inline-expenses");
+  let loaded = false;
 
   function groupSelection() {
     const form = content.querySelector("[data-expense-form]");
@@ -36,10 +38,12 @@
       fragment.innerHTML = html;
       if (!fragment.content.querySelector("[data-expense-summary]")) throw new Error();
       content.replaceChildren(fragment.content);
+      loaded = true;
       document.querySelector("[data-expense-card-summary]").textContent =
         content.querySelector("[data-expense-summary]").dataset.expenseSummary;
       groupSelection();
       status.textContent = saved ? "Gasto guardado. Las cuentas están actualizadas." : "";
+      if (inline) retry.hidden = false;
     } catch {
       status.textContent = saved
         ? "El gasto se guardó. No pudimos actualizar el resumen; actualizá los gastos para verlo."
@@ -51,6 +55,12 @@
     }
   }
 
+  if (inline) {
+    dialog.closest("[data-tool-panel]").addEventListener("planb:tool-open", () => { if (!loaded) load(); });
+    dialog.querySelector("[data-close-expenses]").addEventListener("click", () => {
+      dialog.dispatchEvent(new CustomEvent("planb:tool-close", {bubbles: true}));
+    });
+  } else {
   opener.addEventListener("click", () => {
     if (dialog.open) return;
     dialog.showModal();
@@ -68,6 +78,7 @@
     }
     opener.focus({preventScroll: true});
   });
+  }
   retry.addEventListener("click", () => load());
   content.addEventListener("change", event => {
     if (event.target.name === "all_group") groupSelection();
@@ -146,5 +157,5 @@
     }
     if (saved) await load(true);
   });
-  if (dialog.hasAttribute("data-auto-open")) opener.click();
+  if (!inline && dialog.hasAttribute("data-auto-open")) opener.click();
 })();

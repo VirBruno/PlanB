@@ -1,26 +1,92 @@
-"""Resolver temporal determinístico; reemplazable por un productor de categorías."""
+"""Catálogo semántico de Plan B, validación y mapping controlado a Places."""
+from dataclasses import dataclass
 import re
 import unicodedata
 
 from .place_types import Location, RecommendationError
 
 
-def resolve_categories(proposal):
-    # Sólo contenido de la propuesta elegida, nunca todas las alternativas.
-    text = f"{proposal.get('tittle') or ''} {proposal.get('description') or ''}"
-    words = set(re.findall(r"[a-z]+", "".join(
-        c for c in unicodedata.normalize("NFKD", text.casefold())
-        if not unicodedata.combining(c))))
-    rules = (
-        ({"cena", "cenar", "comer", "restaurante", "restaurantes"}, ("catering.restaurant",)),
-        ({"cafe", "merienda", "merendar"}, ("catering.cafe",)),
-        ({"picnic", "parque", "plaza"}, ("leisure.park", "leisure.picnic")),
-        ({"supermercado", "comprar", "compras"}, ("commercial.supermarket",)),
-    )
-    matches = [categories for keywords, categories in rules if words & keywords]
-    if len(matches) != 1:
+INTENT_CATEGORIES = {
+    "restaurant": ("catering.restaurant",),
+    "cafe": ("catering.cafe",),
+    "bar": ("catering.bar", "catering.pub"),
+    "nightclub": ("adult.nightclub",),
+    "park": ("leisure.park", "leisure.picnic"),
+    "supermarket": ("commercial.supermarket",),
+    "cinema": ("entertainment.cinema",),
+    "bakery": ("commercial.food_and_drink.bakery",),
+    "fast_food": ("catering.fast_food",),
+    "shopping": ("commercial.shopping_mall",),
+}
+MAX_INTENTS = 3
+MAX_SUMMARY_LENGTH = 320
+INTENT_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "place_intents": {
+            "type": "array", "minItems": 1, "maxItems": MAX_INTENTS,
+            "items": {"type": "string", "enum": [*INTENT_CATEGORIES, "unsupported"]},
+        },
+        "summary": {"type": ["string", "null"], "maxLength": MAX_SUMMARY_LENGTH},
+    },
+    "required": ["place_intents"],
+    "additionalProperties": False,
+}
+
+
+@dataclass(frozen=True)
+class IntentClassification:
+    place_intents: tuple[str, ...]
+    model: str
+    summary: str | None = None
+
+    @property
+    def categories(self):
+        return tuple(dict.fromkeys(
+            category for intent in self.place_intents for category in INTENT_CATEGORIES[intent]))
+
+    def criteria(self):
+        result = {"interpreter": "gemini", "model": self.model,
+                  "place_intents": list(self.place_intents)}
+        if self.summary:
+            result["summary"] = self.summary
+        return result
+
+
+def sanitize_summary(value):
+    """Texto opcional: descartar lo dudoso sin invalidar la clasificación."""
+    if not isinstance(value, str) or not 1 <= len(value) <= MAX_SUMMARY_LENGTH:
+        return None
+    if any(unicodedata.category(c) in {"Cf", "Cs"} or
+           unicodedata.category(c) == "Cc" and c not in "\n\r\t" for c in value):
+        return None
+    text = " ".join(unicodedata.normalize("NFC", value).split())
+    if (not text or not any(c.isalpha() for c in text)
+            or any(c.isdigit() or c in "<>`[]{}#$@\\" for c in text)
+            or re.search(r"https?://|www\.|[a-z_]+\.[a-z_]+|[.!?].*[.!?].*[.!?]", text, re.I)
+            or re.search(r"\b(?:geoapify|gemini|json|scores?|ratings?|reseñas?|precios?|popular\w*|"
+                         r"mejores?|barat\w*|econ[oó]mic\w*|calidad|abiert\w*|disponib\w*|horarios?|estrellas?|"
+                         r"prompt|secretos?|claves?|tokens?|instrucciones?|razonamiento|análisis|analysis|"
+                         r"reasoning|thoughts?|primero|step by step|let me think|api)\b", text, re.I)):
+        return None
+    return text
+
+
+def validate_intents(payload, *, model):
+    # Revalidar todo el contrato aunque Gemini aplique JSON Schema.
+    if (not isinstance(payload, dict) or "place_intents" not in payload
+            or set(payload) - {"place_intents", "summary"}):
+        raise RecommendationError("invalid_response")
+    intents = payload["place_intents"]
+    if (not isinstance(intents, list) or not 1 <= len(intents) <= MAX_INTENTS
+            or any(not isinstance(i, str) or i not in (*INTENT_CATEGORIES, "unsupported")
+                   for i in intents)
+            or len(set(intents)) != len(intents)
+            or "unsupported" in intents and len(intents) != 1):
+        raise RecommendationError("invalid_response")
+    if intents == ["unsupported"]:
         raise RecommendationError("unsupported_intent")
-    return matches[0]
+    return IntentClassification(tuple(intents), model, sanitize_summary(payload.get("summary")))
 
 
 def resolve_location(proposal, geocoder):
