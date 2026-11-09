@@ -26,14 +26,17 @@ def _error(error):
 
 
 @sensitive_variables()
-def confirm(token, *, plan_id, proposal_id):
+def confirm(token, *, plan_id, proposal_id, combat_game="arcade"):
     if not token:
         raise SessionExpired()
     if type(proposal_id) is not int or proposal_id < 1:
         raise InvalidPlan()
+    if combat_game not in ("arcade", "truco"):
+        raise InvalidPlan()
     try:
         with clients.public_client(access_token=token) as client:
-            value = client.rpc("confirm_plan_proposal", {
+            rpc = "confirm_truco_plan_proposal" if combat_game == "truco" else "confirm_plan_proposal"
+            value = client.rpc(rpc, {
                 "p_plan_id": _id(plan_id), "p_proposal_id": proposal_id,
             }).execute().data
         if value != proposal_id:

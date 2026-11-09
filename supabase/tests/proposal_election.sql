@@ -1,4 +1,4 @@
--- INTEGRACIÓN: sólo Supabase de prueba con 202610100002 aplicado.
+-- INTEGRACIÓN: Supabase de prueba con las migraciones previas de decisión/notificaciones y combate aplicadas.
 -- Ejecutar como administrador; los fixtures y cambios se revierten.
 BEGIN;
 SELECT set_config('planb.election_owner', gen_random_uuid()::text, true);
@@ -166,6 +166,23 @@ BEGIN
         current_setting('planb.election_combat_member_proposal')::bigint, 7
     );
     IF saved <> 12 THEN RAISE EXCEPTION 'Un replay redujo el mejor score'; END IF;
+    saved := public.save_combat_game_score(
+        current_setting('planb.election_combat_plan')::uuid,
+        current_setting('planb.election_combat_member_proposal')::bigint, 30, 'truco'
+    );
+    IF saved <> 30 THEN RAISE EXCEPTION 'No se guardó el puntaje de Truco'; END IF;
+    IF (SELECT "Score" FROM public.proposals
+        WHERE id = current_setting('planb.election_combat_member_proposal')::bigint) <> 12 THEN
+        RAISE EXCEPTION 'El puntaje de Truco modificó el juego existente';
+    END IF;
+    BEGIN
+        PERFORM public.save_combat_game_score(
+            current_setting('planb.election_combat_plan')::uuid,
+            current_setting('planb.election_combat_member_proposal')::bigint, 31, 'truco'
+        );
+        RAISE EXCEPTION USING ERRCODE = 'P0002', MESSAGE = 'Truco aceptó más de 30 puntos';
+    EXCEPTION WHEN SQLSTATE '22023' THEN NULL;
+    END;
     BEGIN
         PERFORM public.save_proposal_score(
             current_setting('planb.election_combat_plan')::uuid,
@@ -175,7 +192,8 @@ BEGIN
     EXCEPTION WHEN SQLSTATE '22023' THEN NULL;
     END;
     IF has_column_privilege('authenticated', 'public.proposals', 'votes', 'UPDATE')
-       OR has_column_privilege('authenticated', 'public.proposals', 'Score', 'UPDATE') THEN
+       OR has_column_privilege('authenticated', 'public.proposals', 'Score', 'UPDATE')
+       OR has_column_privilege('authenticated', 'public.proposals', 'truco_score', 'UPDATE') THEN
         RAISE EXCEPTION 'authenticated puede actualizar métricas directamente';
     END IF;
     IF has_table_privilege('authenticated', 'public.proposal_votes', 'SELECT')
@@ -186,5 +204,45 @@ END;
 $$;
 RESET ROLE;
 
+UPDATE public.proposals
+SET date_pick = now() + interval '1 day',
+    posicion = 'SRID=4326;POINT(-58.38 -34.6)'::geography
+WHERE id = current_setting('planb.election_combat_member_proposal')::bigint;
+UPDATE public.proposals
+SET truco_score = 30
+WHERE id = current_setting('planb.election_combat_owner_proposal')::bigint;
+SELECT set_config('request.jwt.claim.sub', current_setting('planb.election_owner'), true);
+SET LOCAL ROLE authenticated;
+DO $$
+BEGIN
+    BEGIN
+        PERFORM public.confirm_truco_plan_proposal(
+            current_setting('planb.election_combat_plan')::uuid,
+            current_setting('planb.election_combat_member_proposal')::bigint
+        );
+        RAISE EXCEPTION USING ERRCODE = 'P0002', MESSAGE = 'Se confirmó un empate de Truco';
+    EXCEPTION WHEN SQLSTATE '22023' THEN NULL;
+    END;
+END;
+$$;
+RESET ROLE;
+
+UPDATE public.proposals
+SET truco_score = 0
+WHERE id = current_setting('planb.election_combat_owner_proposal')::bigint;
+SELECT set_config('request.jwt.claim.sub', current_setting('planb.election_owner'), true);
+SET LOCAL ROLE authenticated;
+DO $$
+BEGIN
+    IF public.confirm_truco_plan_proposal(
+        current_setting('planb.election_combat_plan')::uuid,
+        current_setting('planb.election_combat_member_proposal')::bigint
+    ) <> current_setting('planb.election_combat_member_proposal')::bigint THEN
+        RAISE EXCEPTION 'No se confirmó la propuesta ganadora de Truco';
+    END IF;
+END;
+$$;
+RESET ROLE;
+
 ROLLBACK;
-SELECT 'OK: métodos flexibles, cambio/borrado de voto y score máximo; fixtures revertidas.' AS resultado;
+SELECT 'OK: métodos flexibles, puntajes separados, empate de Truco sin desempate y confirmación de ganador; fixtures revertidas.' AS resultado;

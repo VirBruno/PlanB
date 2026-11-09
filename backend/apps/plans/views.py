@@ -283,12 +283,24 @@ def detail(request, plan_id):
             return _unavailable(request)
     leaderboard = []
     champion_id = None
+    combat_game = request.GET.get("combat_game", "arcade")
+    if combat_game not in election_service.COMBAT_GAMES:
+        combat_game = "arcade"
     if election_method in ("votes", "combat"):
-        score_key = "votes" if election_method == "votes" else "Score"
-        leaderboard = sorted(
-            proposals, key=lambda proposal: (-proposal[score_key], proposal["id"]),
+        score_key = (
+            "votes" if election_method == "votes"
+            else "truco_score" if combat_game == "truco" else "Score"
         )
-        if leaderboard and leaderboard[0][score_key] > 0 and (
+        leaderboard = sorted(proposals, key=lambda proposal: -proposal[score_key])
+        place = 0
+        previous_score = None
+        for index, proposal in enumerate(leaderboard, start=1):
+            if proposal[score_key] != previous_score:
+                place = index
+                previous_score = proposal[score_key]
+            proposal["rank"] = place
+        winning_score = 30 if election_method == "combat" and combat_game == "truco" else 1
+        if leaderboard and leaderboard[0][score_key] >= winning_score and (
             len(leaderboard) == 1 or leaderboard[0][score_key] > leaderboard[1][score_key]
         ):
             champion_id = leaderboard[0]["id"]
@@ -325,6 +337,7 @@ def detail(request, plan_id):
         "my_proposal": my_proposal,
         "leaderboard": leaderboard,
         "champion_id": champion_id,
+        "combat_game": combat_game,
         "voted_proposal_id": voted_proposal_id,
         "ideal_summary": _proposal_ideal_summary(proposals) if show_ideal else None,
         "show_ideal_popup": show_ideal and election_method in (None, "ideal"),
@@ -536,16 +549,19 @@ def proposal_score(request, plan_id, proposal_id):
         election_service.save_score(
             session_service.get_access_token(request), plan_id=plan_id,
             proposal_id=proposal_id, score=score,
+            game=request.POST.get("game", "arcade"),
         )
     except ElectionSchemaUnavailable:
-        messages.error(request, "Combate requiere aplicar la migración de métodos de elección en Supabase.")
+        messages.error(request, "Combate requiere aplicar las migraciones de métodos de elección y juegos en Supabase.")
     except (InvalidProposal, ProposalNotFound):
         messages.error(request, "No se pudo guardar ese puntaje.")
     except ProposalUnavailable:
         return _unavailable(request)
     else:
         messages.success(request, "Se guardó tu mejor puntaje.")
-    return redirect(f"{reverse('plans:detail', args=[plan_id])}#proposal-combat")
+    game = request.POST.get("game", "arcade")
+    query = "?combat_game=truco" if game == "truco" else ""
+    return redirect(f"{reverse('plans:detail', args=[plan_id])}{query}#proposal-combat")
 
 
 def _proposal_plan(request, plan_id):
@@ -901,6 +917,7 @@ def confirm_plan_proposal(request, plan_id, proposal_id):
         plan_confirmation_service.confirm(
             session_service.get_access_token(request), plan_id=plan_id,
             proposal_id=proposal_id,
+            combat_game=request.POST.get("combat_game", "arcade"),
         )
     except InvalidPlan as error:
         messages.error(request, str(error))

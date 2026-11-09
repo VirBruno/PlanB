@@ -24,7 +24,7 @@
         {% if proposal.is_confirmed %}<p class="pb-proposal-confirmed">✓ Elegida para el encuentro</p>{% endif %}
         {% if proposal.can_confirm %}
         <form method="post" action="{% url 'plans:confirm_plan_proposal' plan.id proposal.id %}" class="pb-confirm-form" data-confirm-delete="¿Confirmar esta propuesta como encuentro definitivo?">
-          {% csrf_token %}<button class="button button--primary" type="submit">✓ Confirmar este encuentro</button>
+          {% csrf_token %}{% if election_method == 'combat' %}<input type="hidden" name="combat_game" value="{{ combat_game }}">{% endif %}<button class="button button--primary" type="submit">✓ Confirmar este encuentro</button>
         </form>
         {% endif %}
         {% if proposal.description %}<p>{{ proposal.description|linebreaksbr }}</p>{% endif %}
@@ -39,7 +39,7 @@
           {% endif %}
         </div>
         {% elif election_method == 'combat' %}
-        <div class="proposal-election-score"><strong>{{ proposal.Score }} puntos</strong>{% if proposal.id == champion_id %}<span class="proposal-champion-badge">Campeona</span>{% endif %}</div>
+        <div class="proposal-election-score"><strong>{% if combat_game == 'truco' %}{{ proposal.truco_score }}/30 puntos{% else %}{{ proposal.Score }} puntos{% endif %}</strong>{% if proposal.id == champion_id %}<span class="proposal-champion-badge">Campeona</span>{% endif %}</div>
         {% endif %}
         <dl class="proposal-meta">
           {% if proposal.date_pick %}<div><dt>Fecha</dt><dd>{{ proposal.date_pick|date:"d/m/Y H:i" }}</dd></div>{% endif %}

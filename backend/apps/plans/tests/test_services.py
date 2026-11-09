@@ -38,7 +38,7 @@ def proposal_row(**kwargs):
         "id": 47, "created_at": "2026-10-06T12:00:00Z", "tittle": "Merienda",
         "description": None, "date_pick": None, "created_by": USER_ID,
         "plan_id": PLAN_ID, "type": "juntada", "posicion": POINT,
-        "budget_min": None, "budget_max": None, **kwargs,
+        "budget_min": None, "budget_max": None, "truco_score": 0, **kwargs,
     }
 
 
@@ -222,6 +222,14 @@ class PlanSDKTests(SimpleTestCase):
             election_service.save_score(
                 "user-jwt", plan_id=PLAN_ID, proposal_id=47, score=-1,
             )
+        with self.assertRaises(InvalidProposal):
+            election_service.save_score(
+                "user-jwt", plan_id=PLAN_ID, proposal_id=47, score=31, game="truco",
+            )
+        with self.assertRaises(InvalidProposal):
+            election_service.save_score(
+                "user-jwt", plan_id=PLAN_ID, proposal_id=47, score=10, game="otro",
+            )
         self.assertEqual(len(self.requests), 1)
 
     def test_legacy_method_lock_requests_the_flexible_migration(self):
@@ -245,9 +253,20 @@ class PlanSDKTests(SimpleTestCase):
         self.assertEqual(election_service.save_score(
             "user-jwt", plan_id=PLAN_ID, proposal_id=47, score=14,
         ), 14)
-        self.assertEqual(self.requests[0].url.path, "/rest/v1/rpc/save_proposal_score")
+        self.assertEqual(self.requests[0].url.path, "/rest/v1/rpc/save_combat_game_score")
         self.assertEqual(json.loads(self.requests[0].content), {
             "p_plan_id": PLAN_ID, "p_proposal_id": 47, "p_score": 14,
+            "p_game": "arcade",
+        })
+
+    def test_save_truco_score_uses_separate_authenticated_rpc(self):
+        self.responses = [(200, 30)]
+        self.assertEqual(election_service.save_score(
+            "user-jwt", plan_id=PLAN_ID, proposal_id=47, score=30, game="truco",
+        ), 30)
+        self.assertEqual(json.loads(self.requests[0].content), {
+            "p_plan_id": PLAN_ID, "p_proposal_id": 47, "p_score": 30,
+            "p_game": "truco",
         })
 
     def test_list_proposals_validates_geojson_and_plan_scope(self):
@@ -262,8 +281,10 @@ class PlanSDKTests(SimpleTestCase):
         self.assertEqual(proposals[0]["posicion"], POINT)
         self.assertEqual(proposals[0]["votes"], 3)
         self.assertEqual(proposals[0]["Score"], 9)
+        self.assertEqual(proposals[0]["truco_score"], 0)
         self.assertEqual(self.requests[0].url.params["plan_id"], "eq." + PLAN_ID)
         self.assertIn('"Score"', self.requests[0].url.params["select"])
+        self.assertIn("truco_score", self.requests[0].url.params["select"])
         self.responses = [(200, [{
             "id": 47, "created_at": "2026-10-06T12:00:00Z",
             "tittle": "Merienda", "description": None, "date_pick": None,

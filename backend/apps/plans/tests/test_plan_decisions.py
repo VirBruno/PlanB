@@ -1,9 +1,10 @@
 """Etapa 8: permiso de owner y lectura de planes confirmados."""
 from uuid import UUID
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 from django.test import TestCase, SimpleTestCase
 
 from apps.plans.services import plan_service
+from apps.plans.services import plan_confirmation_service
 from apps.plans.tests.test_services import PLAN_ID, USER_ID, GROUP_ID, plan_row
 
 
@@ -44,7 +45,24 @@ class PlanDecisionViewTests(TestCase):
         access.return_value = (plan_row(), {"id": GROUP_ID, "role": "owner"})
         response = self.client.post(f"/planes/{PLAN_ID}/propuestas/11/confirmar/")
         self.assertEqual(response.status_code, 302)
-        confirm.assert_called_once_with("jwt-de-prueba", plan_id=UUID(PLAN_ID), proposal_id=11)
+        confirm.assert_called_once_with(
+            "jwt-de-prueba", plan_id=UUID(PLAN_ID), proposal_id=11,
+            combat_game="arcade",
+        )
+
+    @patch("apps.plans.views.plan_confirmation_service.confirm", return_value=11)
+    @patch("apps.plans.views._proposal_plan")
+    def test_owner_confirms_truco_winner_from_selected_game(self, access, confirm):
+        access.return_value = (plan_row(), {"id": GROUP_ID, "role": "owner"})
+        response = self.client.post(
+            f"/planes/{PLAN_ID}/propuestas/11/confirmar/",
+            {"combat_game": "truco"},
+        )
+        self.assertEqual(response.status_code, 302)
+        confirm.assert_called_once_with(
+            "jwt-de-prueba", plan_id=UUID(PLAN_ID), proposal_id=11,
+            combat_game="truco",
+        )
 
     @patch("apps.plans.views.plan_confirmation_service.confirm")
     @patch("apps.plans.views._proposal_plan")
@@ -65,3 +83,17 @@ class PlanDecisionViewTests(TestCase):
     def test_confirmation_routes_do_not_accept_get(self):
         self.assertEqual(self.client.get(f"/planes/{PLAN_ID}/propuestas/11/confirmar/").status_code, 405)
         self.assertEqual(self.client.get(f"/planes/{PLAN_ID}/decision/reabrir/").status_code, 405)
+
+
+class PlanConfirmationServiceTests(SimpleTestCase):
+    @patch("apps.plans.services.plan_confirmation_service.clients.public_client")
+    def test_truco_confirmation_uses_its_game_specific_rpc(self, public_client):
+        client = MagicMock()
+        client.rpc.return_value.execute.return_value.data = 47
+        public_client.return_value.__enter__.return_value = client
+        self.assertEqual(plan_confirmation_service.confirm(
+            "user-jwt", plan_id=PLAN_ID, proposal_id=47, combat_game="truco",
+        ), 47)
+        client.rpc.assert_called_once_with("confirm_truco_plan_proposal", {
+            "p_plan_id": PLAN_ID, "p_proposal_id": 47,
+        })
