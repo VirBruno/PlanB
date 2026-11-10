@@ -1,8 +1,8 @@
 {% load l10n %}
-  {% if plan.scheduled_at %}
+  {% if plan.scheduled_at or compact_weather %}
   <details class="pb-weather-compare" data-weather-compare {% if confirmed_layout %}open{% endif %}>
     <summary class="pb-weather-compare-toggle">
-      <span class="pb-weather-compare-main"><span class="pb-weather-compare-icon" aria-hidden="true">☀</span> ¿Querés comparar otro día o lugar?</span>
+      <span class="pb-weather-compare-main"><span class="pb-weather-compare-icon" aria-hidden="true">☀</span> {% if compact_weather %}Consultar clima y alternativas{% else %}¿Querés comparar otro día o lugar?{% endif %}</span>
       <span class="pb-weather-compare-hint">Explorar alternativas <span aria-hidden="true">⌄</span></span>
     </summary>
   {% endif %}
@@ -69,7 +69,7 @@
       <p class="pb-climate-note">Los datos son orientativos y pueden cambiar. Comparar alternativas no modifica la fecha ni el lugar guardados en el plan. <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Clima: Open-Meteo</a> · <a href="https://www.geonames.org/" target="_blank" rel="noopener noreferrer">Localidades: GeoNames</a>.</p>
     </div>
   </section>
-  {% if plan.scheduled_at %}
+  {% if plan.scheduled_at or compact_weather %}
   </details>
   {% endif %}
 

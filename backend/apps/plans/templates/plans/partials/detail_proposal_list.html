@@ -47,8 +47,10 @@
           <div class="proposal-budget-range"><dt>Presupuesto</dt><dd>{% if proposal.budget_min != None and proposal.budget_max != None %}{{ proposal.budget_min|floatformat:2 }} – {{ proposal.budget_max|floatformat:2 }}{% elif proposal.budget_min != None %}Desde {{ proposal.budget_min|floatformat:2 }}{% else %}Hasta {{ proposal.budget_max|floatformat:2 }}{% endif %}</dd></div>
           {% endif %}
         </dl>
-        {% include 'plans/partials/proposal_weather.html' %}
-        {% include 'plans/partials/proposal_location.html' %}
+        {% if not confirmed_layout %}<details class="pb-proposal-extra"><summary>Ver ubicación y clima <span aria-hidden="true">↗</span></summary>{% endif %}
+          {% include 'plans/partials/proposal_weather.html' %}
+          {% include 'plans/partials/proposal_location.html' %}
+        {% if not confirmed_layout %}</details>{% endif %}
       </li>
       {% endif %}
       {% endfor %}

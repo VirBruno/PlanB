@@ -1,38 +1,15 @@
 {% extends 'components/authenticated_base.html' %}
-{% load static %}
+{% load static group_identity %}
 {% block title %}Mi espacio · Plan B{% endblock %}
 
 {% block workspace %}
-  <section class="social-hero pb-home-hero" aria-labelledby="welcome-title">
+  <section class="social-hero pb-home-hero pb-home-welcome" aria-labelledby="welcome-title">
     <div class="social-hero-copy">
-      <span class="social-kicker"><span aria-hidden="true">✳</span> TU ESPACIO</span>
-      <h1 id="welcome-title">¡Hola, <span>{{ planb_user.username }}</span>! <span aria-hidden="true">👋</span></h1>
-      <p>¿Qué plan pinta hoy? Organizá algo con tu gente.</p>
-      <div class="pb-hero-actions">
-        <a class="social-cta" href="{% url 'groups:create' %}"><span aria-hidden="true">＋</span> Crear grupo</a>
-        <a class="pb-hero-secondary" href="{% url 'plans:index' %}">Explorar mis planes <span aria-hidden="true">↗</span></a>
-      </div>
+      <h1 id="welcome-title">¡Hola, <span>{{ planb_user.username }}</span>!<svg class="pb-welcome-spark" viewBox="0 0 48 48" width="40" height="40" aria-hidden="true" focusable="false"><path d="M24 4v12m0 16v12M4 24h12m16 0h12M10 10l8 8m12 12 8 8M10 38l8-8m12-12 8-8" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/><circle cx="24" cy="24" r="4" fill="currentColor"/></svg></h1>
     </div>
-    <div class="pb-hero-side" aria-label="Accesos a tus grupos">
-      <span class="pb-moment-kicker">CON TU GENTE</span>
-      <strong class="pb-moment-title">¿Con quién armamos algo?</strong>
-      <span class="pb-moment-desc">Entrá a un grupo y elegí el próximo plan.</span>
-      {% if groups_page.items %}
-        <div class="pb-hero-group-list">
-          {% for group in groups_page.items|slice:":2" %}
-            <a class="pb-hero-group-link" href="{% url 'groups:detail' group.id %}">
-              {% include 'components/group_identity.html' with group_id=group.id mark_class='pb-hero-group-initial' only %}
-              <span class="pb-hero-group-name">{{ group.name }}</span>
-              <span class="pb-hero-group-chevron" aria-hidden="true">↗</span>
-            </a>
-          {% endfor %}
-        </div>
-        <a class="pb-hero-all" href="{% url 'groups:index' %}">Ver todos mis grupos <span aria-hidden="true">↗</span></a>
-      {% else %}
-        <div class="pb-hero-empty">Todavía no tenés grupos acá.
-          <a href="{% url 'groups:create' %}">Creá el primero</a>
-        </div>
-      {% endif %}
+    <div class="pb-hero-actions">
+      <a class="social-cta" href="{% url 'groups:create' %}"><span aria-hidden="true">＋</span> Crear grupo</a>
+      <a class="pb-hero-secondary" href="{% url 'plans:index' %}">Mis planes <span aria-hidden="true">↗</span></a>
     </div>
   </section>
   <section class="social-mini-actions" aria-label="Accesos rápidos">
@@ -49,7 +26,7 @@
       <ul class="social-group-grid">
       {% for group in groups_page.items %}
         <li class="social-group-item">
-          <a class="social-group-card" href="{% url 'groups:detail' group.id %}" aria-label="Abrir grupo {{ group.name }}">
+          <a class="social-group-card" data-group-variant="{{ group.id|group_variant }}" href="{% url 'groups:detail' group.id %}" aria-label="Abrir grupo {{ group.name }}">
             {% include 'components/group_identity.html' with group_id=group.id mark_class='social-group-avatar' only %}
             <span class="social-group-content"><strong>{{ group.name }}</strong><span>{% if group.description %}{{ group.description|truncatechars:105 }}{% else %}Un espacio para compartir nuevos planes.{% endif %}</span><small>Creado el {{ group.created_at|date:"d/m/Y" }}</small></span>
             <span class="social-group-chevron" aria-hidden="true">↗</span><span class="pb-card-entry" aria-hidden="true">Entrar al grupo</span>
