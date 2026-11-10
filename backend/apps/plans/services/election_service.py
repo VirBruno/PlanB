@@ -13,6 +13,7 @@ from .proposal_exceptions import (
 )
 
 MAX_SCORE = 99999
+COMBAT_GAMES = ("arcade", "truco")
 
 
 def _uuid(value):
@@ -128,20 +129,21 @@ def remove_vote(access_token, *, plan_id):
 
 
 @sensitive_variables()
-def save_score(access_token, *, plan_id, proposal_id, score):
+def save_score(access_token, *, plan_id, proposal_id, score, game="arcade"):
     if not access_token:
         raise SessionExpired()
     canonical_plan_id = plan_service._canonical_uuid(plan_id, InvalidProposal)
     canonical_proposal_id = _proposal_id(proposal_id)
-    if (isinstance(score, bool) or not isinstance(score, int)
-            or not 0 <= score <= MAX_SCORE):
+    if (game not in COMBAT_GAMES or isinstance(score, bool) or not isinstance(score, int)
+            or not 0 <= score <= (30 if game == "truco" else MAX_SCORE)):
         raise InvalidProposal()
     try:
         with clients.public_client(access_token=access_token) as client:
-            data = client.rpc("save_proposal_score", {
+            data = client.rpc("save_combat_game_score", {
                 "p_plan_id": canonical_plan_id,
                 "p_proposal_id": canonical_proposal_id,
                 "p_score": score,
+                "p_game": game,
             }).execute().data
         return _rpc_integer(data)
     except Exception as error:

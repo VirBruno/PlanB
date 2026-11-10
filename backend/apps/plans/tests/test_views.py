@@ -336,6 +336,24 @@ class PlanViewsTests(TestCase):
         )
         save_score.assert_called_once_with(
             "private-jwt", plan_id=UUID(PLAN_ID), proposal_id=47, score=14,
+            game="arcade",
+        )
+
+    @patch("apps.plans.views.election_service.save_score", return_value=30)
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row(election_method="combat"))
+    def test_member_can_save_a_truco_result_separately(self, get_plan, get_group, save_score):
+        response = self.client.post(
+            f"/planes/{PLAN_ID}/propuestas/47/score/",
+            {"score": "30", "game": "truco"},
+        )
+        self.assertRedirects(
+            response, f"/planes/{PLAN_ID}/?combat_game=truco#proposal-combat",
+            fetch_redirect_response=False,
+        )
+        save_score.assert_called_once_with(
+            "private-jwt", plan_id=UUID(PLAN_ID), proposal_id=47, score=30,
+            game="truco",
         )
 
     @patch("apps.plans.views.election_service.save_score", side_effect=ElectionSchemaUnavailable())
@@ -455,7 +473,7 @@ class PlanViewsTests(TestCase):
         self.assertContains(response, "data-ideal-map")
         self.assertContains(response, "proposal-ideal-data")
         self.assertContains(response, "/static/users/js/proposals.js?v=13")
-        self.assertContains(response, "/static/users/css/proposals.css?v=5")
+        self.assertContains(response, "/static/users/css/proposals.css?v=15")
 
     @patch("apps.plans.views.proposal_service.list_proposals", return_value=[
         {"id": 47, "created_by": USER_ID, "tittle": "Mi propuesta", "type": "juntada",
@@ -513,6 +531,51 @@ class PlanViewsTests(TestCase):
         self.assertContains(response, "12 pts")
         self.assertContains(response, "Propuesta campeona: <strong>Mi propuesta</strong>")
         self.assertContains(response, "/static/users/js/proposal-combat.js")
+        self.assertContains(response, "Truco argentino")
+        self.assertContains(response, "/static/users/js/proposal-truco.js")
+        self.assertContains(response, "data-truco-played-bot")
+        self.assertContains(response, "data-truco-played-player")
+        self.assertContains(response, "data-truco-drop-zone")
+        self.assertContains(response, "data-truco-bot-hand")
+        self.assertContains(response, "proposal-truco-arena")
+        self.assertContains(response, "proposal-truco-felt")
+        self.assertContains(response, "proposal-truco-deck")
+        self.assertContains(response, "aria-label=\"Marcador\"")
+
+    @patch("apps.plans.views.proposal_service.list_proposals", return_value=[
+        {"id": 47, "created_by": USER_ID, "tittle": "Mi propuesta", "type": "juntada",
+         "description": "", "date_pick": None, "latitude": -34.6, "longitude": -58.4,
+         "votes": 0, "Score": 200, "truco_score": 30},
+        {"id": 48, "created_by": "e0c9b706-c892-4f13-8432-86ce10caf447",
+         "tittle": "Otra propuesta", "type": "salida", "description": "",
+         "date_pick": None, "latitude": -34.7, "longitude": -58.3,
+         "votes": 0, "Score": 0, "truco_score": 30},
+        {"id": 49, "created_by": "c0c9b706-c892-4f13-8432-86ce10caf448",
+         "tittle": "Tercera propuesta", "type": "salida", "description": "",
+         "date_pick": None, "latitude": -34.8, "longitude": -58.2,
+         "votes": 0, "Score": 0, "truco_score": 18},
+    ])
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row(election_method="combat"))
+    def test_truco_leaderboard_is_separate_and_ties_share_first_place(self, get_plan, get_group, list_proposals):
+        response = self.client.get(f"/planes/{PLAN_ID}/?combat_game=truco")
+        self.assertContains(response, "30/30 pts", count=2)
+        self.assertContains(response, "18/30 pts")
+        self.assertNotContains(response, "Propuesta campeona:")
+        self.assertContains(response, '<span class="proposal-ranking-place">1</span>', count=2)
+        self.assertContains(response, '<span class="proposal-ranking-place">3</span>')
+
+    @patch("apps.plans.views.proposal_service.list_proposals", return_value=[
+        {"id": 47, "created_by": USER_ID, "tittle": "Mi propuesta", "type": "juntada",
+         "description": "", "date_pick": None, "latitude": -34.6, "longitude": -58.4,
+         "votes": 0, "Score": 200, "truco_score": 29},
+    ])
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row(election_method="combat"))
+    def test_truco_has_no_champion_until_someone_reaches_30(self, get_plan, get_group, list_proposals):
+        response = self.client.get(f"/planes/{PLAN_ID}/?combat_game=truco")
+        self.assertContains(response, "29/30 pts")
+        self.assertNotContains(response, "Propuesta campeona:")
 
     @patch("apps.plans.views.proposal_service.create_proposal", return_value=47)
     @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})

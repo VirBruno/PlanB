@@ -1,4 +1,12 @@
 (() => {
+  const gamePicker = document.querySelector("[data-combat-game-picker]");
+  gamePicker?.addEventListener("change", () => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("combat_game", gamePicker.value);
+    url.hash = "proposal-combat";
+    window.location.assign(url);
+  });
+
   const game = document.querySelector("[data-combat-game]");
   if (!game) return;
 

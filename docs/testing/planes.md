@@ -148,14 +148,17 @@ de PostgreSQL; no se aplicó SQL remoto durante esta implementación.
 
 ## Métodos de elección
 
-Con las migraciones de propuestas y presupuesto aplicadas, ejecutar manualmente
-en orden, como administrador y en una instancia de prueba,
-`supabase/migrations/202610100001_proposal_election_methods.sql` y luego
-`supabase/migrations/202610100002_flexible_proposal_elections.sql`. La primera
+Con las migraciones previas de propuestas, decisiones y notificaciones aplicadas,
+ejecutar manualmente en orden, como administrador y en una instancia de prueba,
+`supabase/migrations/202610100001_proposal_election_methods.sql`,
+`supabase/migrations/202610100002_flexible_proposal_elections.sql` y,
+después de las migraciones existentes hasta `202611060001`,
+`supabase/migrations/202611080001_combat_games.sql`. La primera
 agrega el modo compartido, las métricas `votes` y `"Score"`, el registro privado
 `proposal_votes` y RPCs. La segunda permite cambiar de método y cambiar/eliminar
-el voto propio, manteniendo los conteos. No se ejecutan con Django ni conceden
-escritura directa de métricas a usuarios.
+el voto propio, manteniendo los conteos. La última agrega el marcador separado de
+Truco (0 a 30) y RPCs autenticadas para guardar y confirmar ese resultado. No se
+ejecutan con Django ni conceden escritura directa de métricas a usuarios.
 
 Prueba manual con dos integrantes:
 
@@ -169,12 +172,16 @@ Prueba manual con dos integrantes:
 4. Elegir Combate, jugar con Espacio, las flechas, el botón Volar o tocando el
   canvas, guardar el resultado y comprobar el leaderboard después de recargar.
   Repetir con una puntuación menor y confirmar que conserva el máximo.
-5. Confirmar que un integrante no puede cambiar el método del plan ni guardar
+5. Cambiar al Truco argentino (sin Flor) y probar Envido/Real Envido/Falta
+   Envido, Truco, Retruco y Vale Cuatro contra el bot; confirmar que gana quien llega a 30,
+   que el marcador queda separado del juego anterior y que los empates comparten
+   puesto sin habilitar la confirmación de una propuesta empatada.
+6. Confirmar que un integrante no puede cambiar el método del plan ni guardar
   puntaje en la propuesta de otra persona.
 
 `supabase/tests/proposal_election.sql` valida selección por owner, voto único,
-cambio/eliminación del voto, cambio de método con resultados, persistencia del
-score máximo y grants.
+cambio/eliminación del voto, cambio de método con resultados, persistencia
+separada de los puntajes máximos, el límite de 30 para Truco y grants.
 Contiene fixtures reversibles y termina con ROLLBACK. Ejecutarlo como
 administrador sólo en Supabase local o en un proyecto de prueba autorizado.
 La puntuación se calcula en el navegador: el RPC restringe quién puede guardar

@@ -2,7 +2,7 @@
 {% load static l10n %}
 {% block extra_css %}
   {{ block.super }}
-  <link rel="stylesheet" href="{% static 'users/css/proposals.css' %}?v=5">
+  <link rel="stylesheet" href="{% static 'users/css/proposals.css' %}?v=15">
   <link rel="stylesheet" href="{% static 'users/css/plan-decisions.css' %}?v=8">
   <link rel="stylesheet" href="{% static 'users/css/plan-phases.css' %}?v=9">
   <link rel="stylesheet" href="{% static 'users/css/proposal-weather.css' %}?v=1">
@@ -39,7 +39,8 @@
   <script src="{% static 'users/js/proposal-weather.js' %}?v=1" defer></script>
   <script src="{% static 'users/js/proposals.js' %}?v=13" defer></script>
   {% if election_method == 'combat' %}
-  <script src="{% static 'users/js/proposal-combat.js' %}" defer></script>
+  <script src="{% static 'users/js/proposal-combat.js' %}?v=2" defer></script>
+  <script src="{% static 'users/js/proposal-truco.js' %}?v=4" defer></script>
   {% endif %}
   {% endif %}
 {% endblock %}
