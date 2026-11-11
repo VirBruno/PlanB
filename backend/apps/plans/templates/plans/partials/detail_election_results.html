@@ -1,4 +1,4 @@
-{% load l10n %}
+{% load l10n static %}
     {% if election_method == 'ideal' or show_ideal_popup %}
     {% if election_method == 'ideal' %}
     <a class="proposal-ideal-view" href="?ideal=1#proposal-ideal-card">Ver cálculo de ubicación y presupuesto</a>
@@ -42,23 +42,27 @@
     {% elif election_method == 'combat' %}
     <section class="proposal-leaderboard" id="proposal-combat" aria-labelledby="proposal-combat-title">
       <div class="proposal-leaderboard-heading"><div><h3 id="proposal-combat-title">Combate</h3><p>Los puntajes se ordenan por juego; los empates comparten puesto.</p></div></div>
-      <label class="proposal-combat-game-picker">Juego
-        <select data-combat-game-picker aria-label="Elegir juego de combate">
-          <option value="arcade"{% if combat_game == 'arcade' %} selected{% endif %}>Esquivar obstáculos</option>
-          <option value="truco"{% if combat_game == 'truco' %} selected{% endif %}>Truco argentino</option>
-        </select>
-      </label>
+      <nav class="proposal-combat-games" aria-label="Elegir juego de combate">
+        <a class="proposal-combat-choice{% if combat_game == 'arcade' %} is-selected{% endif %}" href="?combat_game=arcade#proposal-combat" data-combat-choice="arcade"{% if combat_game == 'arcade' %} aria-current="true"{% endif %}>
+          <img class="proposal-combat-choice__art" src="{% static 'users/img/juegos/arcade.png' %}" alt="" loading="lazy">
+          <span>Esquivar obstáculos</span>
+        </a>
+        <a class="proposal-combat-choice{% if combat_game == 'truco' %} is-selected{% endif %}" href="?combat_game=truco#proposal-combat" data-combat-choice="truco"{% if combat_game == 'truco' %} aria-current="true"{% endif %}>
+          <img class="proposal-combat-choice__art" src="{% static 'users/img/juegos/truco.png' %}" alt="" loading="lazy">
+          <span>Truco argentino</span>
+        </a>
+        <a class="proposal-combat-choice{% if combat_game == 'uno' %} is-selected{% endif %}" href="?combat_game=uno#proposal-combat" data-combat-choice="uno"{% if combat_game == 'uno' %} aria-current="true"{% endif %}>
+          <img class="proposal-combat-choice__art" src="{% static 'users/img/juegos/uno.png' %}" alt="" loading="lazy">
+          <span>UNO{% if not uno_enabled %} <small>· prueba</small>{% endif %}</span>
+        </a>
+      </nav>
       {% if champion_id %}<p class="proposal-champion">Propuesta campeona: <strong>{{ leaderboard.0.tittle }}</strong></p>{% endif %}
-      <ol class="proposal-ranking">
-        {% for proposal in leaderboard %}
-        <li{% if proposal.id == champion_id %} class="is-champion"{% endif %}><span class="proposal-ranking-place">{{ proposal.rank }}</span><span class="proposal-ranking-name">{{ proposal.tittle }}<small>{% include 'components/user_avatar.html' with user_id=proposal.created_by username=proposal.creator_username scope='plan' scope_id=plan.id only %} {{ proposal.creator_username }}</small></span><strong>{% if combat_game == 'truco' %}{{ proposal.truco_score }}/30 pts{% else %}{{ proposal.Score }} pts{% endif %}</strong></li>
-        {% endfor %}
-      </ol>
+      {% if combat_game == 'arcade' %}{% include 'plans/partials/detail_combat_ranking.html' %}{% endif %}
       {% if election_method == 'combat' %}
       {% if my_proposal and not plan.selected_proposal_id %}
       <div class="proposal-combat-game" data-combat-game>
-        <div class="proposal-combat-copy"><span>Tu propuesta</span><strong>{{ my_proposal.tittle }}</strong><span>Mejor puntaje: {% if combat_game == 'truco' %}{{ my_proposal.truco_score }}/30{% else %}{{ my_proposal.Score }}{% endif %}</span></div>
-        <div data-combat-arcade{% if combat_game == 'truco' %} hidden{% endif %}>
+        <div class="proposal-combat-copy"><span>Tu propuesta</span><strong>{{ my_proposal.tittle }}</strong><span>{% if combat_game == 'uno' %}{% if uno_enabled %}<span data-uno-victories>{{ my_proposal.uno_victories }} victorias</span>{% else %}Prueba sin puntos{% endif %}{% else %}Mejor puntaje: {% if combat_game == 'truco' %}{{ my_proposal.truco_score }}/30{% else %}{{ my_proposal.Score }}{% endif %}{% endif %}</span></div>
+        <div data-combat-arcade{% if combat_game != 'arcade' %} hidden{% endif %}>
         <canvas class="proposal-combat-canvas" width="720" height="320" data-combat-canvas role="img" aria-label="Juego de vuelo: evitá los obstáculos para sumar puntos"></canvas>
         <div class="proposal-combat-controls"><button class="button button--primary" type="button" data-combat-start>Jugar</button><button class="button button--quiet" type="button" data-combat-flap disabled>Volar</button><span data-combat-score aria-live="polite">Puntaje: 0</span></div>
         <p class="proposal-combat-status" data-combat-status aria-live="polite">Presioná Espacio o Volar para mantenerte en el aire.</p>
@@ -67,10 +71,17 @@
           <button class="button button--primary" type="submit">Guardar puntaje</button>
         </form>
         </div>
-        <div data-combat-truco{% if combat_game != 'truco' %} hidden{% endif %}>
-          <p class="proposal-combat-status">Envido, Real Envido, Falta Envido y Truco hasta Vale Cuatro. Primero a 30; sin Flor.</p>
+        <div data-combat-truco data-truco-state="ready" data-truco-card-base="{% static 'users/img/naipes-truco/' %}"{% if combat_game != 'truco' %} hidden{% endif %}>
+          <div class="proposal-truco-heading">
+            <div><span class="proposal-truco-kicker">TU MESA</span><h4>Truco argentino</h4><p>Primero en llegar a 30 puntos · Sin flor</p></div>
+          </div>
           <div class="proposal-truco-arena">
             <div class="proposal-truco-felt" aria-hidden="true"></div>
+            <aside class="proposal-truco-score" aria-label="Marcador">
+              <div class="proposal-truco-score-head"><span><small>Vos</small><strong data-truco-player-score>0</strong></span><span><small>Bot</small><strong data-truco-bot-score>0</strong></span></div>
+              <div class="proposal-truco-score-phase"><span>Malas</span><div class="proposal-truco-tally" data-truco-player-tally="malas" aria-hidden="true"></div><div class="proposal-truco-tally" data-truco-bot-tally="malas" aria-hidden="true"></div></div>
+              <div class="proposal-truco-score-phase"><span>Buenas</span><div class="proposal-truco-tally" data-truco-player-tally="buenas" aria-hidden="true"></div><div class="proposal-truco-tally" data-truco-bot-tally="buenas" aria-hidden="true"></div></div>
+            </aside>
             <div class="proposal-truco-opponent">
               <span class="proposal-truco-seat">Bot</span>
               <div class="proposal-truco-backs" data-truco-bot-hand></div>
@@ -79,6 +90,7 @@
             <div class="proposal-truco-played" data-truco-drop-zone role="region" aria-label="Tablero: arrastrá aquí una carta o hacé clic en tu mano">
               <div class="proposal-truco-played-seat"><span class="proposal-truco-seat">Bot</span><div data-truco-played-bot></div></div>
               <div class="proposal-truco-played-seat"><span class="proposal-truco-seat">Vos</span><div data-truco-played-player></div></div>
+              <div class="proposal-truco-point-notice" data-truco-point-notice aria-hidden="true" hidden></div>
             </div>
             <div class="proposal-truco-player">
               <span class="proposal-truco-seat">Tus cartas</span>
@@ -89,32 +101,48 @@
               <span class="proposal-truco-card-back"></span>
               <span class="proposal-truco-card-back"></span>
             </div>
-            <aside class="proposal-truco-score" aria-label="Marcador">
-              <span>Vos <strong data-truco-player-score>0</strong></span>
-              <span>Bot <strong data-truco-bot-score>0</strong></span>
-            </aside>
-          </div>
+          <p class="proposal-combat-status proposal-truco-status" data-truco-status aria-live="polite">Jugá contra el bot al Truco argentino. Gana quien llegue a 30 puntos.</p>
+          <div class="proposal-truco-start-area">
+            <div class="proposal-truco-welcome">
+              <div class="proposal-truco-welcome-cards" aria-hidden="true">
+                <span class="proposal-truco-card-back"></span>
+                <span class="proposal-truco-card-back"></span>
+                <span class="proposal-truco-card-back"></span>
+              </div>
+              <div><strong>¿Repartimos?</strong><p>Jugá por tu propuesta contra el bot.</p></div>
+            </div>
           <div class="proposal-combat-controls" data-truco-actions>
             <button class="button button--primary" type="button" data-truco-start>Repartir</button>
+            <div class="proposal-truco-call-group" role="group" aria-label="Cantos de envido">
+            <span class="proposal-truco-call-label" aria-hidden="true">ENVIDO</span>
             <button class="button button--quiet" type="button" data-truco-envido hidden>Cantar Envido</button>
             <button class="button button--quiet" type="button" data-truco-real hidden>Cantar Real Envido</button>
             <button class="button button--quiet" type="button" data-truco-falta hidden>Cantar Falta Envido</button>
+            </div>
+            <div class="proposal-truco-call-group" role="group" aria-label="Cantos de truco">
+            <span class="proposal-truco-call-label" aria-hidden="true">TRUCO</span>
             <button class="button button--quiet" type="button" data-truco-truco hidden>Cantar Truco</button>
             <button class="button button--quiet" type="button" data-truco-retruco hidden>Cantar Retruco</button>
             <button class="button button--quiet" type="button" data-truco-vale hidden>Cantar Vale Cuatro</button>
+            </div>
+            <div class="proposal-truco-call-group proposal-truco-call-group--answer" role="group" aria-label="Responder al canto">
             <button class="button button--quiet" type="button" data-truco-accept hidden>Quiero</button>
             <button class="button button--quiet" type="button" data-truco-reject hidden>No quiero</button>
+            </div>
           </div>
-          <p class="proposal-combat-status" data-truco-status aria-live="polite">Jugá contra el bot al Truco argentino. Gana quien llegue a 30 puntos.</p>
+          </div>
+          </div>
           <form method="post" action="{% url 'plans:proposal_score' plan.id my_proposal.id %}" data-truco-save hidden>
             {% csrf_token %}<input type="hidden" name="game" value="truco"><input type="hidden" name="score" value="0" data-truco-score-input>
             <button class="button button--primary" type="submit">Guardar resultado</button>
           </form>
         </div>
+        {% if combat_game == 'uno' %}{% include 'plans/partials/detail_uno_game.html' %}{% endif %}
       </div>
       {% else %}
       <p class="proposal-method-note">{% if confirmed_layout %}Las partidas forman parte del proceso de decisión del grupo.{% else %}Creá tu propuesta para poder jugar por ella.{% endif %}</p>
       {% endif %}
       {% endif %}
+      {% if combat_game == 'truco' or combat_game == 'uno' and uno_enabled %}{% include 'plans/partials/detail_combat_ranking.html' %}{% endif %}
     </section>
     {% endif %}

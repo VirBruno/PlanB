@@ -39,7 +39,7 @@
           {% endif %}
         </div>
         {% elif election_method == 'combat' %}
-        <div class="proposal-election-score"><strong>{% if combat_game == 'truco' %}{{ proposal.truco_score }}/30 puntos{% else %}{{ proposal.Score }} puntos{% endif %}</strong>{% if proposal.id == champion_id %}<span class="proposal-champion-badge">Campeona</span>{% endif %}</div>
+        <div class="proposal-election-score"><strong>{% if combat_game == 'uno' %}{% if uno_enabled %}{{ proposal.uno_victories }} victoria{{ proposal.uno_victories|pluralize }}{% else %}Prueba sin puntos{% endif %}{% elif combat_game == 'truco' %}{{ proposal.truco_score }}/30 puntos{% else %}{{ proposal.Score }} puntos{% endif %}</strong>{% if proposal.id == champion_id %}<span class="proposal-champion-badge">Campeona</span>{% endif %}</div>
         {% endif %}
         <dl class="proposal-meta">
           {% if proposal.date_pick %}<div><dt>Fecha</dt><dd>{{ proposal.date_pick|date:"d/m/Y H:i" }}</dd></div>{% endif %}

@@ -238,7 +238,7 @@ html[data-theme='dark'] .pb-plan-detail .proposal-actions .button{background:#30
 .pb-plan-detail .pb-proposal-card .proposal-map-preview{border-radius:15px!important}
 .pb-plan-detail .pb-proposal-card .proposal-actions .button:hover{border-color:#9EB99C!important;background:#E4EFDD!important}
 .pb-plan-detail .pb-proposal-card .pb-weather{border-radius:17px!important}
-.pb-plan-detail .proposal-combat-game{border-radius:18px!important;overflow:hidden;min-width:0!important}
+.pb-plan-detail .proposal-combat-game{min-width:0!important}
 .pb-plan-detail .proposal-combat-canvas{max-width:100%!important}
 html[data-theme='dark'] .pb-plan-detail .proposal-election .eyebrow{color:#F4D06F!important}
 html[data-theme='dark'] .pb-plan-detail .proposal-method-picker>summary{background:#3D4B38!important;color:#FAF7F0!important;border-color:#75664B!important}

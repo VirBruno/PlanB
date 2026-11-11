@@ -6,6 +6,9 @@
   const startButton = panel.querySelector("[data-truco-start]");
   const playerScoreLabel = panel.querySelector("[data-truco-player-score]");
   const botScoreLabel = panel.querySelector("[data-truco-bot-score]");
+  const playerTallies = panel.querySelectorAll("[data-truco-player-tally]");
+  const botTallies = panel.querySelectorAll("[data-truco-bot-tally]");
+  const pointNotice = panel.querySelector("[data-truco-point-notice]");
   const arena = panel.querySelector(".proposal-truco-arena");
   const felt = panel.querySelector(".proposal-truco-felt");
   const botHandElement = panel.querySelector("[data-truco-bot-hand]");
@@ -24,9 +27,6 @@
   const suits = ["espada", "basto", "oro", "copa"];
   const suitNames = { espada: "espada", basto: "basto", oro: "oro", copa: "copa" };
   const names = { 1: "ancho", 2: "dos", 3: "tres", 4: "cuatro", 5: "cinco", 6: "seis", 7: "siete", 10: "sota", 11: "caballo", 12: "rey" };
-  const cardRanks = { 1: "1", 10: "10", 11: "11", 12: "12" };
-  const faceNames = { 1: "Ancho", 10: "Sota", 11: "Caballo", 12: "Rey" };
-  const svgNamespace = "http://www.w3.org/2000/svg";
   const strength = (card) => {
     if (card.value === 1 && card.suit === "espada") return 14;
     if (card.value === 1 && card.suit === "basto") return 13;
@@ -72,6 +72,9 @@
   let humanMano = true;
   let hand = null;
   let matchOver = true;
+  let handFinished = false;
+  const noticeQueue = [];
+  let noticeActive = false;
   let draggedCardIndex = null;
   let draggedCardButton = null;
 
@@ -95,6 +98,23 @@
   const setScores = () => {
     playerScoreLabel.textContent = String(playerScore);
     botScoreLabel.textContent = String(botScore);
+    for (const [element, score] of [
+      [playerTallies[0], Math.min(playerScore, 15)], [botTallies[0], Math.min(botScore, 15)],
+      [playerTallies[1], Math.max(playerScore - 15, 0)], [botTallies[1], Math.max(botScore - 15, 0)],
+    ]) {
+      if (!element) continue;
+      element.replaceChildren();
+      for (let group = 0; group < 3; group += 1) {
+        const marks = document.createElement("span");
+        marks.className = "proposal-truco-tally-group";
+        for (let mark = 0; mark < 5; mark += 1) {
+          const stroke = document.createElement("i");
+          if (group * 5 + mark < score) stroke.className = "is-scored";
+          marks.append(stroke);
+        }
+        element.append(marks);
+      }
+    }
   };
   const clearCalls = () => {
     for (const attribute of [
@@ -103,10 +123,82 @@
       "data-truco-accept", "data-truco-reject",
     ]) hide(button(attribute), true);
   };
+  const announce = (message, kind, who) => {
+    if (!pointNotice) return;
+    noticeQueue.push({ message, kind, who });
+    if (noticeActive) return;
+    const showNext = () => {
+      const next = noticeQueue.shift();
+      if (!next) {
+        pointNotice.hidden = true;
+        noticeActive = false;
+        return;
+      }
+      noticeActive = true;
+      pointNotice.hidden = false;
+      pointNotice.dataset.kind = next.kind;
+      pointNotice.replaceChildren();
+      const label = document.createElement("small");
+      label.textContent = next.who;
+      const title = document.createElement("strong");
+      title.textContent = next.message;
+      pointNotice.append(label, title);
+      pointNotice.classList.remove("is-visible");
+      void pointNotice.offsetWidth;
+      pointNotice.classList.add("is-visible");
+      window.setTimeout(showNext, next.kind === "points" ? 1700 : 950);
+    };
+    showNext();
+  };
   const scoreMatch = (winner, points) => {
     if (winner === "player") playerScore = Math.min(30, playerScore + points);
     else botScore = Math.min(30, botScore + points);
     setScores();
+    announce(`+${points} punto${points === 1 ? "" : "s"}`, "points", winner === "player" ? "Sumaste vos" : "Sumó el bot");
+  };
+  const cardCorners = {
+    oro: {"1":[17.768,12.066,86.788,13.081,16.212,117.919],"2":[16.714,12.104,80.804,12.604,15.946,110.396],"3":[16.11,12.408,83.39,12.408,16.11,115.592],"4":[15.458,10.796,81.578,11.798,13.922,112.202],"5":[21.426,23.642,80.586,24.628,19.914,114.372],"6":[16.392,12.398,83.672,13.418,14.828,115.582],"7":[16.927,16.157,81.597,16.662,16.153,115.338],"10":[16.342,17.77,82.172,18.269,15.578,118.731],"11":[18.392,16.398,85.672,17.418,16.828,119.582],"12":[18.806,14.323,85.216,14.827,18.034,116.173]},
+    copa: {"1":[17.9,13.353,84.6,13.353,17.9,115.647],"2":[19.705,15.961,82.345,16.971,18.155,112.029],"3":[19.72,16.411,81.78,16.411,19.72,111.589],"4":[20.923,15.7,86.173,17.229,18.577,115.771],"5":[16.946,16.604,81.036,16.104,17.714,114.896],"6":[17.549,16.49,80.479,16.997,16.771,113.003],"7":[17.049,16.99,79.979,17.497,16.271,113.503],"10":[20.049,16.49,82.979,16.997,19.271,113.003],"11":[17.464,17.604,81.554,18.104,16.696,115.896],"12":[18.672,16.511,81.892,17.531,17.108,113.469]},
+    espada: {"1":[24.408,17.831,85.598,18.325,23.652,111.675],"2":[19.114,17.578,82.914,18.575,17.586,115.425],"3":[17.927,13.657,82.597,14.162,17.153,112.838],"4":[18.319,18.748,78.639,17.742,19.861,111.258],"5":[16.24,19.047,79.75,18.551,17.0,116.449],"6":[15.3,18.3,76.2,18.3,15.3,111.7],"7":[17.379,16.217,82.629,16.712,16.621,116.288],"10":[22.077,18.482,85.007,20.005,19.743,114.995],"11":[17.586,17.937,79.936,18.44,16.814,113.56],"12":[18.513,19.543,82.023,20.055,17.727,116.945]},
+    basto: {"1":[20.763,15.543,84.273,16.055,19.977,112.945],"2":[21.803,17.809,82.703,18.791,20.297,111.209],"3":[20.394,18.192,80.134,19.188,18.866,109.812],"4":[17.357,14.272,83.187,15.768,15.063,115.232],"5":[18.879,13.217,84.129,13.712,18.121,113.288],"6":[15.233,11.94,82.803,13.431,12.947,115.569],"7":[16.371,14.712,81.621,14.217,17.129,114.783],"10":[18.458,12.796,84.578,13.798,16.922,114.202],"11":[22.577,16.982,85.507,18.505,20.243,113.495],"12":[20.8,18.3,81.7,18.3,20.8,111.7]},
+  };
+  const cardSuitNames = { oro: "Oros", copa: "Copas", espada: "Espadas", basto: "Bastos" };
+  const cardImages = new Map();
+  const cardArtData = new WeakMap();
+  const drawCardArt = (canvas, card) => {
+    const [left, top, right, rightTop, bottomLeft, bottom] = cardCorners[card.suit][card.value];
+    const filename = `Heraclio_Fournier_${card.value}_${cardSuitNames[card.suit]}.jpg`;
+    if (!cardImages.has(filename)) {
+      const image = new Image();
+      image.src = `${panel.dataset.trucoCardBase}${filename}?v=2`;
+      cardImages.set(filename, image);
+    }
+    const image = cardImages.get(filename);
+    const draw = () => {
+      if (!canvas.isConnected || !image.naturalWidth) return;
+      const scale = Math.max(2, window.devicePixelRatio || 1);
+      canvas.width = Math.max(1, Math.round(canvas.clientWidth * scale));
+      canvas.height = Math.max(1, Math.round(canvas.clientHeight * scale));
+      const context = canvas.getContext("2d");
+      context.imageSmoothingEnabled = true;
+      context.imageSmoothingQuality = "high";
+      // Map three photographed card corners to a straight rectangle.
+      const x0 = left * image.naturalWidth / 100;
+      const y0 = top * image.naturalHeight / 133;
+      const dx1 = (right - left) * image.naturalWidth / 100;
+      const dy1 = (rightTop - top) * image.naturalHeight / 133;
+      const dx2 = (bottomLeft - left) * image.naturalWidth / 100;
+      const dy2 = (bottom - top) * image.naturalHeight / 133;
+      const determinant = dx1 * dy2 - dx2 * dy1;
+      const a = canvas.width * dy2 / determinant;
+      const c = -canvas.width * dx2 / determinant;
+      const b = -canvas.height * dy1 / determinant;
+      const d = canvas.height * dx1 / determinant;
+      context.setTransform(a, b, c, d, -a * x0 - c * y0, -b * x0 - d * y0);
+      context.drawImage(image, 0, 0);
+    };
+    if (image.complete) window.requestAnimationFrame(draw);
+    else image.addEventListener("load", () => window.requestAnimationFrame(draw), { once: true });
   };
   const createCardFace = (card, className = "proposal-truco-card") => {
     const face = document.createElement("div");
@@ -114,103 +206,31 @@
     face.setAttribute("role", "img");
     face.setAttribute("aria-label", cardName(card));
 
-    const addSpan = (parent, className, text = "") => {
-      const span = document.createElement("span");
-      span.className = className;
-      span.textContent = text;
-      parent.append(span);
-      return span;
-    };
-    const makeSuitIcon = () => {
-      const svg = document.createElementNS(svgNamespace, "svg");
-      svg.setAttribute("class", "proposal-truco-suit-icon");
-      svg.setAttribute("viewBox", "0 0 24 24");
-      svg.setAttribute("aria-hidden", "true");
-      const paths = {
-        copa: "M5 3h14l-1.6 8a5.5 5.5 0 0 1-4.4 4.4V19h4v2H7v-2h4v-3.6A5.5 5.5 0 0 1 6.6 11L5 3Zm14 2h2v3a3 3 0 0 1-3 3l.4-2a1 1 0 0 0 .6-1V5ZM5 5H3v3a3 3 0 0 0 3 3l-.4-2A1 1 0 0 1 5 8V5Z",
-        oro: "M12 1.5a10.5 10.5 0 1 0 0 21 10.5 10.5 0 0 0 0-21Z",
-        basto: "M7 23 9.5 16 6 13l2-2-2-3 2-2-1-2 3-2 2 2 3-1 2 3-2 2 2 3-3 3-2 9Z",
-        espada: "M12 1 17 12 14 14 13 17 18 18 18 20 13 19 13 23 11 23 11 19 6 20 6 18 11 17 10 14 7 12Z",
-      };
-      const path = document.createElementNS(svgNamespace, "path");
-      path.setAttribute("d", paths[card.suit]);
-      svg.append(path);
-      if (card.suit === "oro") {
-        const innerCoin = document.createElementNS(svgNamespace, "circle");
-        innerCoin.setAttribute("cx", "12");
-        innerCoin.setAttribute("cy", "12");
-        innerCoin.setAttribute("r", "7.5");
-        innerCoin.setAttribute("fill", "none");
-        innerCoin.setAttribute("stroke", "#fff4ce");
-        innerCoin.setAttribute("stroke-width", "1.1");
-        svg.append(innerCoin);
-        const mark = document.createElementNS(svgNamespace, "path");
-        mark.setAttribute("d", "M12 7.5v9m-2.5-6.8h4.2a1.7 1.7 0 0 1 0 3.4h-3.4a1.7 1.7 0 0 0 0 3.4h4.2");
-        mark.setAttribute("fill", "none");
-        mark.setAttribute("stroke", "#fff4ce");
-        mark.setAttribute("stroke-width", "1");
-        mark.setAttribute("stroke-linecap", "round");
-        svg.append(mark);
-      }
-      if (card.suit === "basto") {
-        const knots = document.createElementNS(svgNamespace, "path");
-        knots.setAttribute("d", "m8 8 5 3m-6 2 5 3m1-11 3 3");
-        knots.setAttribute("fill", "none");
-        knots.setAttribute("stroke", "#e7f2c5");
-        knots.setAttribute("stroke-width", "1");
-        knots.setAttribute("stroke-linecap", "round");
-        svg.append(knots);
-      }
-      return svg;
-    };
-    const makePip = (small = false) => {
-      const pip = document.createElement("span");
-      pip.className = `proposal-truco-pip${small ? " proposal-truco-pip--small" : ""}`;
-      pip.append(makeSuitIcon());
-      return pip;
-    };
-    const makeCourtFigure = (mirror = false) => {
-      const figure = document.createElement("span");
-      const headwear = { 10: "cap", 11: "helmet", 12: "crown" }[card.value];
-      figure.className = `proposal-truco-court-figure proposal-truco-court-figure--${card.value} proposal-truco-court-figure--${card.suit}${mirror ? " proposal-truco-court-figure--mirror" : ""}`;
-      for (const piece of [headwear, "head", "body", "sash"]) {
-        const detail = document.createElement("i");
-        detail.className = `proposal-truco-court-${piece}`;
-        figure.append(detail);
-      }
-      if (card.value === 11) {
-        const horse = document.createElement("i");
-        horse.className = "proposal-truco-court-horse";
-        figure.append(horse);
-      }
-      return figure;
-    };
-
-    const rank = cardRanks[card.value] || String(card.value);
-    const topCorner = addSpan(face, "proposal-truco-card-corner proposal-truco-card-corner--top", rank);
-    topCorner.append(makePip(true));
-    const content = addSpan(face, `proposal-truco-card-content${card.value > 7 ? " proposal-truco-card-content--court" : ""}`);
-    if (card.value <= 7) {
-      const pips = addSpan(content, `proposal-truco-pips proposal-truco-pips--${card.value}`);
-      for (let index = 0; index < card.value; index += 1) pips.append(makePip());
-    } else {
-      const court = addSpan(content, `proposal-truco-court proposal-truco-court--${card.value}`);
-      court.append(makeCourtFigure(), makeCourtFigure(true));
-      addSpan(court, "proposal-truco-court-title", faceNames[card.value]);
-    }
-    const bottomCorner = addSpan(face, "proposal-truco-card-corner proposal-truco-card-corner--bottom", rank);
-    bottomCorner.append(makePip(true));
+    const art = document.createElement("canvas");
+    art.className = "proposal-truco-card-art";
+    art.setAttribute("aria-hidden", "true");
+    face.append(art);
+    cardArtData.set(art, card);
+    drawCardArt(art, card);
     return face;
   };
   const renderPlayedCard = (played, element) => {
     element.replaceChildren();
     if (!played) return;
     const card = createCardFace(played.card, "proposal-truco-card proposal-truco-card--played");
-    if (played.animate) {
-      card.className += " is-playing";
-      played.animate = false;
-    }
     element.append(card);
+    if (played.animate) {
+      played.animate = false;
+      const from = played.origin;
+      const to = card.getBoundingClientRect();
+      if (from && from.width && from.height && to.width && to.height && card.animate
+          && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        card.animate([
+          { transform: `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(${from.width / to.width}, ${from.height / to.height})` },
+          { transform: "translate(0, 0) scale(1, 1)" },
+        ], { duration: 380, easing: "ease-in-out" });
+      }
+    }
   };
   const finishMatch = (winner) => {
     matchOver = true;
@@ -237,13 +257,21 @@
       return;
     }
     humanMano = !humanMano;
-    hand = null;
+    handFinished = true;
+    hand.turn = null;
+    hand.pending = null;
     clearCalls();
-    startButton.hidden = false;
-    startButton.textContent = "Siguiente mano";
+    startButton.hidden = true;
     render();
+    window.setTimeout(() => {
+      if (!handFinished || matchOver) return;
+      startHand();
+    }, 2600);
   };
   const render = () => {
+    panel.dataset.trucoState = matchOver
+      ? (playerScore || botScore ? "finished" : "ready")
+      : (handFinished ? "between-hands" : hand ? "playing" : "between-hands");
     setScores();
     handElement.replaceChildren();
     botHandElement.replaceChildren();
@@ -325,7 +353,7 @@
   };
   const renderCalls = () => {
     clearCalls();
-    if (matchOver || !hand) return;
+    if (matchOver || !hand || handFinished) return;
     const pending = hand.pending;
     if (pending) {
       if (pending.caller !== "player") {
@@ -343,6 +371,7 @@
 
   const startHand = () => {
     if (matchOver) return;
+    handFinished = false;
     hand = makeHand();
     startButton.hidden = true;
     setStatus(`${humanMano ? "Sos mano." : "El bot es mano."} Jugá tus cartas; el primero en llegar a 30 gana.`);
@@ -365,6 +394,7 @@
   const botEnvidoThreshold = () => envidoValue(hand.botCards) >= 27;
   const callEnvido = (caller, level) => {
     if (hand.envidoResolved) return;
+    announce(`¡${level === 3 ? "Falta envido" : level === 2 ? "Real envido" : "Envido"}!`, "envido", caller === "player" ? "Vos cantaste" : "Canta el bot");
     const previous = hand.pending?.kind === "envido" ? hand.pending : null;
     const callerScore = caller === "player" ? playerScore : botScore;
     const target = level === 3
@@ -394,6 +424,7 @@
     else rejectBid();
   };
   const callTruco = (caller, level) => {
+    announce(`¡${level === 1 ? "Truco" : level === 2 ? "Retruco" : "Vale cuatro"}!`, "truco", caller === "player" ? "Vos cantaste" : "Canta el bot");
     const previousStake = hand.stake;
     const value = level + 1;
     hand.pending = { kind: "truco", caller, level, value, refusalValue: previousStake };
@@ -411,6 +442,7 @@
   const acceptBid = () => {
     if (!hand?.pending) return;
     const pending = hand.pending;
+    announce("¡Quiero!", "answer", pending.caller === "player" ? "Respondió el bot" : "Respondiste vos");
     if (pending.kind === "envido") {
       const playerValue = envidoValue(hand.cards);
       const botValue = envidoValue(hand.botCards);
@@ -438,6 +470,7 @@
   const rejectBid = () => {
     if (!hand?.pending) return;
     const pending = hand.pending;
+    announce("No quiero", "answer", pending.caller === "player" ? "Respondió el bot" : "Respondiste vos");
     const winner = pending.caller;
     hand.pending = null;
     if (pending.kind === "envido") {
@@ -492,10 +525,12 @@
   const playCard = (player, index) => {
     if (!hand || hand.turn !== player || hand.pending) return;
     const cards = player === "player" ? hand.cards : hand.botCards;
+    const source = player === "player" ? handElement.children[index] : botHandElement.children[index];
+    const origin = source?.getBoundingClientRect();
     const [card] = cards.splice(index, 1);
     if (player === "player") hand.playerPlayed = true;
     else hand.botPlayed = true;
-    hand.table.push({ player, card, animate: true });
+    hand.table.push({ player, card, animate: true, origin });
     if (hand.table.length === 2) {
       hand.turn = null;
       setStatus("Se compara la baza…");
@@ -568,6 +603,15 @@
     if (matchOver) startMatch();
     else if (!hand) startHand();
   });
+  if (typeof ResizeObserver !== "undefined") {
+    const cardResizeObserver = new ResizeObserver(() => {
+      for (const art of panel.querySelectorAll(".proposal-truco-card-art")) {
+        const card = cardArtData.get(art);
+        if (card) drawCardArt(art, card);
+      }
+    });
+    cardResizeObserver.observe(panel);
+  }
   button("data-truco-envido")?.addEventListener("click", () => callEnvido("player", 1));
   button("data-truco-real")?.addEventListener("click", () => callEnvido("player", 2));
   button("data-truco-falta")?.addEventListener("click", () => callEnvido("player", 3));

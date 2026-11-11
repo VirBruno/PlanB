@@ -2,7 +2,8 @@
 {% load static l10n %}
 {% block extra_css %}
   {{ block.super }}
-  <link rel="stylesheet" href="{% static 'users/css/proposals.css' %}?v=15">
+  {% if election_method == 'combat' and combat_game == 'uno' %}<link rel="stylesheet" href="{% static 'users/css/proposal-uno.css' %}?v=7">{% endif %}
+  <link rel="stylesheet" href="{% static 'users/css/proposals.css' %}?v=32_16">
   <link rel="stylesheet" href="{% static 'users/css/plan-decisions.css' %}?v=8">
   <link rel="stylesheet" href="{% static 'users/css/plan-phases.css' %}?v=9">
   <link rel="stylesheet" href="{% static 'users/css/proposal-weather.css' %}?v=1">
@@ -13,7 +14,7 @@
   {% endif %}
   <link rel="stylesheet" href="{% static 'users/css/plan-detail-weather-focus.css' %}?v=7">
   <link rel="stylesheet" href="{% static 'users/css/planb-proposals-polish.css' %}?v=3">
-  <link rel="stylesheet" href="{% static 'users/css/plan-detail-social.css' %}?v=31_11">
+  <link rel="stylesheet" href="{% static 'users/css/plan-detail-social.css' %}?v=31_12">
   <link rel="stylesheet" href="{% static 'users/css/plan-expenses.css' %}?v=4">
   {% if show_recommendations %}
   <link rel="stylesheet" href="{% static 'users/css/plan-recommendations.css' %}?v=2">
@@ -39,8 +40,9 @@
   <script src="{% static 'users/js/proposal-weather.js' %}?v=1" defer></script>
   <script src="{% static 'users/js/proposals.js' %}?v=31_2" defer></script>
   {% if election_method == 'combat' %}
-  <script src="{% static 'users/js/proposal-combat.js' %}?v=2" defer></script>
-  <script src="{% static 'users/js/proposal-truco.js' %}?v=4" defer></script>
+  <script src="{% static 'users/js/proposal-combat.js' %}?v=3" defer></script>
+  <script src="{% static 'users/js/proposal-truco.js' %}?v=32_14" defer></script>
+  {% if combat_game == 'uno' %}<script src="{% static 'users/js/proposal-uno.js' %}?v=11" defer></script>{% endif %}
   {% endif %}
   {% endif %}
 {% endblock %}

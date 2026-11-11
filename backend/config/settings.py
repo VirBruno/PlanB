@@ -6,6 +6,7 @@ from .settings_base import *  # noqa: F403
 load_dotenv(BASE_DIR.parent / ".env")
 SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 DEBUG = os.getenv("DJANGO_DEBUG", "False").strip().lower() in {"true", "1", "yes"}
+UNO_SUPABASE_ENABLED = os.getenv("UNO_SUPABASE_ENABLED", "false").strip().lower() in {"true", "1", "yes"}
 ALLOWED_HOSTS = [host.strip() for host in os.getenv(
     "DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1"
 ).split(",") if host.strip()]

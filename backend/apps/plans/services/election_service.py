@@ -16,6 +16,24 @@ MAX_SCORE = 99999
 COMBAT_GAMES = ("arcade", "truco")
 
 
+def rank_proposals(proposals, *, score_key, minimum_score=1):
+    """Ordena resultados y devuelve un líder solo si alcanza el mínimo y no hay empate."""
+    leaderboard = sorted(proposals, key=lambda proposal: -proposal[score_key])
+    previous_score = None
+    place = 0
+    for index, proposal in enumerate(leaderboard, start=1):
+        if proposal[score_key] != previous_score:
+            place = index
+            previous_score = proposal[score_key]
+        proposal["rank"] = place
+    champion_id = None
+    if leaderboard and leaderboard[0][score_key] >= minimum_score and (
+        len(leaderboard) == 1 or leaderboard[0][score_key] > leaderboard[1][score_key]
+    ):
+        champion_id = leaderboard[0]["id"]
+    return leaderboard, champion_id
+
+
 def _uuid(value):
     try:
         return str(UUID(str(value)))
