@@ -20,13 +20,13 @@
   <link rel="stylesheet" href="{% static 'users/css/plan-recommendations.css' %}?v=2">
   {% endif %}
   {% if show_recommendations %}
-  <link rel="stylesheet" href="{% static 'users/css/plan-confirmed-workspace.css' %}?v=4">
+  <link rel="stylesheet" href="{% static 'users/css/plan-confirmed-workspace.css' %}?v=5">
   {% endif %}
   <link rel="stylesheet" href="{% static 'users/css/plan-organizing-compact.css' %}?v=3">
 {% endblock %}
 {% block extra_js %}
   {% if show_recommendations %}
-  <script src="{% static 'users/js/plan-confirmed-workspace.js' %}?v=2" defer></script>
+  <script src="{% static 'users/js/plan-confirmed-workspace.js' %}?v=3" defer></script>
   {% endif %}
   <script src="{% static 'users/js/plan-expenses.js' %}?v=3" defer></script>
   <script src="{% static 'users/js/plan-weather-planner.js' %}?v=1" defer></script>

@@ -78,7 +78,9 @@ window.addEventListener('load',async()=>{
     assert(toolCount()===0,'Ninguna herramienta expandida inicialmente');
     assert(!drawer.open,'Drawer cerrado inicialmente');
     assert(root.querySelectorAll('[data-tool]').length===3,'Tres accesos compactos');
-    assert(new Set(['clima','gastos','sugerencias'].map(name=>getComputedStyle(control(name)).backgroundColor)).size===3,'Herramientas con tres acentos de la paleta existente');
+    assert(new Set(['clima','gastos','sugerencias'].map(name=>getComputedStyle(control(name)).backgroundColor)).size===1,'Herramientas con una superficie visual compartida');
+    assert(getComputedStyle(root.querySelector('#plan-title')).textDecorationLine==='none','Titulo confirmado sin subrayado global');
+    const toolSurface=getComputedStyle(control('clima')).backgroundColor;
     const hero=root.querySelector('.pb-decision-panel');
     const heroWeather=hero.querySelector('[data-proposal-weather]');
     await wait(()=>!heroWeather.querySelector('[data-weather-details]').hidden);
@@ -110,6 +112,8 @@ window.addEventListener('load',async()=>{
     const initialHeight=document.documentElement.scrollHeight;
     const initialSelectorsHeight=root.querySelector('.pb-tool-selectors').getBoundingClientRect().height;
     control('clima').click();
+    assert(getComputedStyle(control('clima')).backgroundColor===toolSurface,'Abrir herramienta conserva su fondo');
+    assert(panel('clima').getAnimations().some(animation=>animation.playState==='running'),'Herramienta inicia apertura animada');
     assert(toolCount()===1&&!panel('clima').hidden,'Abre sólo clima');
     const province=root.querySelector('[data-weather-province]');
     province.value='buenos-aires';province.dispatchEvent(new Event('change'));
@@ -133,6 +137,8 @@ window.addEventListener('load',async()=>{
     await wait(()=>root.querySelector('[data-expense-summary]'));
     assert(toolCount()===1&&panel('clima').hidden,'Gastos reemplaza clima en el workspace');
     const expense=root.querySelector('[data-inline-expenses]');
+    const toolCards=['.pb-weather-compare','.pb-expenses-inline','.pb-suggestions'].map(selector=>getComputedStyle(root.querySelector(selector)));
+    assert(['backgroundColor','borderRadius','borderTopColor','boxShadow'].every(property=>new Set(toolCards.map(style=>style[property])).size===1),'Herramientas abiertas comparten superficie, borde, radio y sombra');
     assert(expense.tagName==='SECTION'&&!expense.closest('dialog'),'Gastos completo inline, fuera del drawer');
     assert(expense.querySelector('table')&&expense.querySelector('[data-expense-form]'),'Balances y formulario real conservados');
     const metrics=[...expense.querySelectorAll('.pb-expenses-overview > div')].map(node=>node.getBoundingClientRect());
