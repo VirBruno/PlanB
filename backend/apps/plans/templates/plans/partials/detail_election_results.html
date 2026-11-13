@@ -60,8 +60,11 @@
         <button class="proposal-combat-choice{% if combat_game == 'uno' %} is-selected{% endif %}" type="submit" name="game" value="uno" aria-pressed="{% if combat_game == 'uno' %}true{% else %}false{% endif %}">
           <img class="proposal-combat-choice__art" src="{% static 'users/img/juegos/uno.png' %}" alt="" loading="lazy">
           <span>UNO{% if not uno_enabled %} <small>· prueba</small>{% endif %}</span>
-        </a>
-      </nav>
+        </button>
+      </form>
+      {% else %}
+      <p class="proposal-method-note">Juego elegido para el grupo: <strong>{% if combat_game == 'truco' %}Truco argentino{% elif combat_game == 'uno' %}UNO{% else %}Esquivar obstáculos{% endif %}</strong></p>
+      {% endif %}
       {% if champion_id %}<p class="proposal-champion">Propuesta campeona: <strong>{{ leaderboard.0.tittle }}</strong></p>{% endif %}
       {% if combat_game == 'uno' and uno_multiplayer_enabled and plan.status and not plan.selected_proposal_id %}
       <section class="proposal-uno-mode" data-uno-mode aria-labelledby="uno-mode-title">
