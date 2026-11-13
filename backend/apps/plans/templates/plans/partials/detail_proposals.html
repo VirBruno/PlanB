@@ -3,13 +3,13 @@
       <div><p class="pb-proposals-kicker">IDEAS DEL GRUPO</p><h2 id="proposals-title">Propuestas <span class="pb-proposals-count">{{ proposals|length }}</span></h2><p class="pb-proposals-subtitle">{% if plan.selected_proposal_id %}El encuentro está confirmado; reabrí la decisión para cambiar alternativas.{% else %}Explorá las alternativas que compartieron los integrantes.{% endif %}</p></div>
       {% if can_create_proposal and not plan.selected_proposal_id %}<a class="button button--primary" href="{% url 'plans:proposal_create' plan.id %}">Nueva propuesta <span aria-hidden="true">+</span></a>{% endif %}
     </div>
-    {% if plan.scheduled_at and not plan.selected_proposal_id %}{% include 'plans/partials/tentative_reference.html' %}{% endif %}
     {% if proposals %}
+    {% include 'plans/partials/detail_proposal_list.html' %}
     {% include 'plans/partials/detail_election_method.html' %}
     {% include 'plans/partials/detail_election_results.html' %}
-    {% include 'plans/partials/detail_proposal_list.html' %}
     {% else %}
     <div class="pb-proposals-empty"><span aria-hidden="true">✧</span><h3>¡El primer plan empieza con una idea!</h3><p>Todavía no hay propuestas para este plan.</p>{% if can_create_proposal and not plan.selected_proposal_id %}<a class="button button--primary" href="{% url 'plans:proposal_create' plan.id %}">Compartir mi propuesta</a>{% endif %}</div>
     {% endif %}
+    {% if plan.scheduled_at and not plan.selected_proposal_id %}{% include 'plans/partials/tentative_reference.html' %}{% endif %}
     {% if not can_create_proposal %}<p class="empty-proposals">Ya compartiste tu propuesta para este plan.</p>{% endif %}
   </section>

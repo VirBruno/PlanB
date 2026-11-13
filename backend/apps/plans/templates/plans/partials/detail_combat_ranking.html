@@ -1,0 +1,5 @@
+<ol class="proposal-ranking">
+  {% for proposal in leaderboard %}
+  <li{% if proposal.id == champion_id %} class="is-champion"{% endif %}><span class="proposal-ranking-place">{{ proposal.rank }}</span><span class="proposal-ranking-name">{{ proposal.tittle }}<small>{% include 'components/user_avatar.html' with user_id=proposal.created_by username=proposal.creator_username scope='plan' scope_id=plan.id only %} {{ proposal.creator_username }}</small></span><strong>{% if combat_game == 'uno' %}{{ proposal.uno_victories }} victoria{{ proposal.uno_victories|pluralize }}{% elif combat_game == 'truco' %}{{ proposal.truco_score }}/30 pts{% else %}{{ proposal.Score }} pts{% endif %}</strong></li>
+  {% endfor %}
+</ol>

@@ -1,8 +1,11 @@
 <a class="back-link pb-plan-back" href="{% url 'groups:detail' group.id %}">← Volver al grupo</a>
-<section class="group-panel pb-plan-detail" aria-labelledby="plan-title">
+<section class="group-panel pb-plan-detail pb-organizing-layout" aria-labelledby="plan-title">
   <p class="eyebrow pb-plan-eyebrow">TU ESPACIO PARA ORGANIZARTE</p>
   <div class="plan-heading pb-plan-title-row">
-    <h1 id="plan-title">{{ plan.name }}</h1>
+    <div class="pb-plan-title-status">
+      <h1 id="plan-title">{{ plan.name }}</h1>
+      <span class="pb-phase-label pb-plan-heading-status {% if plan.status %}{% if plan.selected_proposal_id %}pb-phase-chip--confirmed{% else %}pb-phase-chip--organizing{% endif %}{% else %}{% if plan.selected_proposal_id %}pb-phase-chip--finished{% else %}pb-phase-chip--inactive{% endif %}{% endif %}">{% if plan.status %}{% if plan.selected_proposal_id %}Confirmado{% else %}En organización{% endif %}{% else %}{% if plan.selected_proposal_id %}Finalizado{% else %}Inactivo{% endif %}{% endif %}</span>
+    </div>
     {% if can_manage %}
     <div class="plan-heading-actions" aria-label="Acciones del plan">
       <a class="plan-icon-button" href="{% url 'plans:edit' plan.id %}" aria-label="Editar plan" title="Editar plan">
@@ -16,12 +19,17 @@
   </div>
   {% if plan.description %}<p class="group-description">{{ plan.description|linebreaksbr }}</p>{% endif %}
   <dl class="group-meta">
-    <div><dt>Estado</dt><dd class="pb-phase-label">{% if plan.status %}{% if plan.selected_proposal_id %}Confirmado{% else %}En organización{% endif %}{% else %}{% if plan.selected_proposal_id %}Finalizado{% else %}Inactivo{% endif %}{% endif %}</dd></div>
     <div><dt>Creado el</dt><dd>{{ plan.created_at|date:"d/m/Y" }}</dd></div>
     <div><dt>Grupo</dt><dd><a href="{% url 'groups:detail' group.id %}">{% include 'components/group_identity.html' with group_id=group.id mark_class='pb-group-mark--inline' only %} {{ group.name }}</a></dd></div>
   </dl>
-  {% include 'plans/partials/detail_weather.html' %}
-  {% include 'plans/partials/detail_decision.html' %}
-  {% include 'plans/expenses/modal.html' %}
+  <div class="pb-organizing-tools" aria-label="Herramientas del plan">
+    {% include 'plans/partials/detail_weather.html' with compact_weather=True %}
+    {% include 'plans/expenses/modal.html' %}
+  </div>
+  {% if plan.selected_proposal_id %}
+    {% include 'plans/partials/detail_decision.html' %}
+  {% else %}
+    <p class="pb-plan-decision-note" id="decision">{% if plan.status %}Todavía no hay encuentro confirmado.{% else %}No se eligió un encuentro definitivo.{% endif %}</p>
+  {% endif %}
   {% include 'plans/partials/detail_proposals.html' %}
 </section>

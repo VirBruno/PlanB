@@ -1,7 +1,7 @@
 """Etapa 8: permiso de owner y lectura de planes confirmados."""
 from uuid import UUID
 from unittest.mock import MagicMock, patch
-from django.test import TestCase, SimpleTestCase
+from django.test import TestCase, SimpleTestCase, override_settings
 
 from apps.plans.services import plan_service
 from apps.plans.services import plan_confirmation_service
@@ -86,6 +86,19 @@ class PlanDecisionViewTests(TestCase):
 
 
 class PlanConfirmationServiceTests(SimpleTestCase):
+    @override_settings(UNO_SUPABASE_ENABLED=True)
+    @patch("apps.plans.services.plan_confirmation_service.clients.public_client")
+    def test_uno_confirmation_uses_its_game_specific_rpc(self, public_client):
+        client = MagicMock()
+        client.rpc.return_value.execute.return_value.data = 47
+        public_client.return_value.__enter__.return_value = client
+        self.assertEqual(plan_confirmation_service.confirm(
+            "user-jwt", plan_id=PLAN_ID, proposal_id=47, combat_game="uno",
+        ), 47)
+        client.rpc.assert_called_once_with("confirm_uno_plan_proposal", {
+            "p_plan_id": PLAN_ID, "p_proposal_id": 47,
+        })
+
     @patch("apps.plans.services.plan_confirmation_service.clients.public_client")
     def test_truco_confirmation_uses_its_game_specific_rpc(self, public_client):
         client = MagicMock()

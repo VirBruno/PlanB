@@ -101,6 +101,7 @@
 .proposal-voted-label { background: #edf1f7; color: var(--muted); }
 .proposal-combat-game { display: grid; gap: 10px; margin-top: 4px; }
 .proposal-combat-copy { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; color: var(--muted); font-size: 12px; }
+.proposal-combat-copy > * { min-width: 0; overflow-wrap: anywhere; }
 .proposal-combat-copy strong { color: var(--navy); }
 .proposal-combat-canvas { display: block; width: 100%; height: auto; aspect-ratio: 9 / 4; border: 1px solid var(--line); border-radius: 6px; background: #dff3f2; touch-action: manipulation; }
 .proposal-combat-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
@@ -109,11 +110,16 @@
 .proposal-combat-controls [data-combat-score] { margin-left: auto; color: var(--navy); font-size: 13px; font-weight: 700; }
 .proposal-combat-status { margin: 0; color: var(--muted); font-size: 12px; }
 .proposal-combat-game form { margin: 0; }
-.proposal-combat-game-picker { display: flex; align-items: center; gap: 8px; color: var(--navy); font-size: 13px; font-weight: 700; }
-.proposal-combat-game-picker select { min-height: 38px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--white); color: var(--text); font: inherit; }
-.proposal-truco-arena { position: relative; min-height: 480px; overflow: hidden; border: 1px solid #52301f; border-radius: 10px; background-color: #513420; background-image: linear-gradient(180deg, #1d10041c, #1d10043b), url("../img/truco-table.jpg"); background-position: center 52%; background-size: cover; box-shadow: 0 8px 22px #29180f30, inset 0 0 0 1px #fff3; }
-.proposal-truco-felt { display: none; }
-.proposal-truco-opponent { position: absolute; z-index: 2; top: 12px; left: 58%; display: grid; justify-items: center; gap: 6px; transform: translateX(-50%); }
+.proposal-combat-games { display: flex; flex-wrap: wrap; gap: 14px; margin: 16px 0 22px; }
+.proposal-combat-choice { display: grid; align-content: start; gap: 8px; width: 152px; padding: 7px; border: 2px solid transparent; border-radius: 16px; color: var(--text); font-size: 13px; font-weight: 750; text-decoration: none; transition: transform .18s ease, border-color .18s ease, background-color .18s ease; }
+.proposal-combat-choice__art { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 11px; }
+.proposal-combat-choice > span { padding: 0 3px 3px; line-height: 1.25; }
+.proposal-combat-choice small { font-size: .8em; font-weight: 600; }
+.proposal-combat-choice:hover { transform: translateY(-3px); background: var(--surface, #edf3e9); }
+.proposal-combat-choice.is-selected { border-color: #a8c94e; background: color-mix(in srgb, #a8c94e 12%, transparent); }
+.proposal-combat-choice:focus-visible { outline: 3px solid #a8c94e; outline-offset: 3px; }
+@media (max-width: 480px) { .proposal-combat-games { gap: 5px; } .proposal-combat-choice { width: calc((100% - 10px) / 3); min-width: 0; font-size: 11px; padding: 5px; } }
+@media (prefers-reduced-motion: reduce) { .proposal-combat-choice { transition: none; } }
 .proposal-truco-seat { padding: 3px 9px; border: 1px solid #f4e3c2b8; border-radius: 999px; background: #332116c9; color: #fff6e6; font-size: 11px; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; text-shadow: 0 1px 2px #1e1009; box-shadow: 0 2px 6px #29180f38; }
 .proposal-truco-backs { display: flex; justify-content: center; min-height: 76px; padding-left: 0; }
 .proposal-truco-backs .proposal-truco-card-back { margin-left: 0; }
@@ -125,92 +131,150 @@
 .proposal-truco-deck .proposal-truco-card-back:nth-child(1) { transform: translate(-4px, 3px) rotate(-5deg); }
 .proposal-truco-deck .proposal-truco-card-back:nth-child(2) { transform: translate(-2px, 1px) rotate(-2deg); }
 .proposal-truco-deck .proposal-truco-card-back:nth-child(3) { transform: rotate(1deg); }
-.proposal-truco-trick { position: absolute; z-index: 4; top: 45%; left: 18%; width: min(30%, 260px); margin: 0; padding: 7px 12px; border: 1px solid #f1dfbfaa; border-radius: 999px; background: #332116c9; color: #fff6e6 !important; font-size: 13px; font-weight: 700; text-align: center; text-shadow: 0 1px 2px #1e1009; box-shadow: 0 3px 10px #29180f45; transform: translateX(-50%); backdrop-filter: blur(4px); }
-.proposal-truco-played { position: absolute; z-index: 2; top: 27%; left: 58%; display: flex; align-items: center; justify-content: center; gap: clamp(18px, 5vw, 54px); width: min(48%, 390px); min-height: 116px; padding: 10px 12px; border: 1px solid #f1dfbfaa; border-radius: 14px; background: #332116b8; box-shadow: 0 6px 18px #29180f50; transform: translateX(-50%); backdrop-filter: blur(5px); }
-.proposal-truco-played-seat { display: grid; justify-items: center; gap: 4px; }
-.proposal-truco-played-seat > div { min-width: 70px; min-height: 74px; }
 .proposal-truco-hand { display: flex; flex-wrap: wrap; justify-content: center; gap: clamp(6px, 2vw, 14px); }
-.proposal-truco-player { position: absolute; z-index: 2; bottom: 12px; left: 58%; display: grid; justify-items: center; gap: 7px; width: min(64%, 520px); padding: 8px 12px 10px; border: 1px solid #f1dfbfaa; border-radius: 14px; background: #332116bd; box-shadow: 0 6px 18px #29180f50; transform: translateX(-50%); backdrop-filter: blur(5px); }
-.proposal-truco-card { position: relative; display: flex; flex: 0 0 auto; flex-direction: column; align-items: center; justify-content: space-between; width: clamp(76px, 22vw, 104px); aspect-ratio: .69; padding: 8px 7px; overflow: hidden; border: 1px solid #d4c9ad; border-radius: 5px; background: linear-gradient(145deg, #fffef9, #f2ead8); color: #23384a; font: inherit; box-shadow: 0 4px 10px #102e2450, inset 0 0 0 3px #fff9e9; cursor: grab; transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+.proposal-truco-card { position: relative; display: flex; flex: 0 0 auto; flex-direction: column; align-items: center; justify-content: space-between; width: clamp(76px, 22vw, 112px); aspect-ratio: 208 / 319; padding: 8px 7px; overflow: hidden; border: 1px solid #d4c9ad; border-radius: 5px; background: linear-gradient(145deg, #fffef9, #f2ead8); color: #23384a; font: inherit; box-shadow: 0 4px 10px #102e2450, inset 0 0 0 3px #fff9e9; cursor: grab; transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
 .proposal-truco-card:active { cursor: grabbing; }
-.proposal-truco-arena.is-drop-target { box-shadow: inset 0 0 0 4px #fff3c2, inset 0 0 0 8px #075d59; }
-.proposal-truco-card::before { position: absolute; inset: 5px; border: 1px solid #ddd2bb; border-radius: 5px; content: ""; pointer-events: none; }
-.proposal-truco-card--oro { color: #aa7b0a; }
-.proposal-truco-card--copa { color: #b3322d; }
-.proposal-truco-card--espada { color: #24629a; }
-.proposal-truco-card--basto { color: #347b3b; }
-.proposal-truco-card-corner { position: relative; z-index: 1; display: flex; align-items: flex-start; gap: 2px; align-self: flex-start; font-family: Georgia, serif; font-size: 14px; font-weight: 800; line-height: 1; }
-.proposal-truco-card-corner--bottom { align-self: flex-end; transform: rotate(180deg); }
-.proposal-truco-card-content { position: relative; z-index: 1; display: grid; flex: 1; place-items: center; width: 100%; min-height: 0; }
-.proposal-truco-pips { display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(4, 1fr); justify-items: center; align-items: center; width: 90%; height: 90%; }
-.proposal-truco-pip { display: grid; place-items: center; width: 100%; height: 100%; }
-.proposal-truco-suit-icon { display: block; width: 78%; height: 78%; overflow: visible; fill: currentColor; }
-.proposal-truco-pip--small { width: 11px; height: 11px; }
-.proposal-truco-pips--1 .proposal-truco-pip { grid-area: 2 / 1 / 4 / 3; width: 78%; height: 78%; }
-.proposal-truco-pips--2 .proposal-truco-pip:nth-child(1) { grid-area: 1 / 1 / 3 / 3; width: 68%; height: 68%; }
-.proposal-truco-pips--2 .proposal-truco-pip:nth-child(2) { grid-area: 3 / 1 / 5 / 3; width: 68%; height: 68%; transform: rotate(180deg); }
-.proposal-truco-pips--3 .proposal-truco-pip:nth-child(1) { grid-area: 1 / 1 / 3 / 3; width: 64%; height: 64%; }
-.proposal-truco-pips--3 .proposal-truco-pip:nth-child(2) { grid-area: 2 / 1 / 4 / 3; width: 64%; height: 64%; }
-.proposal-truco-pips--3 .proposal-truco-pip:nth-child(3) { grid-area: 3 / 1 / 5 / 3; width: 64%; height: 64%; transform: rotate(180deg); }
-.proposal-truco-pips--4 .proposal-truco-pip:nth-child(1) { grid-area: 1 / 1 / 3 / 2; }
-.proposal-truco-pips--4 .proposal-truco-pip:nth-child(2) { grid-area: 1 / 2 / 3 / 3; }
-.proposal-truco-pips--4 .proposal-truco-pip:nth-child(3) { grid-area: 3 / 1 / 5 / 2; transform: rotate(180deg); }
-.proposal-truco-pips--4 .proposal-truco-pip:nth-child(4) { grid-area: 3 / 2 / 5 / 3; transform: rotate(180deg); }
-.proposal-truco-pips--5 .proposal-truco-pip:nth-child(1) { grid-area: 1 / 1 / 3 / 2; }
-.proposal-truco-pips--5 .proposal-truco-pip:nth-child(2) { grid-area: 1 / 2 / 3 / 3; }
-.proposal-truco-pips--5 .proposal-truco-pip:nth-child(3) { grid-area: 2 / 1 / 4 / 3; width: 68%; height: 68%; }
-.proposal-truco-pips--5 .proposal-truco-pip:nth-child(4) { grid-area: 3 / 1 / 5 / 2; transform: rotate(180deg); }
-.proposal-truco-pips--5 .proposal-truco-pip:nth-child(5) { grid-area: 3 / 2 / 5 / 3; transform: rotate(180deg); }
-.proposal-truco-pips--6 .proposal-truco-pip:nth-child(1) { grid-area: 1 / 1 / 2 / 2; }
-.proposal-truco-pips--6 .proposal-truco-pip:nth-child(2) { grid-area: 1 / 2 / 2 / 3; }
-.proposal-truco-pips--6 .proposal-truco-pip:nth-child(3) { grid-area: 2 / 1 / 3 / 2; }
-.proposal-truco-pips--6 .proposal-truco-pip:nth-child(4) { grid-area: 2 / 2 / 3 / 3; }
-.proposal-truco-pips--6 .proposal-truco-pip:nth-child(5) { grid-area: 3 / 1 / 4 / 2; transform: rotate(180deg); }
-.proposal-truco-pips--6 .proposal-truco-pip:nth-child(6) { grid-area: 3 / 2 / 4 / 3; transform: rotate(180deg); }
-.proposal-truco-pips--7 .proposal-truco-pip:nth-child(1) { grid-area: 1 / 1 / 2 / 2; }
-.proposal-truco-pips--7 .proposal-truco-pip:nth-child(2) { grid-area: 1 / 2 / 2 / 3; }
-.proposal-truco-pips--7 .proposal-truco-pip:nth-child(3) { grid-area: 2 / 1 / 3 / 2; }
-.proposal-truco-pips--7 .proposal-truco-pip:nth-child(4) { grid-area: 2 / 2 / 3 / 3; }
-.proposal-truco-pips--7 .proposal-truco-pip:nth-child(5) { grid-area: 3 / 1 / 4 / 2; }
-.proposal-truco-pips--7 .proposal-truco-pip:nth-child(6) { grid-area: 3 / 2 / 4 / 3; }
-.proposal-truco-pips--7 .proposal-truco-pip:nth-child(7) { grid-area: 4 / 1 / 5 / 3; width: 52%; height: 52%; }
-.proposal-truco-card-content--court { overflow: hidden; }
-.proposal-truco-court { position: relative; display: flex; align-items: center; justify-content: center; width: 90%; height: 88%; overflow: hidden; border: 1px solid #d8c99e; background: repeating-linear-gradient(0deg, #fffdf5 0 9px, #f4eddd 9px 11px); }
-.proposal-truco-court-figure { position: relative; display: block; width: 48%; height: 82%; border: 1px solid #d9c99e; background: linear-gradient(90deg, #fffdf6 0 48%, #f6efdf 49% 100%); }
-.proposal-truco-court-figure--mirror { transform: scaleX(-1); }
-.proposal-truco-court-crown, .proposal-truco-court-cap, .proposal-truco-court-helmet { position: absolute; top: 4%; left: 34%; width: 34%; height: 12%; }
-.proposal-truco-court-crown { background: #d7a928; clip-path: polygon(0 100%, 12% 0, 40% 62%, 58% 0, 80% 62%, 100% 10%, 92% 100%); }
-.proposal-truco-court-cap { border-radius: 60% 60% 20% 20%; background: #a93630; clip-path: polygon(5% 75%, 18% 15%, 78% 0, 95% 78%, 100% 100%, 0 100%); }
-.proposal-truco-court-helmet { border: 1px solid #665039; border-radius: 55% 55% 20% 20%; background: linear-gradient(#d5b65d 0 45%, #816a3e 46% 65%, transparent 66%); }
-.proposal-truco-court-head { position: absolute; top: 15%; left: 39%; width: 26%; height: 18%; border: 1px solid #7d482c; border-radius: 50%; background: #edc38e; }
-.proposal-truco-court-body { position: absolute; top: 34%; left: 19%; width: 66%; height: 48%; border: 1px solid #384667; background: linear-gradient(90deg, #173f74 0 43%, #d7ad32 44% 58%, #ad3833 59% 100%); clip-path: polygon(20% 0, 80% 0, 100% 100%, 0 100%); }
-.proposal-truco-court-figure--oro .proposal-truco-court-body { background: linear-gradient(90deg, #7a4c26 0 43%, #d6a829 44% 58%, #8a602c 59%); }
-.proposal-truco-court-figure--copa .proposal-truco-court-body { background: linear-gradient(90deg, #9e2f2c 0 43%, #e0bd78 44% 58%, #7d2527 59%); }
-.proposal-truco-court-figure--espada .proposal-truco-court-body { background: linear-gradient(90deg, #27598b 0 43%, #dfc87d 44% 58%, #203e68 59%); }
-.proposal-truco-court-figure--basto .proposal-truco-court-body { background: linear-gradient(90deg, #427345 0 43%, #d7b86c 44% 58%, #30573a 59%); }
-.proposal-truco-court-sash { position: absolute; z-index: 1; top: 38%; left: 45%; width: 9%; height: 43%; background: #f2df9e; transform: rotate(18deg); }
-.proposal-truco-court-horse { position: absolute; z-index: 1; right: 3%; bottom: 17%; width: 37%; height: 34%; border: 1px solid #684027; border-radius: 55% 50% 35% 35%; background: #895734; clip-path: polygon(4% 37%, 18% 19%, 21% 0, 38% 18%, 66% 13%, 85% 31%, 100% 55%, 88% 73%, 57% 77%, 47% 100%, 34% 78%, 11% 70%); }
-.proposal-truco-court-horse::after { position: absolute; top: 35%; right: 25%; width: 3px; height: 3px; border-radius: 50%; background: #20170f; content: ""; }
-.proposal-truco-court-title { position: absolute; right: 3px; bottom: 1px; left: 3px; color: #51412b; font-family: Georgia, serif; font-size: 8px; font-weight: 700; text-align: center; }
-.proposal-truco-card--played { width: 54px; padding: 4px; cursor: default; }
-.proposal-truco-card--played .proposal-truco-card-content { width: 88%; }
-.proposal-truco-card--played .proposal-truco-pip { width: 80%; height: 80%; }
-.proposal-truco-card--played .proposal-truco-pip--small { width: 9px; height: 9px; }
-.proposal-truco-card:hover:not(:disabled), .proposal-truco-card:focus-visible { border-color: #e7c96c; box-shadow: 0 9px 16px #102e2460, inset 0 0 0 3px #fff9e9; transform: translateY(-8px) rotate(-2deg); }
+.proposal-truco-card-art { position:absolute;inset:0;display:block;width:100%;height:100%; }
+.proposal-truco-card--played { width:clamp(65px,18vw,92px);cursor:default; }
+.proposal-truco-card:hover:not(:disabled), .proposal-truco-card:focus-visible { border-color: #e7c96c; box-shadow: 0 9px 16px #102e2460, inset 0 0 0 3px #fff9e9; transform: translateY(-8px); }
 .proposal-truco-card:disabled { opacity: .72; cursor: not-allowed; }
-.proposal-truco-score { position: absolute; z-index: 3; top: 12px; right: 12px; display: flex; align-items: center; gap: 12px; padding: 7px 11px; border: 1px solid #f1dfbfaa; border-radius: 10px; background: #332116db; color: #fff6df; font-size: 11px; box-shadow: 0 4px 12px #29180f50; backdrop-filter: blur(5px); }
-.proposal-truco-score span { display: flex; align-items: center; gap: 5px; }
-.proposal-truco-score strong { color: #fff; font-family: Georgia, serif; font-size: 22px; line-height: 1; }
-.proposal-truco-card.is-dealing { animation: truco-deal .42s both; }
+.proposal-truco-card.is-dealing { animation: truco-deal .42s backwards; }
 .proposal-truco-card-back.is-dealing { animation: truco-deal-back .42s both; }
 .proposal-truco-card--played.is-playing { animation: truco-play .48s cubic-bezier(.2,.8,.25,1.15) both; }
 .proposal-truco-card-back:nth-child(2), .proposal-truco-card:nth-child(2) { animation-delay: .08s; }
 .proposal-truco-card-back:nth-child(3), .proposal-truco-card:nth-child(3) { animation-delay: .16s; }
 .proposal-combat-controls [hidden], [data-combat-truco][hidden], [data-combat-arcade][hidden] { display: none; }
 
-@keyframes truco-deal { from { opacity: 0; transform: translateY(28px) rotate(8deg) scale(.8); } to { opacity: 1; transform: translateY(0) rotate(0) scale(1); } }
-@keyframes truco-deal-back { from { opacity: 0; transform: translateY(-28px) rotate(-10deg) scale(.8); } to { opacity: 1; transform: translateY(0) rotate(0) scale(1); } }
-@keyframes truco-play { from { opacity: .4; transform: translateY(30px) rotateY(65deg) scale(.88); } to { opacity: 1; transform: translateY(0) rotateY(0) scale(1); } }
+/* Mesa de Truco: layout propio, sin depender de posiciones absolutas. */
+[data-combat-truco]:not([hidden]) { display:grid;gap:14px; }
+.proposal-truco-heading { display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px; }
+.proposal-truco-heading h4 { margin:3px 0 4px;font-size:clamp(22px,2.5vw,29px);line-height:1.15;letter-spacing:-.035em;color:var(--text); }
+.proposal-truco-heading p { margin:0;color:var(--muted);font-size:12px; }
+.proposal-truco-kicker { font-size:10px;letter-spacing:.1em;font-weight:800;color:#628563; }
+.proposal-truco-score { position:absolute;z-index:2;top:18px;right:18px;display:grid;gap:10px;width:150px;padding:14px 12px;border:1px solid #dce5d4;border-radius:16px;background:#F1F5E9;color:#1F4D3A; }
+.proposal-truco-score-head { display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:center; }
+.proposal-truco-score-head > span { display:grid;justify-items:center;gap:3px; }
+.proposal-truco-score small { font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase; }
+.proposal-truco-score strong { color:#1F4D3A;font-size:25px;line-height:1;font-weight:800; }
+.proposal-truco-score-phase { display:grid;grid-template-columns:1fr 1fr;justify-items:center;gap:7px 8px;padding-top:9px;border-top:1px solid #9AB29B80; }
+.proposal-truco-score-phase > span { grid-column:1 / -1;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase; }
+.proposal-truco-tally { display:grid;grid-template-columns:24px;gap:5px; }
+.proposal-truco-tally-group { position:relative;width:24px;height:24px; }
+.proposal-truco-tally-group i { position:absolute;display:block;background:transparent; }
+.proposal-truco-tally-group i.is-scored { background:#1F4D3A; }
+.proposal-truco-tally-group i:nth-child(1) { left:1px;top:1px;width:22px;height:2px; }
+.proposal-truco-tally-group i:nth-child(2) { right:1px;top:1px;width:2px;height:22px; }
+.proposal-truco-tally-group i:nth-child(3) { left:1px;bottom:1px;width:22px;height:2px; }
+.proposal-truco-tally-group i:nth-child(4) { left:1px;top:1px;width:2px;height:22px; }
+.proposal-truco-tally-group i:nth-child(5) { left:-3px;top:11px;width:30px;height:2px;transform:rotate(-45deg); }
+.proposal-truco-arena { position:relative;isolation:isolate;display:grid;justify-items:center;align-items:center;gap:10px;min-height:430px;padding:16px 16px 18px;overflow:hidden;border:1px solid #315C43;border-radius:24px;background:#244F39;box-shadow:inset 0 0 0 6px #ffffff0a; }
+.proposal-truco-felt { position:absolute;z-index:0;inset:0;display:block;background:radial-gradient(ellipse at center,#386B4E 0%,#244F39 70%); }
+.proposal-truco-point-notice { position:absolute;z-index:3;top:50%;left:50%;transform:translate(-50%,-50%);display:grid;gap:4px;min-width:150px;max-width:calc(100% - 32px);padding:14px 24px;border:1px solid #F4D06F;border-radius:18px;background:#173E2EF2;color:#FFF5CF;text-align:center;box-shadow:0 8px 24px #102E2455;pointer-events:none; }
+.proposal-truco-point-notice small { font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase; }
+.proposal-truco-point-notice strong { font-size:clamp(20px,3vw,29px);line-height:1.1; }
+.proposal-truco-point-notice[data-kind="envido"] { background:#F4D06F;color:#244F39;border-color:#FFE8A3; }
+.proposal-truco-point-notice[data-kind="truco"] { background:#DFCEF5;color:#34254F;border-color:#F4EAFF; }
+.proposal-truco-point-notice[data-kind="answer"] { background:#F8F4E9;color:#244F39;border-color:#F8F4E9; }
+.proposal-truco-point-notice.is-visible { animation:truco-call-in .35s cubic-bezier(.2,.8,.25,1.2) both; }
+@keyframes truco-call-in { from { opacity:0;transform:translate(-50%,-50%) scale(.8); } to { opacity:1;transform:translate(-50%,-50%) scale(1); } }
+.proposal-truco-point-notice[hidden] { display:none; }
+.proposal-truco-opponent,.proposal-truco-player,.proposal-truco-trick,.proposal-truco-played,.proposal-truco-status,.proposal-truco-start-area { position:relative;z-index:1; }
+.proposal-truco-opponent,.proposal-truco-player { display:grid;justify-items:center;gap:7px;width:100%; }
+.proposal-truco-seat { border-color:#CFE2D45C;background:#153E2BDD;color:#F8F5E9;text-shadow:none;box-shadow:none; }
+.proposal-truco-opponent .proposal-truco-seat,.proposal-truco-player .proposal-truco-seat { border:0;background:transparent;color:#DBEAD9; }
+.proposal-truco-backs { min-height:74px; }
+.proposal-truco-trick { margin:0;padding:5px 12px;border:1px solid #CDE4D13D;border-radius:999px;background:#163E2ED9;color:#F8F5E9!important;font-size:11px;font-weight:700;text-align:center; }
+.proposal-truco-played { display:flex;align-items:center;justify-content:center;gap:clamp(18px,5vw,56px);width:min(100%,400px);min-height:142px;padding:8px 14px; }
+.proposal-truco-played-seat { display:grid;justify-items:center;gap:5px; }
+.proposal-truco-played-seat > div { display:grid;place-items:center;min-width:72px;min-height:145px; }
+.proposal-truco-player { align-self:end; }
+.proposal-truco-hand { min-height:175px;align-items:center;flex-wrap:nowrap; }
+.proposal-truco-deck { display:none; }
+.proposal-truco-arena.is-drop-target { box-shadow:inset 0 0 0 4px #F4D06F; }
+.proposal-truco-status { min-height:64px;display:flex;align-items:center;justify-content:center;width:min(100%,560px);max-width:100%;margin:0;padding:9px 16px;border:1px solid #ffffff30;border-radius:14px;background:#173E2EE6;color:#F8F5E9;font-size:13px;line-height:1.45;text-align:center; }
+.proposal-truco-start-area { width:100%;max-width:100%;min-height:110px; }
+.proposal-truco-welcome { display:none; }
+[data-truco-state="ready"] .proposal-truco-arena { display:block;min-height:0;padding:0;overflow:visible;border:0;background:transparent;box-shadow:none; }
+[data-truco-state="ready"] .proposal-truco-score { display:none; }
+[data-truco-state="ready"] .proposal-truco-felt,
+[data-truco-state="ready"] .proposal-truco-opponent,
+[data-truco-state="ready"] .proposal-truco-trick,
+[data-truco-state="ready"] .proposal-truco-played,
+[data-truco-state="ready"] .proposal-truco-player,
+[data-truco-state="ready"] .proposal-truco-status { display:none; }
+[data-truco-state="finished"] .proposal-truco-arena { min-height:160px;align-content:center; }
+[data-truco-state="finished"] .proposal-truco-opponent,
+[data-truco-state="finished"] .proposal-truco-trick,
+[data-truco-state="finished"] .proposal-truco-played,
+[data-truco-state="finished"] .proposal-truco-player { display:none; }
+[data-truco-state="ready"] .proposal-truco-start-area {
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:18px;
+  min-height:0;padding:22px 25px;border:1px solid #D6E3D0;border-radius:20px;
+  background:linear-gradient(110deg,#E7F0DE,#FAF6EB);
+}
+[data-truco-state="ready"] .proposal-truco-welcome { display:flex;align-items:center;gap:20px;min-width:0; }
+.proposal-truco-welcome > div:last-child { min-width:0; }
+.proposal-truco-welcome-cards { display:flex;align-items:center;flex:none;padding:5px 6px 5px 0; }
+.proposal-truco-welcome-cards .proposal-truco-card-back { width:50px;height:72px;margin-left:-18px; }
+.proposal-truco-welcome-cards .proposal-truco-card-back:first-child { margin-left:0; }
+.proposal-truco-welcome strong { display:block;font-size:20px;line-height:1.2;color:#1F4D3A;overflow-wrap:anywhere; }
+.proposal-truco-welcome p { margin:6px 0 0;font-size:13px;line-height:1.45;color:#536D5B; }
+.pb-plan-detail [data-truco-state="ready"] [data-truco-start] {
+  min-height:46px;padding:11px 23px;border:0;border-radius:13px;
+  background:#1F4D3A!important;color:#FFFDF8!important;
+}
+[data-truco-actions] { display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px; }
+.proposal-truco-call-group { display:flex;align-items:center;flex-wrap:wrap;gap:7px; }
+.proposal-truco-call-group:not(:has(button:not([hidden]))) { display:none; }
+.proposal-truco-call-label { font-size:10px;font-weight:800;letter-spacing:.08em;color:#E0EEDB;margin-right:2px; }
+.pb-plan-detail [data-truco-actions] .button { min-height:44px;padding:9px 13px;border-radius:12px;font-size:12px;font-weight:750; }
+.pb-plan-detail [data-truco-actions] .proposal-truco-call-group .button { background:#F4D06F!important;color:#1F4D3A!important;border:1px solid #F4D06F!important; }
+.pb-plan-detail [data-truco-actions] .proposal-truco-call-group:nth-of-type(2) .button { background:#DFCEF5!important;border-color:#DFCEF5!important; }
+.pb-plan-detail [data-truco-actions] [data-truco-start] { background:#F4D06F!important;color:#1F4D3A!important;border-color:#F4D06F!important; }
+.pb-plan-detail [data-truco-actions] .proposal-truco-call-group [data-truco-accept] { background:#1F4D3A!important;color:#FFFDF8!important;border-color:#1F4D3A!important; }
+.pb-plan-detail [data-truco-actions] .proposal-truco-call-group [data-truco-reject] { background:#F7EEE8!important;color:#81483F!important;border-color:#E0C9BE!important; }
+html[data-theme='dark'] .proposal-truco-heading h4 { color:#FAF7F0; }
+html[data-theme='dark'] .proposal-truco-heading p,html[data-theme='dark'] .proposal-truco-call-label { color:#C6D7C6; }
+html[data-theme='dark'] .proposal-truco-kicker { color:#F4D06F; }
+html[data-theme='dark'] .proposal-truco-score { background:#304A39;border-color:#55725C;color:#FAF7F0; }
+html[data-theme='dark'] .proposal-truco-score strong { color:#FAF7F0; }
+html[data-theme='dark'] .proposal-truco-tally-group i.is-scored { background:#F4D06F; }
+html[data-theme='dark'] [data-truco-state="ready"] .proposal-truco-start-area { background:linear-gradient(110deg,#294B39,#293D32);border-color:#486953; }
+html[data-theme='dark'] .proposal-truco-welcome strong { color:#FAF7F0; }
+html[data-theme='dark'] .proposal-truco-welcome p { color:#C9DACA; }
+html[data-theme='dark'] .pb-plan-detail [data-truco-state="ready"] [data-truco-start] { background:#F4D06F!important;color:#1F4D3A!important; }
+html[data-theme='dark'] .pb-plan-detail [data-truco-actions] .proposal-truco-call-group [data-truco-accept] { background:#A7C957!important;color:#1F4D3A!important;border-color:#A7C957!important; }
+html[data-theme='dark'] .pb-plan-detail [data-truco-actions] .proposal-truco-call-group [data-truco-reject] { background:#4C3834!important;color:#FFE3D9!important;border-color:#825F57!important; }
+@media(max-width:900px) {
+  .proposal-truco-score { position:relative;top:auto;right:auto;justify-self:end; }
+  .proposal-truco-start-area { min-height:170px; }
+}
+@media(max-width:560px) {
+  [data-truco-state="ready"] .proposal-truco-start-area { padding:18px;gap:14px; }
+  [data-truco-state="ready"] .proposal-truco-welcome { gap:10px; }
+  .proposal-truco-welcome-cards .proposal-truco-card-back { width:34px;height:50px;margin-left:-14px; }
+  .proposal-truco-welcome-cards .proposal-truco-card-back::before { inset:17px 1px;font-size:8px; }
+  .proposal-truco-welcome strong { font-size:16px; }
+  .proposal-truco-heading { align-items:flex-start; }
+  .proposal-truco-arena { min-height:390px;padding:14px 10px 16px;gap:9px;border-radius:18px; }
+  .proposal-truco-backs { min-height:58px; }
+  .proposal-truco-backs .proposal-truco-card-back { width:39px;height:56px; }
+  .proposal-truco-played { width:100%;min-height:117px;gap:18px;padding:8px; }
+  .proposal-truco-played-seat > div { min-width:58px;min-height:110px; }
+  .proposal-truco-hand { gap:5px;min-height:126px; }
+  .proposal-truco-start-area { min-height:220px; }
+  [data-truco-state="ready"] .proposal-truco-start-area { min-height:0; }
+  .proposal-truco-card { width:clamp(58px,19vw,82px); }
+  .proposal-truco-card--played { width:clamp(58px,17vw,70px); }
+}
+@media(prefers-reduced-motion:reduce) {
+  .proposal-truco-point-notice.is-visible { animation:none; }
+  .proposal-truco-card:hover:not(:disabled),.proposal-truco-card:focus-visible { transform:none; }
+}
+
+@keyframes truco-deal { from { opacity: 0; transform: translateY(28px) scale(.8); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes truco-deal-back { from { opacity: 0; transform: translateY(-28px) scale(.8); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes truco-play { from { opacity: .4; transform: translateY(30px) scale(.88); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
 @media (prefers-reduced-motion: reduce) {
   .proposal-truco-card, .proposal-truco-card-back { transition: none; animation: none !important; }
@@ -235,19 +299,23 @@
   .proposal-method-option { min-height: 0; }
   .proposal-election-heading { align-items: flex-start; }
   .proposal-combat-canvas { aspect-ratio: 4 / 3; }
-  .proposal-truco-arena { min-height: 390px; background-position: 72% center; }
-  .proposal-truco-opponent { top: 9px; left: 40%; }
-  .proposal-truco-backs { min-height: 62px; }
-  .proposal-truco-backs .proposal-truco-card-back { width: 40px; height: 58px; }
-  .proposal-truco-deck { display: none; }
-  .proposal-truco-score { top: 48px; right: 8px; bottom: auto; display: flex; gap: 8px; width: auto; padding: 6px 9px; }
-  .proposal-truco-score span { display: flex; align-items: center; gap: 4px; font-size: 9px; }
-  .proposal-truco-score strong { font-size: 19px; }
-  .proposal-truco-trick { top: 20%; left: 78%; width: 40%; padding: 4px 6px; font-size: 9px; }
-  .proposal-truco-played { top: 25%; left: 50%; gap: 18px; width: 85%; min-height: 88px; padding: 6px; }
-  .proposal-truco-player { bottom: 12px; left: 50%; width: 95%; padding: 6px 5px 8px; }
-  .proposal-truco-hand { flex-wrap: nowrap; gap: 5px; width: 100%; }
-  .proposal-truco-card { width: clamp(66px, 21vw, 82px); }
-  .proposal-truco-played-seat > div { min-width: 62px; min-height: 82px; }
-  .proposal-truco-card--played { width: 54px; }
+}
+
+/* Mesa clara de Truco: pa?o suave y acentos de baraja espa?ola. */
+html:not([data-theme="dark"]) .proposal-truco-arena {
+  border-color: #bed4b7;
+  background: #e2eddb;
+  box-shadow: inset 0 0 0 6px #ffffff55;
+}
+html:not([data-theme="dark"]) .proposal-truco-felt {
+  background: radial-gradient(ellipse at center, #f2f5e4 0%, #e2eddb 65%, #d1e3cf 100%);
+}
+html:not([data-theme="dark"]) .proposal-truco-opponent .proposal-truco-seat,
+html:not([data-theme="dark"]) .proposal-truco-player .proposal-truco-seat,
+html:not([data-theme="dark"]) .proposal-truco-call-label { color: #315c43; }
+html:not([data-theme="dark"]) .proposal-truco-trick,
+html:not([data-theme="dark"]) .proposal-truco-status {
+  background: #fffdf6dc;
+  border-color: #b8cdb0;
+  color: #244f39 !important;
 }

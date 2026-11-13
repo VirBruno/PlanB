@@ -1,10 +1,9 @@
 (() => {
-  const gamePicker = document.querySelector("[data-combat-game-picker]");
-  gamePicker?.addEventListener("change", () => {
+  document.querySelectorAll("[data-combat-choice]").forEach((choice) => {
     const url = new URL(window.location.href);
-    url.searchParams.set("combat_game", gamePicker.value);
+    url.searchParams.set("combat_game", choice.dataset.combatChoice);
     url.hash = "proposal-combat";
-    window.location.assign(url);
+    choice.href = url.href;
   });
 
   const game = document.querySelector("[data-combat-game]");

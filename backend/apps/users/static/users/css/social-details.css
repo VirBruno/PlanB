@@ -1,0 +1,125 @@
+/* Detalles del inicio: acentos pequeños, identidad estable por grupo. */
+.pb-app-shell:has(.pb-home-hero) .pb-welcome-spark {
+  display:inline-block;vertical-align:middle;margin-left:12px;
+  width:.8em;height:.8em;color:#C29828;transform:rotate(-12deg);
+}
+.pb-app-shell:has(.pb-home-hero) .pb-home-welcome h1 > span:first-child {
+  text-decoration:underline;text-decoration-color:#C7B3EE;
+  text-decoration-thickness:3px;text-underline-offset:7px;
+  text-decoration-skip-ink:auto;
+}
+.pb-app-shell:has(.pb-home-hero) .social-mini-actions a {
+  --quick-accent:#A7C957;transition:transform .2s ease,box-shadow .2s ease;
+}
+.pb-app-shell:has(.pb-home-hero) .social-mini-actions a:nth-child(2) { --quick-accent:#F4D06F; }
+.pb-app-shell:has(.pb-home-hero) .social-mini-actions a:nth-child(3) { --quick-accent:#C7B3EE; }
+.pb-app-shell:has(.pb-home-hero) .social-mini-actions a:nth-child(n) .pb-quick-icon,
+html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-mini-actions a:nth-child(n) .pb-quick-icon {
+  background:var(--quick-accent)!important;color:#1F4D3A;
+  border-radius:13px 13px 6px 13px;transition:transform .2s ease;
+}
+.pb-app-shell:has(.pb-home-hero) .social-mini-actions .pb-quick-arrow {
+  color:inherit;transition:transform .2s ease;
+}
+.pb-app-shell:has(.pb-home-hero) .social-group-card[data-group-variant] {
+  --group-accent:#A7C957;--group-wash:#A7C95712;
+  overflow:hidden;isolation:isolate;
+  background:linear-gradient(140deg,var(--group-wash),transparent 65%),var(--sd-panel);
+  border-color:color-mix(in srgb,var(--group-accent) 35%,var(--sd-stroke));
+  transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+}
+.pb-app-shell:has(.pb-home-hero) .social-group-card[data-group-variant="2"] { --group-accent:#F4D06F;--group-wash:#F4D06F12; }
+.pb-app-shell:has(.pb-home-hero) .social-group-card[data-group-variant="3"] { --group-accent:#C7B3EE;--group-wash:#C7B3EE12; }
+.pb-app-shell:has(.pb-home-hero) .social-group-card[data-group-variant]::before {
+  content:"";position:absolute;width:100px;height:100px;right:-38px;bottom:-40px;
+  border:18px solid var(--group-accent);border-radius:50%;opacity:.1;
+  pointer-events:none;z-index:-1;
+}
+.pb-app-shell:has(.pb-home-hero) .social-group-card[data-group-variant] .social-group-avatar,
+html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-group-card[data-group-variant] .social-group-avatar {
+  background:var(--group-accent);color:#1F4D3A;border-radius:15px 15px 6px 15px;
+}
+.pb-app-shell:has(.pb-home-hero) .social-group-card[data-group-variant] .social-group-chevron { color:var(--group-accent); }
+.pb-app-shell:has(.pb-home-hero) .social-group-card[data-group-variant] .pb-card-entry {
+  background:color-mix(in srgb,var(--group-accent) 18%,transparent);
+}
+html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .pb-welcome-spark { color:#F4D06F; }
+@media(hover:hover) and (prefers-reduced-motion:no-preference) {
+  .pb-app-shell:has(.pb-home-hero) .social-mini-actions a:hover { transform:translateY(-3px); }
+  .pb-app-shell:has(.pb-home-hero) .social-mini-actions a:hover .pb-quick-icon { transform:rotate(-7deg); }
+  .pb-app-shell:has(.pb-home-hero) .social-mini-actions a:hover .pb-quick-arrow { transform:translate(2px,-2px); }
+  .pb-app-shell:has(.pb-home-hero) .social-group-card[data-group-variant]:hover {
+    transform:translateY(-4px);border-color:var(--group-accent);
+    box-shadow:0 10px 24px rgba(31,77,58,.12);
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  .pb-app-shell:has(.pb-home-hero) .social-group-card[data-group-variant] { transition:none;transform:none; }
+}
+
+
+/* Etapa 31: detalles compartidos. Sin cambios de distribución ni de estados.
+   Esta hoja se carga una sola vez, después de los estilos de cada pantalla. */
+:root {
+  --pb-detail-yellow:#F4D06F;--pb-detail-lavender:#C7B3EE;
+  --pb-detail-sage:#A7C957;--pb-detail-line:#DDE5D6;
+  --pb-detail-focus:#765AA1;--pb-detail-shadow:0 8px 22px #1F4D3A0D;
+}
+html[data-theme="dark"] { --pb-detail-line:#46604D;--pb-detail-focus:#D8C4F4;--pb-detail-shadow:0 8px 22px #00000024; }
+
+/* Titulares libres y acentos finos, sin volver a agregar tarjetas. */
+.pb-app-shell :is(.pb-groups-heading,.pb-page-heading,.pb-calendar-header,.pb-notifications__header,.pf-heading,.pfs-head,.pb-sprint-panel) h1,
+.pb-app-shell .group-social-identity h1,
+.pb-app-shell .pb-plan-title-row h1,
+.pb-app-shell .pb-confirmed-heading h1,
+.pb-warm-auth__card :is(h1,h2),
+.auth-panel :is(h1,h2) {
+  text-decoration-line:underline;text-decoration-color:var(--pb-detail-lavender);
+  text-decoration-thickness:3px;text-underline-offset:8px;text-decoration-skip-ink:auto;
+}
+.pb-app-shell :is(.pf-sparkle,.pfs-step) {
+  background:var(--pb-detail-lavender);color:#1F4D3A;
+  border-radius:10px 10px 4px 10px;
+}
+.pb-app-shell .pb-profile-avatar { outline:3px solid var(--pb-detail-lavender);outline-offset:4px; }
+.pb-app-shell .pb-calendar-today { box-shadow:0 3px 0 var(--pb-detail-yellow); }
+.pb-app-shell .pb-notifications__icon:not(:has(.pb-user-avatar)) {
+  background:var(--pb-detail-lavender);color:#1F4D3A;border-radius:14px 14px 6px 14px;
+}
+
+/* El mismo UUID conserva el acento en las distintas vistas del grupo. */
+.pb-app-shell :is(.pb-groups-card,.pb-plan-card,.group-social-plan-card,.pb-proposal-card) { --pb-item-accent:var(--pb-detail-sage); }
+.pb-app-shell :is(.pb-groups-card,.pb-plan-card):has([data-group-variant="2"]) { --pb-item-accent:var(--pb-detail-yellow); }
+.pb-app-shell :is(.pb-groups-card,.pb-plan-card):has([data-group-variant="3"]) { --pb-item-accent:var(--pb-detail-lavender); }
+.pb-app-shell .pb-groups-card { border-top:3px solid var(--pb-item-accent); }
+.pb-app-shell .pb-plans-wrap .pb-plan-card { border-left:3px solid var(--pb-item-accent); }
+.pb-app-shell .pb-plan-detail .pb-proposal-card { border-top:3px solid var(--pb-detail-lavender); }
+.pb-app-shell .pb-plan-detail .pb-proposal-card:has(.pb-proposal-confirmed) { border-top-color:var(--pb-detail-sage); }
+.pb-app-shell :is(.pb-plan-icon,.group-social-plan-icon) { border-radius:14px 14px 5px 14px; }
+
+/* Controles y formularios: realce de interacción sin alterar sus colores de estado. */
+.pb-app-shell :is(.auth-form,.invitation-search,.pb-climate-form) :is(input,select,textarea):not(:disabled):focus-visible,
+.pb-warm-auth__card :is(input,select,textarea):not(:disabled):focus-visible,
+.auth-panel :is(input,select,textarea):not(:disabled):focus-visible {
+  outline:3px solid color-mix(in srgb,var(--pb-detail-lavender) 55%,transparent)!important;
+  outline-offset:3px;box-shadow:none;
+}
+.pb-app-shell :is(a,button,summary):focus-visible,
+.pb-warm-auth__card :is(a,button):focus-visible {
+  outline:3px solid var(--pb-detail-focus);outline-offset:3px;
+}
+.pb-app-shell :is(.pb-plan-drawer,.pb-expenses-dialog,.proposal-ideal-dialog) { border-top:3px solid var(--pb-detail-lavender); }
+.pb-app-shell :is(.button--primary,.group-social-primary,.social-cta),
+.pb-warm-auth__card .button--primary { transition:transform .18s ease,box-shadow .18s ease; }
+@media(hover:hover) and (prefers-reduced-motion:no-preference) {
+  .pb-app-shell :is(.pb-groups-card,.pb-plan-card,.pb-proposal-card):hover {
+    box-shadow:var(--pb-detail-shadow);border-color:var(--pb-item-accent,var(--pb-detail-lavender));
+  }
+  .pb-app-shell :is(.button--primary,.group-social-primary,.social-cta):not(:disabled):hover,
+  .pb-warm-auth__card .button--primary:not(:disabled):hover { transform:translateY(-2px);box-shadow:var(--pb-detail-shadow); }
+  .pb-app-shell :is(.pb-tool-selector,.proposal-method-option):not(:disabled):hover { box-shadow:var(--pb-detail-shadow); }
+}
+@media(prefers-reduced-motion:reduce) {
+  .pb-app-shell :is(.button--primary,.group-social-primary,.social-cta,.pb-groups-card,.pb-plan-card,.pb-proposal-card),
+  .pb-warm-auth__card .button--primary { transition:none!important;transform:none!important; }
+}

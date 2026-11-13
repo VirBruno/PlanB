@@ -3,6 +3,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from datetime import date, time
 
 from django.contrib import messages
+from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
@@ -24,6 +25,7 @@ from .services import plan_service
 from .services.exceptions import InvalidPlan, PlanNotFound, PlanUnavailable, PlanningSchemaUnavailable
 from .services import proposal_service
 from .services import election_service
+from .services import uno_supabase
 from .services import plan_confirmation_service
 from .services import weather_service
 from .services import plan_weather_service
@@ -284,26 +286,28 @@ def detail(request, plan_id):
     leaderboard = []
     champion_id = None
     combat_game = request.GET.get("combat_game", "arcade")
-    if combat_game not in election_service.COMBAT_GAMES:
+    if combat_game not in (*election_service.COMBAT_GAMES, "uno"):
         combat_game = "arcade"
-    if election_method in ("votes", "combat"):
+    uno_enabled = bool(getattr(settings, "UNO_SUPABASE_ENABLED", False))
+    if election_method == "combat" and combat_game == "uno" and uno_enabled:
+        try:
+            scores = uno_supabase.scores(token, plan_id=plan_id)
+            if set(scores) != {proposal["id"] for proposal in proposals}:
+                raise ProposalUnavailable()
+            for proposal in proposals:
+                proposal["uno_victories"] = scores[proposal["id"]]
+            leaderboard, champion_id = election_service.rank_proposals(proposals, score_key="uno_victories")
+        except ProposalUnavailable:
+            return _unavailable(request)
+    if election_method in ("votes", "combat") and not (election_method == "combat" and combat_game == "uno"):
         score_key = (
             "votes" if election_method == "votes"
             else "truco_score" if combat_game == "truco" else "Score"
         )
-        leaderboard = sorted(proposals, key=lambda proposal: -proposal[score_key])
-        place = 0
-        previous_score = None
-        for index, proposal in enumerate(leaderboard, start=1):
-            if proposal[score_key] != previous_score:
-                place = index
-                previous_score = proposal[score_key]
-            proposal["rank"] = place
         winning_score = 30 if election_method == "combat" and combat_game == "truco" else 1
-        if leaderboard and leaderboard[0][score_key] >= winning_score and (
-            len(leaderboard) == 1 or leaderboard[0][score_key] > leaderboard[1][score_key]
-        ):
-            champion_id = leaderboard[0]["id"]
+        leaderboard, champion_id = election_service.rank_proposals(
+            proposals, score_key=score_key, minimum_score=winning_score,
+        )
     confirmed_proposal = next(
         (proposal for proposal in proposals if proposal["id"] == plan.get("selected_proposal_id")),
         None,
@@ -338,6 +342,8 @@ def detail(request, plan_id):
         "leaderboard": leaderboard,
         "champion_id": champion_id,
         "combat_game": combat_game,
+        "uno_enabled": uno_enabled,
+        "uno_multiplayer_enabled": uno_enabled and bool(getattr(settings, "UNO_MULTIPLAYER_ENABLED", False)),
         "voted_proposal_id": voted_proposal_id,
         "ideal_summary": _proposal_ideal_summary(proposals) if show_ideal else None,
         "show_ideal_popup": show_ideal and election_method in (None, "ideal"),

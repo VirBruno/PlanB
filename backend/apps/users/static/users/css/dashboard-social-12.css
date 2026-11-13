@@ -557,6 +557,34 @@ html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .social-group-card:hove
   .pb-app-shell:has(.pb-home-hero) .social-group-card {min-height:182px}
 }
 
+/* Etapa 31: bienvenida breve, sin repetir el listado de grupos. */
+.pb-app-shell:has(.pb-home-hero) .pb-home-hero.pb-home-welcome {
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;
+  gap:16px 24px;min-height:0;padding:12px 0 20px;margin-bottom:18px;
+  border:0;border-radius:0;background:transparent;box-shadow:none;
+}
+.pb-app-shell:has(.pb-home-hero) .pb-home-welcome .social-hero-copy {
+  padding:0;flex:1 1 300px;min-width:0;
+}
+.pb-app-shell:has(.pb-home-hero) .pb-home-welcome h1 {
+  margin:0;font-size:clamp(28px,3.2vw,44px);line-height:1.12;letter-spacing:-.045em;
+}
+.pb-app-shell:has(.pb-home-hero) .pb-home-welcome h1 > span:first-child {
+  font-size:inherit;vertical-align:baseline;letter-spacing:inherit;
+}
+.pb-app-shell:has(.pb-home-hero) .pb-home-welcome .pb-hero-actions {
+  margin:0;gap:16px;flex-shrink:0;
+}
+html[data-theme='dark'] .pb-app-shell:has(.pb-home-hero) .pb-home-hero.pb-home-welcome {
+  background:transparent;box-shadow:none;
+}
+@media(max-width:700px) {
+  .pb-app-shell:has(.pb-home-hero) .pb-home-hero.pb-home-welcome { padding:8px 0 16px!important; }
+  .pb-app-shell:has(.pb-home-hero) .pb-home-welcome .social-hero-copy { flex-basis:100%; }
+  .pb-app-shell:has(.pb-home-hero) .pb-home-welcome .pb-hero-actions { gap:10px;max-width:100%; }
+  .pb-app-shell:has(.pb-home-hero) .pb-home-welcome .social-cta { padding:11px 15px; }
+}
+
 /* Etapa 28: navegación activa consistente con la identidad Plan B. */
 html body .pb-app-shell .social-sidebar .social-side-nav a.social-side-active,
 html body .pb-app-shell .social-sidebar .social-side-nav a.social-side-active:hover { background:#E1ECD8!important; color:#1F4D3A!important; }

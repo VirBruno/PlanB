@@ -2,7 +2,7 @@ from unittest.mock import patch
 from decimal import Decimal
 from uuid import UUID
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from apps.plans.tests.test_services import GROUP_ID, PLAN_ID, USER_ID, plan_row, proposal_row
 from apps.plans.services.exceptions import PlanUnavailable
@@ -274,7 +274,7 @@ class PlanViewsTests(TestCase):
     @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row())
     def test_group_owner_sees_three_choices_in_the_method_button(self, get_plan, get_group, list_proposals):
         response = self.client.get(f"/planes/{PLAN_ID}/")
-        self.assertContains(response, '<summary data-method-picker>Elija su Método de elección</summary>')
+        self.assertContains(response, '<summary data-method-picker>Elegir método</summary>')
         self.assertContains(response, 'value="ideal"')
         self.assertContains(response, 'value="votes"')
         self.assertContains(response, 'value="combat"')
@@ -472,8 +472,8 @@ class PlanViewsTests(TestCase):
         self.assertContains(response, 'aria-label="Cerrar propuesta ideal"')
         self.assertContains(response, "data-ideal-map")
         self.assertContains(response, "proposal-ideal-data")
-        self.assertContains(response, "/static/users/js/proposals.js?v=13")
-        self.assertContains(response, "/static/users/css/proposals.css?v=15")
+        self.assertContains(response, "/static/users/js/proposals.js?")
+        self.assertContains(response, "/static/users/css/proposals.css?")
 
     @patch("apps.plans.views.proposal_service.list_proposals", return_value=[
         {"id": 47, "created_by": USER_ID, "tittle": "Mi propuesta", "type": "juntada",
@@ -559,6 +559,9 @@ class PlanViewsTests(TestCase):
     @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row(election_method="combat"))
     def test_truco_leaderboard_is_separate_and_ties_share_first_place(self, get_plan, get_group, list_proposals):
         response = self.client.get(f"/planes/{PLAN_ID}/?combat_game=truco")
+        content = response.content.decode()
+        self.assertEqual(content.count('<ol class="proposal-ranking">'), 1)
+        self.assertLess(content.index('data-combat-truco'), content.index('<ol class="proposal-ranking">'))
         self.assertContains(response, "30/30 pts", count=2)
         self.assertContains(response, "18/30 pts")
         self.assertNotContains(response, "Propuesta campeona:")
@@ -576,6 +579,43 @@ class PlanViewsTests(TestCase):
         response = self.client.get(f"/planes/{PLAN_ID}/?combat_game=truco")
         self.assertContains(response, "29/30 pts")
         self.assertNotContains(response, "Propuesta campeona:")
+
+    @patch("apps.plans.views.proposal_service.list_proposals", return_value=[
+        {"id": 47, "created_by": USER_ID, "tittle": "Mi propuesta", "type": "juntada",
+         "description": "", "date_pick": None, "latitude": -34.6, "longitude": -58.4,
+         "votes": 0, "Score": 200, "truco_score": 30},
+    ])
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "owner"})
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row(election_method="combat"))
+    def test_uno_preview_has_no_champion_or_other_games_scores(self, get_plan, get_group, list_proposals):
+        response = self.client.get(f"/planes/{PLAN_ID}/?combat_game=uno")
+        self.assertContains(response, 'data-combat-choice="uno" aria-current="true"')
+        self.assertContains(response, 'data-uno-game')
+        self.assertContains(response, 'las victorias todavía no suman puntos')
+        self.assertContains(response, '/static/users/js/proposal-uno.js')
+        self.assertNotContains(response, 'Propuesta campeona:')
+        self.assertNotContains(response, '<ol class="proposal-ranking">')
+        self.assertNotContains(response, '200 puntos')
+        self.assertFalse(response.context['proposals'][0]['can_confirm'])
+
+    @override_settings(UNO_SUPABASE_ENABLED=True)
+    @patch("apps.plans.views.uno_supabase.scores", return_value={47: 2, 48: 1})
+    @patch("apps.plans.views.proposal_service.list_proposals", return_value=[
+        {"id": 47, "created_by": USER_ID, "tittle": "Mi propuesta", "type": "juntada",
+         "description": "", "date_pick": None, "latitude": -34.6, "longitude": -58.4,
+         "votes": 0, "Score": 200, "truco_score": 30},
+        {"id": 48, "created_by": "e0c9b706-c892-4f13-8432-86ce10caf447", "tittle": "Otra propuesta", "type": "salida",
+         "description": "", "date_pick": None, "latitude": -34.6, "longitude": -58.4,
+         "votes": 0, "Score": 0, "truco_score": 0},
+    ])
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "owner"})
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row(election_method="combat"))
+    def test_uno_remote_ranking_uses_victories(self, get_plan, get_group, list_proposals, scores):
+        response = self.client.get(f"/planes/{PLAN_ID}/?combat_game=uno")
+        self.assertContains(response, "2 victorias")
+        self.assertContains(response, "Propuesta campeona: <strong>Mi propuesta</strong>")
+        self.assertNotContains(response, "Prueba sin puntos")
+        self.assertEqual(response.context["champion_id"], 47)
 
     @patch("apps.plans.views.proposal_service.create_proposal", return_value=47)
     @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})

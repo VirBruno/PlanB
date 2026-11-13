@@ -2,6 +2,7 @@
 from uuid import UUID
 
 from django.views.decorators.debug import sensitive_variables
+from django.conf import settings
 from postgrest.exceptions import APIError
 
 from apps.users.services import clients
@@ -31,11 +32,11 @@ def confirm(token, *, plan_id, proposal_id, combat_game="arcade"):
         raise SessionExpired()
     if type(proposal_id) is not int or proposal_id < 1:
         raise InvalidPlan()
-    if combat_game not in ("arcade", "truco"):
+    if combat_game not in ("arcade", "truco") and not (combat_game == "uno" and getattr(settings, "UNO_SUPABASE_ENABLED", False)):
         raise InvalidPlan()
     try:
         with clients.public_client(access_token=token) as client:
-            rpc = "confirm_truco_plan_proposal" if combat_game == "truco" else "confirm_plan_proposal"
+            rpc = {"truco": "confirm_truco_plan_proposal", "uno": "confirm_uno_plan_proposal"}.get(combat_game, "confirm_plan_proposal")
             value = client.rpc(rpc, {
                 "p_plan_id": _id(plan_id), "p_proposal_id": proposal_id,
             }).execute().data

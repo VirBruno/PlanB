@@ -1,0 +1,34 @@
+{% load static %}
+<section class="proposal-uno" data-uno-game data-uno-url="{% url 'plans:uno_game' plan.id my_proposal.id %}" data-uno-card-base="{% static 'users/img/naipes-uno/' %}" aria-labelledby="uno-title">
+  {% csrf_token %}
+  <header class="proposal-uno__header">
+    <div><span class="proposal-uno__eyebrow">TU MESA</span><h4 id="uno-title">UNO <span>contra el bot</span></h4></div>
+    <p>{% if uno_enabled %}Cada victoria suma un punto a tu propuesta.{% else %}Partida de prueba: las victorias todavía no suman puntos.{% endif %}</p>
+  </header>
+  <div class="proposal-uno__table">
+    <div class="proposal-uno__flash" data-uno-flash role="status" aria-live="assertive" hidden><strong data-uno-flash-title></strong><div class="proposal-uno__flash-card" data-uno-flash-card></div><span data-uno-flash-detail></span></div>
+    <div class="proposal-uno__start" data-uno-start-panel>
+      <div class="proposal-uno__start-icon" aria-hidden="true">✦</div>
+      <div><h5>¿Jugamos una partida?</h5><p>Quedate sin cartas antes que el bot.</p></div>
+      <button class="proposal-uno__button" type="button" data-uno-start>Empezar</button>
+    </div>
+    <div data-uno-board hidden>
+      <div class="proposal-uno__opponent"><span>BOT</span><strong data-uno-bot-count></strong><div class="proposal-uno__bot-cards" data-uno-bot-cards aria-hidden="true"></div></div>
+      <div class="proposal-uno__center">
+        <div class="proposal-uno__deck-wrap"><button class="proposal-uno__deck proposal-truco-card-back" type="button" data-uno-draw aria-label="Robar una carta del mazo"></button><span>Robar</span></div>
+        <div class="proposal-uno__pile"><span>EN MESA</span><div data-uno-top></div></div>
+        <div class="proposal-uno__current"><span>COLOR ACTUAL</span><strong data-uno-color></strong></div>
+      </div>
+      <div class="proposal-uno__hand-heading"><strong>Tus cartas</strong><span>Elegí una para jugar</span></div>
+      <div class="proposal-uno__hand" data-uno-hand aria-label="Tus cartas"></div>
+      <div class="proposal-uno__colors" data-uno-colors role="group" aria-label="Elegí un color para el comodín" hidden>
+        <strong>Elegí un color</strong>
+        <button type="button" data-uno-choose="rojo">Rojo</button><button type="button" data-uno-choose="amarillo">Amarillo</button><button type="button" data-uno-choose="verde">Verde</button><button type="button" data-uno-choose="azul">Azul</button><button type="button" data-uno-cancel>Cancelar</button>
+      </div>
+      <div class="proposal-uno__actions"><button class="proposal-uno__button" type="button" data-uno-pass hidden>Pasar turno</button><button class="proposal-uno__button" type="button" data-uno-restart hidden>Jugar otra vez</button></div>
+      {% if uno_enabled %}<p class="proposal-uno__results" data-uno-results-refresh hidden><a href="?combat_game=uno#proposal-combat">Actualizar clasificación <span aria-hidden="true">↗</span></a></p>{% endif %}
+    </div>
+    <div class="proposal-uno__notices" data-uno-notices role="status" aria-live="polite"></div>
+    <p class="proposal-uno__message" data-uno-message role="status" aria-live="polite">Preparando la mesa…</p>
+  </div>
+</section>
