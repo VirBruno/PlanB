@@ -120,7 +120,7 @@ class UnoDuelAdapterTests(SimpleTestCase):
             'notifications_page': {'items': [item], 'page': 1},
         }, request=RequestFactory().get('/'))
         self.assertIn('Te invitaron a jugar UNO', html)
-        self.assertIn('?combat_game=uno&amp;uno_mode=grupo#proposal-combat', html)
+        self.assertIn('?uno_mode=grupo#proposal-combat', html)
 
 
 @override_settings(UNO_MULTIPLAYER_ENABLED=True, UNO_SUPABASE_ENABLED=True)
@@ -129,7 +129,10 @@ class UnoDuelViewsTests(TestCase):
         patches = [
             patch('apps.users.services.session_service.current_user', return_value={'id': USER_ID, 'username': 'Ana'}),
             patch('apps.users.services.session_service.get_access_token', return_value='user-jwt'),
-            patch('apps.plans.views._plan_and_group', return_value=(plan_row(), {'id': GROUP_ID})),
+            patch('apps.plans.views._plan_and_group', return_value=(
+                plan_row(election_method='combat', combat_game='uno', status=True, selected_proposal_id=None),
+                {'id': GROUP_ID},
+            )),
             patch('apps.plans.uno_duel_views.invitation_service.list_members', return_value=[
                 {'id': USER_ID, 'username': 'Ana'}, {'id': RIVAL, 'username': 'Lu'},
             ]),

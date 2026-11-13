@@ -1,11 +1,4 @@
 (() => {
-  document.querySelectorAll("[data-combat-choice]").forEach((choice) => {
-    const url = new URL(window.location.href);
-    url.searchParams.set("combat_game", choice.dataset.combatChoice);
-    url.hash = "proposal-combat";
-    choice.href = url.href;
-  });
-
   const game = document.querySelector("[data-combat-game]");
   if (!game) return;
 

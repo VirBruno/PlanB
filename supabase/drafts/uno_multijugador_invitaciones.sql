@@ -36,7 +36,8 @@ BEGIN
     SELECT * INTO plan_row FROM public.plans AS p
       WHERE p.id = p_plan_id AND p.group_id = target_group_id FOR UPDATE;
     IF NOT FOUND OR plan_row.status IS NOT TRUE OR plan_row.selected_proposal_id IS NOT NULL
-       OR plan_row.election_method IS DISTINCT FROM 'combat' THEN
+       OR plan_row.election_method IS DISTINCT FROM 'combat'
+       OR plan_row.combat_game IS DISTINCT FROM 'uno' THEN
         RAISE EXCEPTION USING ERRCODE = '42501', MESSAGE = 'UNO invitation unavailable';
     END IF;
     PERFORM m.user_id FROM public.group_members AS m
@@ -97,7 +98,8 @@ BEGIN
     END IF;
     IF p_accept THEN
         IF plan_row.status IS NOT TRUE OR plan_row.selected_proposal_id IS NOT NULL
-           OR plan_row.election_method IS DISTINCT FROM 'combat' THEN
+           OR plan_row.election_method IS DISTINCT FROM 'combat'
+           OR plan_row.combat_game IS DISTINCT FROM 'uno' THEN
             RAISE EXCEPTION USING ERRCODE = '42501', MESSAGE = 'UNO invitation unavailable';
         END IF;
         PERFORM p.id FROM public.proposals AS p

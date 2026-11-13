@@ -169,7 +169,8 @@ BEGIN
     SELECT * INTO plan_row FROM public.plans AS p
       WHERE p.id = p_plan_id AND p.group_id = target_group_id FOR UPDATE;
     IF NOT FOUND OR plan_row.status IS NOT TRUE OR plan_row.selected_proposal_id IS NOT NULL
-       OR plan_row.election_method IS DISTINCT FROM 'combat' THEN
+       OR plan_row.election_method IS DISTINCT FROM 'combat'
+       OR plan_row.combat_game IS DISTINCT FROM 'uno' THEN
         RAISE EXCEPTION USING ERRCODE = '42501', MESSAGE = 'UNO invitation unavailable';
     END IF;
     PERFORM m.user_id FROM public.group_members AS m
@@ -230,7 +231,8 @@ BEGIN
     END IF;
     IF p_accept THEN
         IF plan_row.status IS NOT TRUE OR plan_row.selected_proposal_id IS NOT NULL
-           OR plan_row.election_method IS DISTINCT FROM 'combat' THEN
+           OR plan_row.election_method IS DISTINCT FROM 'combat'
+           OR plan_row.combat_game IS DISTINCT FROM 'uno' THEN
             RAISE EXCEPTION USING ERRCODE = '42501', MESSAGE = 'UNO invitation unavailable';
         END IF;
         PERFORM p.id FROM public.proposals AS p
@@ -335,7 +337,8 @@ BEGIN
 
     IF p_action <> 'status' THEN
         IF match_row.status <> 'playing' OR plan_row.status IS NOT TRUE
-           OR plan_row.selected_proposal_id IS NOT NULL OR plan_row.election_method IS DISTINCT FROM 'combat' THEN
+           OR plan_row.selected_proposal_id IS NOT NULL OR plan_row.election_method IS DISTINCT FROM 'combat'
+           OR plan_row.combat_game IS DISTINCT FROM 'uno' THEN
             RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'UNO duel is not active';
         END IF;
         IF p_expected_version <> match_row.version THEN
@@ -411,7 +414,8 @@ DECLARE
 BEGIN
     IF actor IS NULL OR p_plan_id IS NULL OR NOT EXISTS (
         SELECT 1 FROM public.plans AS p JOIN public.group_members AS m ON m.group_id = p.group_id
-        WHERE p.id = p_plan_id AND m.user_id = actor
+        WHERE p.id = p_plan_id AND p.election_method = 'combat'
+          AND p.combat_game = 'uno' AND m.user_id = actor
     ) THEN
         RAISE EXCEPTION USING ERRCODE = '42501', MESSAGE = 'UNO duels unavailable';
     END IF;

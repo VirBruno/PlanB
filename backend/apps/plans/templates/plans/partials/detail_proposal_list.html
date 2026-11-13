@@ -24,7 +24,7 @@
         {% if proposal.is_confirmed %}<p class="pb-proposal-confirmed">✓ Elegida para el encuentro</p>{% endif %}
         {% if proposal.can_confirm %}
         <form method="post" action="{% url 'plans:confirm_plan_proposal' plan.id proposal.id %}" class="pb-confirm-form" data-confirm-delete="¿Confirmar esta propuesta como encuentro definitivo?">
-          {% csrf_token %}{% if election_method == 'combat' %}<input type="hidden" name="combat_game" value="{{ combat_game }}">{% endif %}<button class="button button--primary" type="submit">✓ Confirmar este encuentro</button>
+          {% csrf_token %}<button class="button button--primary" type="submit">✓ Confirmar este encuentro</button>
         </form>
         {% endif %}
         {% if proposal.description %}<p>{{ proposal.description|linebreaksbr }}</p>{% endif %}

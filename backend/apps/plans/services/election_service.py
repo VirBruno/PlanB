@@ -96,6 +96,25 @@ def set_method(access_token, *, plan_id, method):
 
 
 @sensitive_variables()
+def set_combat_game(access_token, *, plan_id, game):
+    if not access_token:
+        raise SessionExpired()
+    canonical_plan_id = plan_service._canonical_uuid(plan_id, InvalidProposal)
+    if game not in plan_service.COMBAT_GAME_VALUES:
+        raise InvalidProposal()
+    try:
+        with clients.public_client(access_token=access_token) as client:
+            data = client.rpc("set_plan_combat_game", {
+                "p_plan_id": canonical_plan_id, "p_game": game,
+            }).execute().data
+        if data != game:
+            raise ValueError
+        return data
+    except Exception as error:
+        _translate(error)
+
+
+@sensitive_variables()
 def voted_proposal(access_token, *, plan_id):
     if not access_token:
         raise SessionExpired()

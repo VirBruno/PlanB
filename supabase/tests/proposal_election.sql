@@ -1,4 +1,4 @@
--- INTEGRACIÓN: Supabase de prueba con las migraciones previas de decisión/notificaciones y combate aplicadas.
+-- INTEGRACIÓN: Supabase de prueba con decisiones, notificaciones, combate y juego compartido aplicados.
 -- Ejecutar como administrador; los fixtures y cambios se revierten.
 BEGIN;
 SELECT set_config('planb.election_owner', gen_random_uuid()::text, true);
@@ -120,6 +120,13 @@ BEGIN
         RAISE EXCEPTION USING ERRCODE = 'P0002', MESSAGE = 'Un miembro cambió el método';
     EXCEPTION WHEN insufficient_privilege THEN NULL;
     END;
+    BEGIN
+        PERFORM public.set_plan_combat_game(
+            current_setting('planb.election_combat_plan')::uuid, 'arcade'
+        );
+        RAISE EXCEPTION USING ERRCODE = 'P0002', MESSAGE = 'Un miembro cambió el juego';
+    EXCEPTION WHEN insufficient_privilege THEN NULL;
+    END;
 END;
 $$;
 RESET ROLE;
@@ -166,11 +173,41 @@ BEGIN
         current_setting('planb.election_combat_member_proposal')::bigint, 7
     );
     IF saved <> 12 THEN RAISE EXCEPTION 'Un replay redujo el mejor score'; END IF;
+END;
+$$;
+RESET ROLE;
+
+SELECT set_config('request.jwt.claim.sub', current_setting('planb.election_owner'), true);
+SET LOCAL ROLE authenticated;
+DO $$
+BEGIN
+    IF public.set_plan_combat_game(
+        current_setting('planb.election_combat_plan')::uuid, 'truco'
+    ) <> 'truco' THEN
+        RAISE EXCEPTION 'No se guardó el juego de combate compartido';
+    END IF;
+END;
+$$;
+RESET ROLE;
+
+SELECT set_config('request.jwt.claim.sub', current_setting('planb.election_member'), true);
+SET LOCAL ROLE authenticated;
+DO $$
+DECLARE saved bigint;
+BEGIN
     saved := public.save_combat_game_score(
         current_setting('planb.election_combat_plan')::uuid,
         current_setting('planb.election_combat_member_proposal')::bigint, 30, 'truco'
     );
     IF saved <> 30 THEN RAISE EXCEPTION 'No se guardó el puntaje de Truco'; END IF;
+    BEGIN
+        PERFORM public.save_combat_game_score(
+            current_setting('planb.election_combat_plan')::uuid,
+            current_setting('planb.election_combat_member_proposal')::bigint, 90, 'arcade'
+        );
+        RAISE EXCEPTION USING ERRCODE = 'P0002', MESSAGE = 'Se guardó un juego que no eligió el owner';
+    EXCEPTION WHEN SQLSTATE '22023' THEN NULL;
+    END;
     IF (SELECT "Score" FROM public.proposals
         WHERE id = current_setting('planb.election_combat_member_proposal')::bigint) <> 12 THEN
         RAISE EXCEPTION 'El puntaje de Truco modificó el juego existente';
@@ -186,7 +223,15 @@ BEGIN
     BEGIN
         PERFORM public.save_proposal_score(
             current_setting('planb.election_combat_plan')::uuid,
-            current_setting('planb.election_combat_owner_proposal')::bigint, 99
+            current_setting('planb.election_combat_member_proposal')::bigint, 99
+        );
+        RAISE EXCEPTION USING ERRCODE = 'P0002', MESSAGE = 'Se guardó Arcade cuando el owner eligió Truco';
+    EXCEPTION WHEN SQLSTATE '22023' THEN NULL;
+    END;
+    BEGIN
+        PERFORM public.save_combat_game_score(
+            current_setting('planb.election_combat_plan')::uuid,
+            current_setting('planb.election_combat_owner_proposal')::bigint, 15, 'truco'
         );
         RAISE EXCEPTION USING ERRCODE = 'P0002', MESSAGE = 'Se guardó score en propuesta ajena';
     EXCEPTION WHEN SQLSTATE '22023' THEN NULL;
@@ -195,6 +240,13 @@ BEGIN
        OR has_column_privilege('authenticated', 'public.proposals', 'Score', 'UPDATE')
        OR has_column_privilege('authenticated', 'public.proposals', 'truco_score', 'UPDATE') THEN
         RAISE EXCEPTION 'authenticated puede actualizar métricas directamente';
+    END IF;
+    IF has_function_privilege('anon', 'public.set_plan_combat_game(uuid,text)', 'EXECUTE')
+       OR NOT has_function_privilege('authenticated', 'public.set_plan_combat_game(uuid,text)', 'EXECUTE') THEN
+        RAISE EXCEPTION 'Los permisos para elegir el juego de combate son incorrectos';
+    END IF;
+    IF has_column_privilege('authenticated', 'public.plans', 'combat_game', 'UPDATE') THEN
+        RAISE EXCEPTION 'authenticated puede cambiar combat_game directamente';
     END IF;
     IF has_table_privilege('authenticated', 'public.proposal_votes', 'SELECT')
        OR has_table_privilege('authenticated', 'public.proposal_votes', 'INSERT') THEN

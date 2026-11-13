@@ -12,7 +12,7 @@ class UnoViewsTests(TestCase):
                              return_value={"id": USER_ID, "username": "Ana"})
         self.token = patch("apps.users.services.session_service.get_access_token", return_value="private-jwt")
         self.plan = patch("apps.plans.views._plan_and_group", return_value=(
-            plan_row(election_method="combat", status=True, selected_proposal_id=None),
+            plan_row(election_method="combat", combat_game="uno", status=True, selected_proposal_id=None),
             {"id": GROUP_ID, "role": "member"},
         ))
         self.proposal = patch("apps.plans.uno_views.proposal_service.get_proposal",
@@ -79,7 +79,7 @@ class UnoViewsTests(TestCase):
         self.assertEqual(response.json(), {"game": None, "victories": 3})
         self.assertEqual(remote_game.call_args.kwargs["action"], "start")
         self.assertEqual(remote_game.call_args.args[0], "private-jwt")
-        self.plan_mock.assert_not_called()
+        self.plan_mock.assert_called_once()
         self.proposal_mock.assert_not_called()
         self.assertFalse(any(key.startswith("uno:") for key in self.client.session.keys()))
 

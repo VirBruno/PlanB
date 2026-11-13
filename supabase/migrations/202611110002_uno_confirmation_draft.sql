@@ -26,7 +26,8 @@ BEGIN
     SELECT * INTO target FROM public.plans
       WHERE id = p_plan_id AND group_id = target_group FOR UPDATE;
     IF NOT FOUND OR target.selected_proposal_id IS NOT NULL OR target.status IS NOT TRUE
-       OR target.election_method IS DISTINCT FROM 'combat' THEN
+       OR target.election_method IS DISTINCT FROM 'combat'
+       OR target.combat_game IS DISTINCT FROM 'uno' THEN
         RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'Plan is unavailable or already confirmed';
     END IF;
     PERFORM m.user_id FROM public.group_members AS m

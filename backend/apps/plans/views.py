@@ -25,10 +25,12 @@ from .services import plan_service
 from .services.exceptions import InvalidPlan, PlanNotFound, PlanUnavailable, PlanningSchemaUnavailable
 from .services import proposal_service
 from .services import election_service
+from .services import ideal_ideas_service
 from .services import uno_supabase
 from .services import plan_confirmation_service
 from .services import weather_service
 from .services import plan_weather_service
+from .services.place_types import RecommendationError
 from .services.proposal_exceptions import (
     ElectionFlexibilityUnavailable, ElectionSchemaUnavailable, InvalidProposal,
     ProposalAlreadyExists, ProposalNotFound, ProposalUnavailable,
@@ -285,9 +287,7 @@ def detail(request, plan_id):
             return _unavailable(request)
     leaderboard = []
     champion_id = None
-    combat_game = request.GET.get("combat_game", "arcade")
-    if combat_game not in (*election_service.COMBAT_GAMES, "uno"):
-        combat_game = "arcade"
+    combat_game = plan.get("combat_game", "arcade")
     uno_enabled = bool(getattr(settings, "UNO_SUPABASE_ENABLED", False))
     if election_method == "combat" and combat_game == "uno" and uno_enabled:
         try:
@@ -322,6 +322,36 @@ def detail(request, plan_id):
     # El cálculo es de consulta: cualquier integrante con acceso al plan puede verlo.
     # _plan_and_group/get_group ya valida la pertenencia mediante el JWT del usuario.
     show_ideal = request.GET.get("ideal") == "1"
+    show_ideal_popup = show_ideal and election_method in (None, "ideal")
+    ideal_summary = _proposal_ideal_summary(proposals) if show_ideal else None
+    ideal_weather = []
+    ideal_ideas = None
+    ideal_ideas_error = None
+    ideal_ideas_notice = None
+    ideal_place_error = None
+    rainy_home_points = []
+    ideal_place = None
+    if show_ideal_popup:
+        ideal_weather = ideal_ideas_service.weather_for_proposals(proposals)
+        rainy_home_points = ideal_ideas_service.rainy_home_proposals(proposals, ideal_weather)
+        if len(proposals) < 2:
+            ideal_ideas_notice = "Con al menos dos propuestas podemos buscar una idea que contemple ambas."
+        else:
+            try:
+                ideal_ideas = ideal_ideas_service.suggest_ideas(proposals, ideal_weather)
+                if ideal_summary and ideal_ideas:
+                    ideal_place = ideal_ideas_service.recommend_place(
+                        ideal_ideas, ideal_summary["center"],
+                        area_radius_meters=ideal_summary["radius_meters"],
+                    )
+            except RecommendationError:
+                if ideal_ideas is None:
+                    ideal_ideas_error = "No pudimos generar ideas con la IA ahora. Probá de nuevo más tarde."
+                else:
+                    ideal_place_error = "No pudimos buscar un lugar real ahora. Probá de nuevo más tarde."
+    if ideal_summary:
+        ideal_summary["recommended_place"] = ideal_place
+        ideal_summary["rainy_home_points"] = rainy_home_points
     scheduled_local = (timezone.localtime(plan["scheduled_at"], weather_service.ARGENTINA_TZ)
                        if plan.get("scheduled_at") else None)
     return render(request, "plans/detail.html", {
@@ -345,8 +375,14 @@ def detail(request, plan_id):
         "uno_enabled": uno_enabled,
         "uno_multiplayer_enabled": uno_enabled and bool(getattr(settings, "UNO_MULTIPLAYER_ENABLED", False)),
         "voted_proposal_id": voted_proposal_id,
-        "ideal_summary": _proposal_ideal_summary(proposals) if show_ideal else None,
-        "show_ideal_popup": show_ideal and election_method in (None, "ideal"),
+        "ideal_summary": ideal_summary,
+        "show_ideal_popup": show_ideal_popup,
+        "ideal_weather": ideal_weather,
+        "ideal_ideas": ideal_ideas,
+        "ideal_ideas_error": ideal_ideas_error,
+        "ideal_ideas_notice": ideal_ideas_notice,
+        "ideal_place": ideal_place,
+        "ideal_place_error": ideal_place_error,
         "scheduled_local": scheduled_local,
         "scheduled_date_iso": scheduled_local.strftime("%Y-%m-%d") if scheduled_local else "",
         "scheduled_hour": scheduled_local.strftime("%H:%M") if scheduled_local else "",
@@ -492,6 +528,35 @@ def proposal_election_method(request, plan_id):
 @require_POST
 @supabase_login_required
 @sensitive_variables()
+def proposal_combat_game(request, plan_id):
+    plan_group = _proposal_plan(request, plan_id)
+    if plan_group is None:
+        return _unavailable(request)
+    plan, group = plan_group
+    _require_group_admin(group)
+    if plan.get("election_method") != "combat" or plan.get("selected_proposal_id"):
+        messages.error(request, "El juego solo puede cambiarse mientras la elección está en combate.")
+        return redirect(f"{reverse('plans:detail', args=[plan_id])}#proposal-combat")
+    try:
+        election_service.set_combat_game(
+            session_service.get_access_token(request), plan_id=plan_id,
+            game=request.POST.get("game"),
+        )
+    except InvalidProposal:
+        messages.error(request, "El juego de combate no es válido.")
+    except ElectionSchemaUnavailable:
+        messages.error(request, "Para elegir el juego de combate, aplicá 202611130001_plan_combat_game.sql en Supabase.")
+    except ProposalUnavailable:
+        return _unavailable(request)
+    else:
+        messages.success(request, "Se actualizó el juego para todo el grupo.")
+    return redirect(f"{reverse('plans:detail', args=[plan_id])}#proposal-combat")
+
+
+@private_page
+@require_POST
+@supabase_login_required
+@sensitive_variables()
 def proposal_vote(request, plan_id, proposal_id):
     if _proposal_plan(request, plan_id) is None:
         return _unavailable(request)
@@ -545,8 +610,14 @@ def proposal_vote_remove(request, plan_id):
 @supabase_login_required
 @sensitive_variables()
 def proposal_score(request, plan_id, proposal_id):
-    if _proposal_plan(request, plan_id) is None:
+    plan_group = _proposal_plan(request, plan_id)
+    if plan_group is None:
         return _unavailable(request)
+    plan, _group = plan_group
+    game = plan.get("combat_game", "arcade")
+    if request.POST.get("game", "arcade") != game or game == "uno":
+        messages.error(request, "Este puntaje no corresponde al juego elegido por el grupo.")
+        return redirect(f"{reverse('plans:detail', args=[plan_id])}#proposal-combat")
     try:
         score = int(request.POST.get("score", ""))
     except (ValueError, TypeError):
@@ -555,7 +626,7 @@ def proposal_score(request, plan_id, proposal_id):
         election_service.save_score(
             session_service.get_access_token(request), plan_id=plan_id,
             proposal_id=proposal_id, score=score,
-            game=request.POST.get("game", "arcade"),
+            game=game,
         )
     except ElectionSchemaUnavailable:
         messages.error(request, "Combate requiere aplicar las migraciones de métodos de elección y juegos en Supabase.")
@@ -565,9 +636,7 @@ def proposal_score(request, plan_id, proposal_id):
         return _unavailable(request)
     else:
         messages.success(request, "Se guardó tu mejor puntaje.")
-    game = request.POST.get("game", "arcade")
-    query = "?combat_game=truco" if game == "truco" else ""
-    return redirect(f"{reverse('plans:detail', args=[plan_id])}{query}#proposal-combat")
+    return redirect(f"{reverse('plans:detail', args=[plan_id])}#proposal-combat")
 
 
 def _proposal_plan(request, plan_id):
@@ -923,7 +992,7 @@ def confirm_plan_proposal(request, plan_id, proposal_id):
         plan_confirmation_service.confirm(
             session_service.get_access_token(request), plan_id=plan_id,
             proposal_id=proposal_id,
-            combat_game=request.POST.get("combat_game", "arcade"),
+            combat_game=plan.get("combat_game", "arcade") if plan.get("election_method") == "combat" else "arcade",
         )
     except InvalidPlan as error:
         messages.error(request, str(error))
