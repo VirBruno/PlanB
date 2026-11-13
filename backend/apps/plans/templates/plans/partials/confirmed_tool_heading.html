@@ -1,0 +1,10 @@
+{% if collapsible %}<summary class="pb-tool-intro pb-weather-compare-toggle">{% else %}<div class="pb-tool-intro">{% endif %}
+  <span class="pb-tool-intro-main">
+    <span class="pb-tool-intro-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      {% if tool == 'clima' %}<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/>{% elif tool == 'gastos' %}<ellipse cx="9" cy="6" rx="6" ry="3"/><path d="M3 6v5c0 1.7 2.7 3 6 3m-6-3v5c0 1.7 2.7 3 6 3"/><ellipse cx="16" cy="13" rx="5" ry="3"/><path d="M11 13v5c0 1.7 2.2 3 5 3s5-1.3 5-3v-5"/>{% else %}<path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z"/><path d="M20 2v4m-2-2h4"/>{% endif %}
+    </svg></span>
+    <span>{{ description }}</span>
+  </span>
+  {% if collapsible %}<span class="pb-tool-intro-action pb-weather-compare-hint">Explorar alternativas <span aria-hidden="true">⌄</span></span>
+  {% else %}<button type="button" class="pb-tool-intro-action" {% if tool == 'gastos' %}data-close-expenses{% else %}data-close-tool{% endif %} aria-label="Cerrar {{ tool }}">Cerrar <span aria-hidden="true">×</span></button>{% endif %}
+{% if collapsible %}</summary>{% else %}</div>{% endif %}

@@ -1,10 +1,14 @@
 {% load l10n %}
   {% if plan.scheduled_at or compact_weather %}
   <details class="pb-weather-compare" data-weather-compare {% if confirmed_layout %}open{% endif %}>
+    {% if confirmed_layout %}
+    {% include 'plans/partials/confirmed_tool_heading.html' with tool='clima' description='¿Querés comparar otro día o lugar?' collapsible=True only %}
+    {% else %}
     <summary class="pb-weather-compare-toggle">
       <span class="pb-weather-compare-main"><span class="pb-weather-compare-icon" aria-hidden="true">☀</span> {% if compact_weather %}Consultar clima y alternativas{% else %}¿Querés comparar otro día o lugar?{% endif %}</span>
       <span class="pb-weather-compare-hint">Explorar alternativas <span aria-hidden="true">⌄</span></span>
     </summary>
+    {% endif %}
   {% endif %}
   <section class="pb-climate-planner" data-plan-weather
            data-cities-url="{% url 'plans:plan_weather_cities' plan.id %}"

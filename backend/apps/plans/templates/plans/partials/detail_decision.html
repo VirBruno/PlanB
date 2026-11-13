@@ -7,21 +7,22 @@
       <div class="pb-decision-badge {% if not plan.status %}pb-phase-finished{% endif %}">{% if plan.status %}✓ ENCUENTRO CONFIRMADO{% else %}✓ ENCUENTRO FINALIZADO{% endif %}</div>
       <h2 id="pb-decision-title">{{ confirmed_proposal.tittle }}</h2>
       {% if confirmed_layout %}
-      <div class="pb-confirmed-byline"><span class="proposal-type">{{ confirmed_proposal.type|capfirst }}</span><span class="pb-confirmed-author">{% include 'components/user_avatar.html' with user_id=confirmed_proposal.created_by username=confirmed_proposal.creator_username scope='plan' scope_id=plan.id only %} Propuesta por <strong>{{ confirmed_proposal.creator_username }}</strong></span></div>
-      <p class="pb-confirmed-elected">✓ Elegida para el encuentro</p>
+      <div class="pb-confirmed-byline"><span class="pb-confirmed-author">{% include 'components/user_avatar.html' with user_id=confirmed_proposal.created_by username=confirmed_proposal.creator_username scope='plan' scope_id=plan.id only %} Propuesta por <strong>{{ confirmed_proposal.creator_username }}</strong></span></div>
+      <dl class="pb-confirmed-metadata">
+        <div><dt>Fecha y hora</dt><dd><time datetime="{{ confirmed_proposal.date_pick|date:'c' }}">{{ confirmed_proposal.date_pick|date:"d/m/Y H:i" }}</time></dd></div>
+        <div><dt>Tipo de plan</dt><dd>{{ confirmed_proposal.type|capfirst }}</dd></div>
+        {% if confirmed_proposal.budget_min != None or confirmed_proposal.budget_max != None %}
+        <div class="pb-confirmed-budget"><dt>Presupuesto:</dt><dd>{% if confirmed_proposal.budget_min != None and confirmed_proposal.budget_max != None %}{{ confirmed_proposal.budget_min|floatformat:2 }} – {{ confirmed_proposal.budget_max|floatformat:2 }}{% elif confirmed_proposal.budget_min != None %}Desde {{ confirmed_proposal.budget_min|floatformat:2 }}{% else %}Hasta {{ confirmed_proposal.budget_max|floatformat:2 }}{% endif %}</dd></div>
+        {% endif %}
+      </dl>
       {% if confirmed_proposal.description %}<p class="pb-confirmed-description">{{ confirmed_proposal.description|linebreaksbr }}</p>{% endif %}
-      <div class="pb-confirmed-facts">
-      {% if confirmed_proposal.budget_min != None or confirmed_proposal.budget_max != None %}
-      <p class="pb-confirmed-budget">Presupuesto: {% if confirmed_proposal.budget_min != None and confirmed_proposal.budget_max != None %}{{ confirmed_proposal.budget_min|floatformat:2 }} – {{ confirmed_proposal.budget_max|floatformat:2 }}{% elif confirmed_proposal.budget_min != None %}Desde {{ confirmed_proposal.budget_min|floatformat:2 }}{% else %}Hasta {{ confirmed_proposal.budget_max|floatformat:2 }}{% endif %}</p>
-      {% endif %}
-      </div>
       {% else %}
       <p>{% if plan.status %}Esta es la alternativa elegida por el grupo. La fecha y el lugar definitivos provienen de esta propuesta.{% else %}Este encuentro fue marcado como finalizado. Conservamos la propuesta, la fecha y la ubicación elegidas para el historial.{% endif %}</p>
       {% endif %}
-      <div class="pb-decision-meta">
+      {% if not confirmed_layout %}<div class="pb-decision-meta">
         <span>📅 {{ confirmed_proposal.date_pick|date:"d/m/Y H:i" }}</span>
         <a href="https://www.openstreetmap.org/?mlat={{ confirmed_proposal.latitude|unlocalize }}&amp;mlon={{ confirmed_proposal.longitude|unlocalize }}#map=16/{{ confirmed_proposal.latitude|unlocalize }}/{{ confirmed_proposal.longitude|unlocalize }}" target="_blank" rel="noopener noreferrer">📍 Ver ubicación confirmada ↗</a>
-      </div>
+      </div>{% endif %}
       {% if confirmed_layout %}
       {% include 'plans/partials/proposal_weather.html' with proposal=confirmed_proposal %}
       {% endif %}

@@ -83,9 +83,14 @@ window.addEventListener('load',async()=>{
     const toolSurface=getComputedStyle(control('clima')).backgroundColor;
     const hero=root.querySelector('.pb-decision-panel');
     const heroWeather=hero.querySelector('[data-proposal-weather]');
+    assert(parseFloat(getComputedStyle(root.querySelector('#plan-title')).fontSize)>parseFloat(getComputedStyle(hero.querySelector('h2')).fontSize),'Titulo del plan mantiene jerarquia sobre la propuesta');
+    assert(getComputedStyle(hero).backgroundImage==='none','Tarjeta principal con fondo neutro');
+    assert(root.querySelector('.pb-confirmed-celebration')&&root.querySelectorAll('.pb-tool-new').length===2,'Celebracion y badge NEW visibles en sus contextos');
+    const introStyles=['clima','gastos','sugerencias'].map(name=>getComputedStyle(panel(name).querySelector('.pb-tool-intro')));
+    assert(['minHeight','paddingTop','paddingLeft','fontSize','borderBottomWidth'].every(property=>new Set(introStyles.map(style=>style[property])).size===1),'Tres cabeceras comparten dimensiones, tipografia y separador');
     await wait(()=>!heroWeather.querySelector('[data-weather-details]').hidden);
     assert(hero.getBoundingClientRect().height<(innerWidth>900?600:1050),'Hero enriquecido de altura controlada');
-    assert(root.getBoundingClientRect().height<1600,'Detalle inicial sin historia abierta');
+    assert(root.getBoundingClientRect().height<1600,'Detalle inicial sin historia abierta: '+root.getBoundingClientRect().height+'px');
     assert(hero.querySelector('.pb-confirmed-author .pb-user-avatar'),'Hero conserva avatar y autor');
     assert(heroWeather.textContent.includes('Parcialmente nublado')&&heroWeather.textContent.includes('Mín. 12 °C · Máx. 24 °C')&&heroWeather.textContent.includes('10%')&&heroWeather.textContent.includes('15 km/h'),'Hero muestra condición, temperaturas, lluvia y viento reales del endpoint');
     const heroMap=hero.querySelector('[data-proposal-preview]');
