@@ -3,7 +3,8 @@
   <header class="pb-confirmed-heading">
     <div>
       <a class="back-link" href="{% url 'groups:detail' group.id %}">← {{ group.name }}</a>
-      <h1 id="plan-title">{{ plan.name }}</h1>
+      <h1 id="plan-title"><span class="pb-plan-title-text"><span class="pb-plan-title-letters">{{ plan.name }}</span>{% include 'plans/partials/confirmed_sparkles.html' %}</span></h1>
+      <p class="pb-confirmed-celebration"><span aria-hidden="true">✧</span> ¡Tenemos plan confirmado! <span aria-hidden="true">✦</span></p>
     </div>
     <button type="button" class="button button--quiet" data-open-plan-details
             aria-expanded="false" aria-controls="plan-details-drawer">Detalles del plan <span aria-hidden="true">↗</span></button>
@@ -31,7 +32,8 @@
           <span class="pb-tool-number" aria-hidden="true">02</span><span><strong>Gastos compartidos</strong><small data-expense-card-summary>Organizar cuentas entre todos</small></span><span class="pb-tool-action">Gestionar <span aria-hidden="true">↗</span></span>
         </button>
         <button type="button" class="pb-tool-selector" data-tool="sugerencias" aria-expanded="false" aria-controls="meeting-tool-sugerencias">
-          <span class="pb-tool-number" aria-hidden="true">03</span><span><strong>Sugerencias con IA</strong><small data-ia-tool-status>Lugares para este encuentro</small></span><span class="pb-tool-action">Explorar <span aria-hidden="true">↗</span></span>
+          <span class="pb-tool-number" aria-hidden="true">03</span><span><strong><span class="pb-text-shine">Sugerencias con IA</span> <span class="pb-tool-new">NEW!</span></strong><small data-ia-tool-status>Lugares para este encuentro</small></span><span class="pb-tool-action">Explorar <span aria-hidden="true">↗</span></span>
+          {% include 'plans/partials/confirmed_sparkles.html' %}
         </button>
       </div>
       <div class="pb-tool-workspace">

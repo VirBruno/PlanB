@@ -116,7 +116,9 @@ class RecommendationUITests(TestCase):
         self.assertIn("Ver proceso de decisión", hero)
         self.assertIn('class="pb-confirmed-author"', hero)
         self.assertIn('data-user-avatar', hero)
-        self.assertIn("Elegida para el encuentro", hero)
+        self.assertIn('class="pb-confirmed-metadata"', hero)
+        self.assertIn("Fecha y hora", hero)
+        self.assertIn("Tipo de plan", hero)
         self.assertIn("data-proposal-weather", hero)
         self.assertIn("data-proposal-preview", hero)
 

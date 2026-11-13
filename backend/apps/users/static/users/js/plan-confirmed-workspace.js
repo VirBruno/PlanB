@@ -14,6 +14,24 @@
   let previousOverflow = null;
   let drawerCloseTimer = null;
 
+  // Animar solo la presentacion: hidden/open, eventos y foco conservan su logica.
+  const reveals = new WeakMap();
+  function revealDown(element, startHeight = 0) {
+    reveals.get(element)?.cancel();
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !element.animate) return;
+    const height = element.getBoundingClientRect().height;
+    reveals.set(element, element.animate([
+      {height: `${startHeight}px`, opacity: .4, overflow: "clip"},
+      {height: `${height}px`, opacity: 1, overflow: "clip"}
+    ], {duration: 280, easing: "cubic-bezier(.22, 1, .36, 1)"}));
+  }
+  root.addEventListener("toggle", event => {
+    const details = event.target;
+    if (details.tagName === "DETAILS" && details.open && details.getClientRects().length) {
+      revealDown(details, details.querySelector("summary")?.getBoundingClientRect().height || 0);
+    }
+  }, true);
+
   function selectTool(name, focus = false) {
     if (active === "gastos" && name !== "gastos") {
       const url = new URL(location.href);
@@ -31,7 +49,10 @@
     panels.forEach(panel => {
       const open = panel.dataset.toolPanel === name;
       panel.hidden = !open;
-      if (open) panel.dispatchEvent(new CustomEvent("planb:tool-open", {bubbles: true}));
+      if (open) {
+        panel.dispatchEvent(new CustomEvent("planb:tool-open", {bubbles: true}));
+        revealDown(panel);
+      } else reveals.get(panel)?.cancel();
     });
     if (name === "clima") root.querySelector("[data-weather-compare]")?.setAttribute("open", "");
     if (focus) controls.find(button => button.dataset.tool === name)?.focus({preventScroll: true});

@@ -9,9 +9,10 @@
 {% else %}
 <dialog id="plan-expenses" class="pb-expenses-dialog" data-expenses-dialog data-url="{% url 'plans:expenses' plan.id %}" {% if request.GET.open == 'expenses' %}data-auto-open{% endif %} aria-labelledby="expenses-title">
 {% endif %}
+  {% if confirmed_layout %}{% include 'plans/partials/confirmed_tool_heading.html' with tool='gastos' description='¿Organizamos los gastos del encuentro?' only %}{% endif %}
   <header class="pb-expenses-header">
     <div><span class="pb-expenses-kicker">CUENTAS CLARAS</span><h2 id="expenses-title">Gastos compartidos</h2><p>{{ plan.name }} · {% include 'components/group_label.html' with group_id=group.id group_name=group.name only %}</p></div>
-    <button type="button" class="pb-expenses-close" data-close-expenses aria-label="Cerrar gastos compartidos">×</button>
+    {% if not confirmed_layout %}<button type="button" class="pb-expenses-close" data-close-expenses aria-label="Cerrar gastos compartidos">×</button>{% endif %}
   </header>
   <p data-expenses-status role="status" aria-live="polite"></p>
   <button type="button" class="button button--quiet" data-reload-expenses hidden>Actualizar gastos</button>
