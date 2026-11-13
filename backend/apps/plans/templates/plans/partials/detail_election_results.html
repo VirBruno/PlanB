@@ -46,16 +46,18 @@
       {% if confirmed_proposal %}<p class="proposal-champion">Propuesta ganadora: <strong>{{ confirmed_proposal.tittle }}</strong></p>{% else %}<p>La propuesta ganadora no está disponible en este listado.</p>{% endif %}
       {% else %}
       <div class="proposal-leaderboard-heading"><div><h3 id="proposal-combat-title" class="proposal-result-title">Combate</h3><p>Los puntajes se ordenan por juego; los empates comparten puesto.</p></div></div>
-      <nav class="proposal-combat-games" aria-label="Elegir juego de combate">
-        <a class="proposal-combat-choice{% if combat_game == 'arcade' %} is-selected{% endif %}" href="?combat_game=arcade#proposal-combat" data-combat-choice="arcade"{% if combat_game == 'arcade' %} aria-current="true"{% endif %}>
+      {% if can_manage %}
+      <form class="proposal-combat-games" method="post" action="{% url 'plans:proposal_combat_game' plan.id %}" aria-label="Elegir juego de combate">
+        {% csrf_token %}
+        <button class="proposal-combat-choice{% if combat_game == 'arcade' %} is-selected{% endif %}" type="submit" name="game" value="arcade" aria-pressed="{% if combat_game == 'arcade' %}true{% else %}false{% endif %}">
           <img class="proposal-combat-choice__art" src="{% static 'users/img/juegos/arcade.png' %}" alt="" loading="lazy">
           <span>Esquivar obstáculos</span>
-        </a>
-        <a class="proposal-combat-choice{% if combat_game == 'truco' %} is-selected{% endif %}" href="?combat_game=truco#proposal-combat" data-combat-choice="truco"{% if combat_game == 'truco' %} aria-current="true"{% endif %}>
+        </button>
+        <button class="proposal-combat-choice{% if combat_game == 'truco' %} is-selected{% endif %}" type="submit" name="game" value="truco" aria-pressed="{% if combat_game == 'truco' %}true{% else %}false{% endif %}">
           <img class="proposal-combat-choice__art" src="{% static 'users/img/juegos/truco.png' %}" alt="" loading="lazy">
           <span>Truco argentino</span>
-        </a>
-        <a class="proposal-combat-choice{% if combat_game == 'uno' %} is-selected{% endif %}" href="?combat_game=uno#proposal-combat" data-combat-choice="uno"{% if combat_game == 'uno' %} aria-current="true"{% endif %}>
+        </button>
+        <button class="proposal-combat-choice{% if combat_game == 'uno' %} is-selected{% endif %}" type="submit" name="game" value="uno" aria-pressed="{% if combat_game == 'uno' %}true{% else %}false{% endif %}">
           <img class="proposal-combat-choice__art" src="{% static 'users/img/juegos/uno.png' %}" alt="" loading="lazy">
           <span>UNO{% if not uno_enabled %} <small>· prueba</small>{% endif %}</span>
         </a>

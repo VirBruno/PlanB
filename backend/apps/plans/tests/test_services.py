@@ -29,6 +29,7 @@ def plan_row(**kwargs):
         "id": PLAN_ID, "created_at": "2026-09-30T12:00:00Z",
         "name": "Escapada", "description": "Viaje compartido",
         "status": True, "group_id": GROUP_ID, "created_by": USER_ID,
+        "combat_game": "arcade",
         **kwargs,
     }
 
@@ -83,10 +84,23 @@ class PlanSDKTests(SimpleTestCase):
         self.assertEqual(request.url.params["group_id"], "eq." + GROUP_ID)
 
     def test_get_plan_reads_the_shared_election_method(self):
-        self.responses = [(200, [plan_row(election_method="combat")])]
+        self.responses = [(200, [plan_row(election_method="combat", combat_game="truco")])]
         plan = plan_service.get_plan("user-jwt", PLAN_ID)
         self.assertEqual(plan["election_method"], "combat")
-        self.assertIn("election_method", self.requests[0].url.params["select"])
+        self.assertEqual(plan["combat_game"], "truco")
+        self.assertIn("combat_game", self.requests[0].url.params["select"])
+
+    def test_get_plan_defaults_to_arcade_when_combat_game_column_is_missing(self):
+        missing_column = {
+            "code": "42703", "message": "column plans.combat_game does not exist",
+            "details": None, "hint": None,
+        }
+        legacy_plan = plan_row(election_method="combat")
+        del legacy_plan["combat_game"]
+        self.responses = [(400, missing_column), (200, [legacy_plan])]
+        plan = plan_service.get_plan("user-jwt", PLAN_ID)
+        self.assertEqual(plan["combat_game"], "arcade")
+        self.assertFalse(plan["combat_game_schema"])
 
     def test_plan_reads_fall_back_only_when_election_method_column_is_missing(self):
         missing_column = {
@@ -200,6 +214,18 @@ class PlanSDKTests(SimpleTestCase):
         self.assertEqual(json.loads(self.requests[2].content), {
             "p_plan_id": PLAN_ID, "p_proposal_id": 47,
         })
+
+    def test_combat_game_selection_uses_authenticated_rpc(self):
+        self.responses = [(200, "truco")]
+        self.assertEqual(election_service.set_combat_game(
+            "user-jwt", plan_id=PLAN_ID, game="truco",
+        ), "truco")
+        self.assertEqual(self.requests[0].url.path, "/rest/v1/rpc/set_plan_combat_game")
+        self.assertEqual(json.loads(self.requests[0].content), {
+            "p_plan_id": PLAN_ID, "p_game": "truco",
+        })
+        with self.assertRaises(InvalidProposal):
+            election_service.set_combat_game("user-jwt", plan_id=PLAN_ID, game="bad")
 
     def test_remove_vote_uses_the_authenticated_rpc(self):
         self.responses = [(200, 47), (200, None)]

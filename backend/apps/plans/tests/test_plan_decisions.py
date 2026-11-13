@@ -53,10 +53,12 @@ class PlanDecisionViewTests(TestCase):
     @patch("apps.plans.views.plan_confirmation_service.confirm", return_value=11)
     @patch("apps.plans.views._proposal_plan")
     def test_owner_confirms_truco_winner_from_selected_game(self, access, confirm):
-        access.return_value = (plan_row(), {"id": GROUP_ID, "role": "owner"})
+        access.return_value = (
+            plan_row(election_method="combat", combat_game="truco"),
+            {"id": GROUP_ID, "role": "owner"},
+        )
         response = self.client.post(
             f"/planes/{PLAN_ID}/propuestas/11/confirmar/",
-            {"combat_game": "truco"},
         )
         self.assertEqual(response.status_code, 302)
         confirm.assert_called_once_with(

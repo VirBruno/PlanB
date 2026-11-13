@@ -38,10 +38,12 @@ def lobby(request, plan_id):
         return JsonResponse({'error': 'El modo entre integrantes todavía no está disponible.'}, status=404)
     token = session_service.get_access_token(request)
     try:
+        from .views import _plan_and_group
+        plan, _ = _plan_and_group(request, plan_id)
+        if (plan.get('election_method') != 'combat' or plan.get('combat_game') != 'uno'
+                or not plan.get('status') or plan.get('selected_proposal_id')):
+            raise PermissionDenied
         if request.method == 'GET':
-            # Las operaciones se autorizan también dentro de las funciones de Supabase.
-            from .views import _plan_and_group
-            plan, _ = _plan_and_group(request, plan_id)
             members = invitation_service.list_members(token, plan['group_id'])
             return JsonResponse({'matches': uno_duel.list_matches(token, plan_id=plan_id),
                                  'members': [{'id': member['id'], 'username': member['username']}

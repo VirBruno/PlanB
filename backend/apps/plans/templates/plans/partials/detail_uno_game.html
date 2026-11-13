@@ -26,7 +26,7 @@
         <button type="button" data-uno-choose="rojo">Rojo</button><button type="button" data-uno-choose="amarillo">Amarillo</button><button type="button" data-uno-choose="verde">Verde</button><button type="button" data-uno-choose="azul">Azul</button><button type="button" data-uno-cancel>Cancelar</button>
       </div>
       <div class="proposal-uno__actions"><button class="proposal-uno__button" type="button" data-uno-pass hidden>Pasar turno</button><button class="proposal-uno__button" type="button" data-uno-restart hidden>Jugar otra vez</button></div>
-      {% if uno_enabled %}<p class="proposal-uno__results" data-uno-results-refresh hidden><a href="?combat_game=uno#proposal-combat">Actualizar clasificación <span aria-hidden="true">↗</span></a></p>{% endif %}
+      {% if uno_enabled %}<p class="proposal-uno__results" data-uno-results-refresh hidden><a href="#proposal-combat">Actualizar clasificación <span aria-hidden="true">↗</span></a></p>{% endif %}
     </div>
     <div class="proposal-uno__notices" data-uno-notices role="status" aria-live="polite"></div>
     <p class="proposal-uno__message" data-uno-message role="status" aria-live="polite">Preparando la mesa…</p>

@@ -217,6 +217,31 @@ class PlanViewsTests(TestCase):
             "private-jwt", plan_id=UUID(PLAN_ID), method="votes",
         )
 
+    @patch("apps.plans.views.election_service.set_combat_game", return_value="truco")
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "owner"})
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row(election_method="combat"))
+    def test_group_owner_can_choose_shared_combat_game(self, get_plan, get_group, set_game):
+        response = self.client.post(
+            f"/planes/{PLAN_ID}/propuestas/juego-combate/", {"game": "truco"},
+        )
+        self.assertRedirects(
+            response, f"/planes/{PLAN_ID}/#proposal-combat",
+            fetch_redirect_response=False,
+        )
+        set_game.assert_called_once_with(
+            "private-jwt", plan_id=UUID(PLAN_ID), game="truco",
+        )
+
+    @patch("apps.plans.views.election_service.set_combat_game")
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row(election_method="combat"))
+    def test_group_member_cannot_change_combat_game(self, get_plan, get_group, set_game):
+        response = self.client.post(
+            f"/planes/{PLAN_ID}/propuestas/juego-combate/", {"game": "truco"},
+        )
+        self.assertEqual(response.status_code, 403)
+        set_game.assert_not_called()
+
     @patch("apps.plans.views.election_service.set_method", side_effect=ElectionSchemaUnavailable())
     @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "owner"})
     @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row())
@@ -341,20 +366,34 @@ class PlanViewsTests(TestCase):
 
     @patch("apps.plans.views.election_service.save_score", return_value=30)
     @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
-    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row(election_method="combat"))
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row(election_method="combat", combat_game="truco"))
     def test_member_can_save_a_truco_result_separately(self, get_plan, get_group, save_score):
         response = self.client.post(
             f"/planes/{PLAN_ID}/propuestas/47/score/",
             {"score": "30", "game": "truco"},
         )
         self.assertRedirects(
-            response, f"/planes/{PLAN_ID}/?combat_game=truco#proposal-combat",
+            response, f"/planes/{PLAN_ID}/#proposal-combat",
             fetch_redirect_response=False,
         )
         save_score.assert_called_once_with(
             "private-jwt", plan_id=UUID(PLAN_ID), proposal_id=47, score=30,
             game="truco",
         )
+
+    @patch("apps.plans.views.election_service.save_score")
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row(election_method="combat", combat_game="truco"))
+    def test_member_cannot_save_score_for_a_different_combat_game(self, get_plan, get_group, save_score):
+        response = self.client.post(
+            f"/planes/{PLAN_ID}/propuestas/47/score/",
+            {"score": "14", "game": "arcade"},
+        )
+        self.assertRedirects(
+            response, f"/planes/{PLAN_ID}/#proposal-combat",
+            fetch_redirect_response=False,
+        )
+        save_score.assert_not_called()
 
     @patch("apps.plans.views.election_service.save_score", side_effect=ElectionSchemaUnavailable())
     @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
@@ -528,6 +567,7 @@ class PlanViewsTests(TestCase):
     def test_combat_mode_shows_game_and_leaderboard(self, get_plan, get_group, list_proposals):
         response = self.client.get(f"/planes/{PLAN_ID}/")
         self.assertContains(response, "data-combat-game")
+        self.assertNotContains(response, "data-combat-choice=")
         self.assertContains(response, "12 pts")
         self.assertContains(response, "Propuesta campeona: <strong>Mi propuesta</strong>")
         self.assertContains(response, "/static/users/js/proposal-combat.js")
@@ -555,10 +595,10 @@ class PlanViewsTests(TestCase):
          "date_pick": None, "latitude": -34.8, "longitude": -58.2,
          "votes": 0, "Score": 0, "truco_score": 18},
     ])
-    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
-    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row(election_method="combat"))
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "owner"})
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row(election_method="combat", combat_game="truco"))
     def test_truco_leaderboard_is_separate_and_ties_share_first_place(self, get_plan, get_group, list_proposals):
-        response = self.client.get(f"/planes/{PLAN_ID}/?combat_game=truco")
+        response = self.client.get(f"/planes/{PLAN_ID}/")
         content = response.content.decode()
         self.assertEqual(content.count('<ol class="proposal-ranking">'), 1)
         self.assertLess(content.index('data-combat-truco'), content.index('<ol class="proposal-ranking">'))
@@ -573,12 +613,25 @@ class PlanViewsTests(TestCase):
          "description": "", "date_pick": None, "latitude": -34.6, "longitude": -58.4,
          "votes": 0, "Score": 200, "truco_score": 29},
     ])
-    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
-    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row(election_method="combat"))
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "owner"})
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row(election_method="combat", combat_game="truco"))
     def test_truco_has_no_champion_until_someone_reaches_30(self, get_plan, get_group, list_proposals):
-        response = self.client.get(f"/planes/{PLAN_ID}/?combat_game=truco")
+        response = self.client.get(f"/planes/{PLAN_ID}/")
         self.assertContains(response, "29/30 pts")
         self.assertNotContains(response, "Propuesta campeona:")
+
+    @patch("apps.plans.views.proposal_service.list_proposals", return_value=[
+        {"id": 47, "created_by": USER_ID, "tittle": "Mi propuesta", "type": "juntada",
+         "description": "", "date_pick": None, "latitude": -34.6, "longitude": -58.4,
+         "votes": 0, "Score": 12, "truco_score": 30},
+    ])
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row(election_method="combat", combat_game="truco"))
+    def test_member_cannot_choose_combat_game_with_query_parameter(self, get_plan, get_group, list_proposals):
+        response = self.client.get(f"/planes/{PLAN_ID}/?combat_game=arcade")
+        self.assertEqual(response.context["combat_game"], "truco")
+        self.assertNotContains(response, 'class="proposal-combat-choice')
+        self.assertContains(response, "Juego elegido para el grupo: <strong>Truco argentino</strong>")
 
     @patch("apps.plans.views.proposal_service.list_proposals", return_value=[
         {"id": 47, "created_by": USER_ID, "tittle": "Mi propuesta", "type": "juntada",
@@ -586,10 +639,10 @@ class PlanViewsTests(TestCase):
          "votes": 0, "Score": 200, "truco_score": 30},
     ])
     @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "owner"})
-    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row(election_method="combat"))
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row(election_method="combat", combat_game="uno"))
     def test_uno_preview_has_no_champion_or_other_games_scores(self, get_plan, get_group, list_proposals):
-        response = self.client.get(f"/planes/{PLAN_ID}/?combat_game=uno")
-        self.assertContains(response, 'data-combat-choice="uno" aria-current="true"')
+        response = self.client.get(f"/planes/{PLAN_ID}/")
+        self.assertContains(response, 'name="game" value="uno" aria-pressed="true"')
         self.assertContains(response, 'data-uno-game')
         self.assertContains(response, 'las victorias todavía no suman puntos')
         self.assertContains(response, '/static/users/js/proposal-uno.js')
@@ -609,9 +662,9 @@ class PlanViewsTests(TestCase):
          "votes": 0, "Score": 0, "truco_score": 0},
     ])
     @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "owner"})
-    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row(election_method="combat"))
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row(election_method="combat", combat_game="uno"))
     def test_uno_remote_ranking_uses_victories(self, get_plan, get_group, list_proposals, scores):
-        response = self.client.get(f"/planes/{PLAN_ID}/?combat_game=uno")
+        response = self.client.get(f"/planes/{PLAN_ID}/")
         self.assertContains(response, "2 victorias")
         self.assertContains(response, "Propuesta campeona: <strong>Mi propuesta</strong>")
         self.assertNotContains(response, "Prueba sin puntos")

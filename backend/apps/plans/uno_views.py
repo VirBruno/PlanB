@@ -17,6 +17,18 @@ from apps.groups.services.exceptions import GroupNotFound, GroupUnavailable, Inv
 @require_http_methods(["GET", "POST"])
 @supabase_login_required
 def game(request, plan_id, proposal_id):
+    from .views import _plan_and_group
+
+    try:
+        plan, _group = _plan_and_group(request, plan_id)
+    except (PlanNotFound, GroupNotFound, InvalidGroup, ProposalNotFound):
+        return JsonResponse({"error": "No encontramos la propuesta."}, status=404)
+    except (PlanUnavailable, GroupUnavailable, ProposalUnavailable):
+        return JsonResponse({"error": "No pudimos conectar. Probá de nuevo."}, status=503)
+    if (plan.get("election_method") != "combat" or plan.get("combat_game") != "uno"
+            or not plan.get("status") or plan.get("selected_proposal_id")):
+        return JsonResponse({"error": "Esta partida no está disponible."}, status=403)
+
     # El RPC valida membresía, autoría y estado del plan en una sola transacción.
     # Esta ruta se usa únicamente cuando UNO_SUPABASE_ENABLED está habilitado.
     if getattr(settings, "UNO_SUPABASE_ENABLED", False):
@@ -34,11 +46,7 @@ def game(request, plan_id, proposal_id):
         except ProposalUnavailable:
             return JsonResponse({"error": "No pudimos conectar. Probá de nuevo."}, status=503)
 
-    # Las consultas de negocio se hacen con el JWT del usuario y sus RLS.
-    from .views import _plan_and_group
-
     try:
-        plan, _group = _plan_and_group(request, plan_id)
         proposal = proposal_service.get_proposal(
             session_service.get_access_token(request), plan_id=plan_id, proposal_id=proposal_id,
         )
@@ -46,9 +54,7 @@ def game(request, plan_id, proposal_id):
         return JsonResponse({"error": "No encontramos la propuesta."}, status=404)
     except (PlanUnavailable, GroupUnavailable, ProposalUnavailable):
         return JsonResponse({"error": "No pudimos conectar. Probá de nuevo."}, status=503)
-    if (str(proposal["created_by"]) != str(request.planb_user["id"])
-            or plan.get("election_method") != "combat" or not plan.get("status")
-            or plan.get("selected_proposal_id")):
+    if str(proposal["created_by"]) != str(request.planb_user["id"]):
         return JsonResponse({"error": "Esta partida no está disponible."}, status=403)
 
     key = f"uno:{plan_id}:{proposal_id}"

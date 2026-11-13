@@ -160,6 +160,13 @@ el voto propio, manteniendo los conteos. La última agrega el marcador separado 
 Truco (0 a 30) y RPCs autenticadas para guardar y confirmar ese resultado. No se
 ejecutan con Django ni conceden escritura directa de métricas a usuarios.
 
+Para que el juego activo de Combate sea común a todo el grupo, aplicar después
+`supabase/migrations/202611130001_plan_combat_game.sql`. Agrega
+`plans.combat_game` (por defecto `arcade`) y un RPC que sólo permite al owner
+cambiarlo; los puntajes sólo se guardan para el juego activo. La app muestra el
+juego guardado a todos y no acepta cambiarlo con parámetros de URL. Aplicar esta
+migración antes de publicar la versión nueva.
+
 Prueba manual con dos integrantes:
 
 1. Como owner del grupo, elegir Punto de encuentro y comprobar que abre el
@@ -178,10 +185,15 @@ Prueba manual con dos integrantes:
    puesto sin habilitar la confirmación de una propuesta empatada.
 6. Confirmar que un integrante no puede cambiar el método del plan ni guardar
   puntaje en la propuesta de otra persona.
+7. Con el owner, elegir Truco y recargar la página con la cuenta de otro
+   integrante: ambos deben ver Truco. Intentar cambiarlo como miembro o guardar
+   puntaje de Arcade debe rechazarse; cambiarlo como owner debe actualizarlo
+   también para los integrantes.
 
 `supabase/tests/proposal_election.sql` valida selección por owner, voto único,
 cambio/eliminación del voto, cambio de método con resultados, persistencia
-separada de los puntajes máximos, el límite de 30 para Truco y grants.
+separada de los puntajes máximos, el límite de 30 para Truco, cambio del juego
+compartido por owner y rechazo de puntajes para otro juego.
 Contiene fixtures reversibles y termina con ROLLBACK. Ejecutarlo como
 administrador sólo en Supabase local o en un proyecto de prueba autorizado.
 La puntuación se calcula en el navegador: el RPC restringe quién puede guardar

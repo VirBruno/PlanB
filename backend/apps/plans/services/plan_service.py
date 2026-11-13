@@ -16,6 +16,9 @@ LEGACY_COLUMNS = COLUMNS.removesuffix(",election_method")
 PLANNING_FIELDS = "scheduled_at,weather_province,weather_city_id,weather_city_name"
 PLANNING_COLUMNS = COLUMNS + "," + PLANNING_FIELDS
 DECISION_COLUMNS = PLANNING_COLUMNS + ",selected_proposal_id,confirmed_at"  # ETAPA8_DECISION_PLAN
+COMBAT_GAME = "combat_game"
+COMBAT_GAME_VALUES = ("arcade", "truco", "uno")
+COMBAT_DECISION_COLUMNS = DECISION_COLUMNS + ",combat_game"
 ELECTION_METHODS = ("ideal", "votes", "combat")
 
 
@@ -32,6 +35,8 @@ def _plan(row):
         if key != "election_method"
     }
     result["election_method"] = row.get("election_method")
+    result["combat_game"] = row.get(COMBAT_GAME, "arcade")
+    result["combat_game_schema"] = COMBAT_GAME in row
     selected = row.get("selected_proposal_id")
     if selected is not None and (type(selected) is not int or selected < 1):
         raise ValueError
@@ -63,6 +68,8 @@ def _plan(row):
             or type(result["status"]) is not bool):
         raise ValueError
     if result["election_method"] not in (None, *ELECTION_METHODS):
+        raise ValueError
+    if result["combat_game"] not in COMBAT_GAME_VALUES:
         raise ValueError
     result["created_at"] = parse_datetime(result["created_at"])
     if result["created_at"] is None:
@@ -121,6 +128,32 @@ def _missing_election_method(error):
         and error.code in ("42703", "PGRST204")
         and "election_method" in (error.message or "").lower()
     )
+
+
+def _missing_combat_game(error):
+    return (
+        isinstance(error, APIError)
+        and error.code in ("42703", "PGRST204")
+        and COMBAT_GAME in (error.message or "").lower()
+    )
+
+
+def _legacy_plan_rows(client, *, plan_id):
+    try:
+        return _get_plan_rows(client, columns=DECISION_COLUMNS, plan_id=plan_id)
+    except APIError as error:
+        if _missing_decision_columns(error):
+            return _get_plan_rows(client, columns=PLANNING_COLUMNS, plan_id=plan_id)
+        if _missing_election_method(error):
+            return _get_plan_rows(client, columns=LEGACY_COLUMNS, plan_id=plan_id)
+        if _missing_planning_columns(error):
+            try:
+                return _get_plan_rows(client, columns=COLUMNS, plan_id=plan_id)
+            except APIError as fallback:
+                if not _missing_election_method(fallback):
+                    raise
+                return _get_plan_rows(client, columns=LEGACY_COLUMNS, plan_id=plan_id)
+        raise
 
 
 def _list_plan_rows(client, *, columns, group_id, start):
@@ -186,21 +219,24 @@ def get_plan(access_token, plan_id):
     try:
         with clients.public_client(access_token=access_token) as client:
             try:
-                rows = _get_plan_rows(client, columns=DECISION_COLUMNS, plan_id=canonical_id)
+                rows = _get_plan_rows(client, columns=COMBAT_DECISION_COLUMNS, plan_id=canonical_id)
             except APIError as error:
-                if _missing_decision_columns(error):
-                    rows = _get_plan_rows(client, columns=PLANNING_COLUMNS, plan_id=canonical_id)
-                elif _missing_election_method(error):
-                    rows = _get_plan_rows(client, columns=LEGACY_COLUMNS, plan_id=canonical_id)
-                elif _missing_planning_columns(error):
-                    try:
-                        rows = _get_plan_rows(client, columns=COLUMNS, plan_id=canonical_id)
-                    except APIError as fallback:
-                        if not _missing_election_method(fallback):
-                            raise
-                        rows = _get_plan_rows(client, columns=LEGACY_COLUMNS, plan_id=canonical_id)
+                if _missing_combat_game(error):
+                    rows = _legacy_plan_rows(client, plan_id=canonical_id)
                 else:
-                    raise
+                    if _missing_decision_columns(error):
+                        rows = _get_plan_rows(client, columns=PLANNING_COLUMNS, plan_id=canonical_id)
+                    elif _missing_election_method(error):
+                        rows = _get_plan_rows(client, columns=LEGACY_COLUMNS, plan_id=canonical_id)
+                    elif _missing_planning_columns(error):
+                        try:
+                            rows = _get_plan_rows(client, columns=COLUMNS, plan_id=canonical_id)
+                        except APIError as fallback:
+                            if not _missing_election_method(fallback):
+                                raise
+                            rows = _get_plan_rows(client, columns=LEGACY_COLUMNS, plan_id=canonical_id)
+                    else:
+                        raise
         if not isinstance(rows, list):
             raise ValueError
         if not rows:

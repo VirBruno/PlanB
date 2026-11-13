@@ -49,7 +49,7 @@
             {% elif notification.type == 'uno_duel_invitation' %}
               <p>Elegí la propuesta que querés representar y respondé desde la mesa de UNO.</p>
               {% if notification.plan_available %}
-                <div class="pb-notifications__actions"><a class="button button--primary" href="{% url 'plans:detail' notification.plan_id %}?combat_game=uno&amp;uno_mode=grupo#proposal-combat">Ver invitación ↗</a></div>
+                <div class="pb-notifications__actions"><a class="button button--primary" href="{% url 'plans:detail' notification.plan_id %}?uno_mode=grupo#proposal-combat">Ver invitación ↗</a></div>
               {% else %}
                 <p class="pb-notifications__status">Ya no tenés acceso a este plan.</p>
               {% endif %}

@@ -75,7 +75,8 @@ BEGIN
 
     IF p_action <> 'status' THEN
         IF match_row.status <> 'playing' OR plan_row.status IS NOT TRUE
-           OR plan_row.selected_proposal_id IS NOT NULL OR plan_row.election_method IS DISTINCT FROM 'combat' THEN
+           OR plan_row.selected_proposal_id IS NOT NULL OR plan_row.election_method IS DISTINCT FROM 'combat'
+           OR plan_row.combat_game IS DISTINCT FROM 'uno' THEN
             RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'UNO duel is not active';
         END IF;
         IF p_expected_version <> match_row.version THEN

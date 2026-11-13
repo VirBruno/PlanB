@@ -9,7 +9,8 @@ DECLARE
 BEGIN
     IF actor IS NULL OR p_plan_id IS NULL OR NOT EXISTS (
         SELECT 1 FROM public.plans AS p JOIN public.group_members AS m ON m.group_id = p.group_id
-        WHERE p.id = p_plan_id AND m.user_id = actor
+        WHERE p.id = p_plan_id AND p.election_method = 'combat'
+          AND p.combat_game = 'uno' AND m.user_id = actor
     ) THEN
         RAISE EXCEPTION USING ERRCODE = '42501', MESSAGE = 'UNO duels unavailable';
     END IF;

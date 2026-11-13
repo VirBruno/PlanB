@@ -88,8 +88,10 @@ class RecommendationUITests(TestCase):
         self.assertContains(response, "plan-confirmed-workspace.js", count=1)
 
     def test_confirmed_combat_shows_chosen_proposal_without_game_controls(self):
-        self.fixtures["apps.plans.views.plan_service.get_plan"].return_value = confirmed_plan(election_method="combat")
-        response = self.client.get(self.url + "?combat_game=uno")
+        self.fixtures["apps.plans.views.plan_service.get_plan"].return_value = confirmed_plan(
+            election_method="combat", combat_game="uno",
+        )
+        response = self.client.get(self.url)
         self.assertContains(response, "Propuesta ganadora:")
         self.assertNotContains(response, 'data-combat-choice=')
         self.assertNotContains(response, 'data-uno-mode-choice=')

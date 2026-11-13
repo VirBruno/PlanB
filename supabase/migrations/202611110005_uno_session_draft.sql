@@ -37,7 +37,8 @@ BEGIN
     PERFORM g.id FROM public.groups AS g WHERE g.id = target_group_id FOR UPDATE;
     SELECT * INTO target FROM public.plans AS p WHERE p.id = p_plan_id AND p.group_id = target_group_id FOR UPDATE;
     IF NOT FOUND OR target.status IS NOT TRUE OR target.selected_proposal_id IS NOT NULL
-       OR target.election_method IS DISTINCT FROM 'combat' THEN
+       OR target.election_method IS DISTINCT FROM 'combat'
+       OR target.combat_game IS DISTINCT FROM 'uno' THEN
         RAISE EXCEPTION USING ERRCODE = '42501', MESSAGE = 'UNO game unavailable';
     END IF;
     PERFORM m.user_id FROM public.group_members AS m
@@ -83,7 +84,8 @@ BEGIN
     IF auth.uid() IS NULL OR p_plan_id IS NULL OR NOT EXISTS (
         SELECT 1 FROM public.plans AS plan
         JOIN public.group_members AS member ON member.group_id = plan.group_id
-        WHERE plan.id = p_plan_id AND member.user_id = auth.uid()
+        WHERE plan.id = p_plan_id AND plan.election_method = 'combat'
+          AND plan.combat_game = 'uno' AND member.user_id = auth.uid()
     ) THEN
         RAISE EXCEPTION USING ERRCODE = '42501', MESSAGE = 'UNO results unavailable';
     END IF;
