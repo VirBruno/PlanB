@@ -5,11 +5,11 @@
           <p class="eyebrow eyebrow--blue">ELECCIÓN DEL GRUPO</p>
           <h3 id="proposal-election-title">Método de elección</h3>
         </div>
-        {% if election_method %}<span class="proposal-method-active">{% if election_method == 'ideal' %}Punto de encuentro{% elif election_method == 'votes' %}Votación{% else %}Combate{% endif %}</span>{% else %}<span class="proposal-method-active">Sin elegir</span>{% endif %}
+        <span class="proposal-method-active">{% if election_method == 'ideal' %}Punto de encuentro{% elif election_method == 'votes' %}Votación{% elif election_method == 'combat' %}Combate{% else %}Sin elegir{% endif %}</span>
       </div>
       {% if can_manage and not plan.selected_proposal_id %}
       <details class="proposal-method-picker">
-        <summary data-method-picker>Elija su Método de elección</summary>
+        <summary data-method-picker>{% if election_method %}Cambiar método{% else %}Elegir método{% endif %}</summary>
         <form method="post" action="{% url 'plans:proposal_election_method' plan.id %}">
           {% csrf_token %}
           <div class="proposal-method-options" role="group" aria-label="Métodos de elección">
@@ -25,7 +25,7 @@
           </div>
         </form>
       </details>
-      {% else %}
+      {% elif not election_method %}
       <p class="proposal-method-note">El owner del grupo define el método para este plan.</p>
       {% endif %}
     </section>

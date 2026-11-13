@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import expense_views, recommendation_views, uno_views, views
+from . import expense_views, recommendation_views, uno_duel_views, uno_views, views
 
 app_name = "plans"
 urlpatterns = [
@@ -20,6 +20,8 @@ urlpatterns = [
     path("<uuid:plan_id>/propuestas/<int:proposal_id>/votar/", views.proposal_vote, name="proposal_vote"),
     path("<uuid:plan_id>/propuestas/<int:proposal_id>/score/", views.proposal_score, name="proposal_score"),
     path("<uuid:plan_id>/propuestas/<int:proposal_id>/uno/", uno_views.game, name="uno_game"),
+    path("<uuid:plan_id>/uno/duelos/", uno_duel_views.lobby, name="uno_duel_lobby"),
+    path("uno/duelos/<uuid:match_id>/", uno_duel_views.game, name="uno_duel_game"),
     path("<uuid:plan_id>/propuestas/<int:proposal_id>/confirmar/", views.confirm_plan_proposal, name="confirm_plan_proposal"),
     # ETAPA9_PHASES: transiciones explícitas, sin SQL nuevo.
     path("<uuid:plan_id>/encuentro/finalizar/", views.finish_plan_meeting, name="finish_plan_meeting"),

@@ -69,3 +69,48 @@ html[data-theme='dark'] .proposal-uno__table .proposal-uno__results a { color: #
 .proposal-uno[data-uno-busy="true"] button:disabled { cursor: progress; }
 @media (max-width: 600px) { .proposal-uno__header { align-items: start; flex-direction: column; } .proposal-uno__start .proposal-uno__button { margin-left: 0; } .proposal-uno__card, .proposal-uno .proposal-uno__deck { width: 4.3rem; height: 6.3rem; } }
 @media (prefers-reduced-motion: reduce) { .proposal-uno__hand .proposal-uno__card { transition: none; } .proposal-uno__flash strong { animation: none; } }
+
+.proposal-uno-duel__invite { display:flex; flex-wrap:wrap; align-items:end; gap:.8rem; }
+.proposal-uno-duel h5 { width:100%; margin:0 0 .2rem; color:inherit; font-size:1.05rem; }
+.proposal-uno-duel__invite label { display:grid; gap:.35rem; flex:1 1 12rem; min-width:0; font-size:.85rem; font-weight:750; }
+.proposal-uno-duel select { width:100%; min-height:44px; padding:.6rem .8rem; border:1px solid #a9c3a5; border-radius:.7rem; background:#fffdf6; color:#193e2e; font:inherit; }
+.proposal-uno-duel__matches { margin-top:1.5rem; }
+.proposal-uno-duel__match { display:flex; flex-wrap:wrap; align-items:center; gap:.7rem; margin-top:.6rem; padding:.8rem; border:1px solid #b8cdb0; border-radius:.85rem; background:#ffffff80; }
+.proposal-uno-duel__match-info { display:grid; gap:.2rem; flex:1 1 12rem; min-width:0; }
+.proposal-uno-duel__match-info span { font-size:.85rem; }
+.proposal-uno-duel__match select { flex:1 1 12rem; }
+.proposal-uno-duel__secondary { min-height:44px; padding:.65rem .9rem; border:1px solid #819c80; border-radius:.75rem; background:#fffdf6; color:#193e2e; font:inherit; font-weight:750; cursor:pointer; }
+.proposal-uno-duel button:disabled { cursor:progress; opacity:.65; }
+.proposal-uno-duel__empty { margin:.5rem 0; opacity:.8; }
+html[data-theme='dark'] .proposal-uno-duel select,
+html[data-theme='dark'] .proposal-uno-duel__secondary { background:#183d2e; border-color:#6e9276; color:#fffaf0; }
+html[data-theme='dark'] .proposal-uno-duel__match { background:#173e2eaa; border-color:#668970; }
+
+/* Elegir una mesa antes de mostrar el juego. */
+[data-uno-mode-panel][hidden] { display:none !important; }
+.proposal-uno-mode { margin:1.5rem 0; }
+.proposal-uno-mode__heading > span { color:#b57900; font-size:.72rem; font-weight:800; letter-spacing:.08em; }
+.proposal-uno-mode__heading h4 { margin:.3rem 0; color:#193e2e; font-size:clamp(1.25rem,2vw,1.65rem); }
+.proposal-uno-mode__heading p { margin:0; color:#567263; font-size:.9rem; }
+.proposal-uno-mode__choices { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.85rem; margin-top:1rem; }
+.proposal-uno-mode__choice { display:flex; align-items:center; gap:.9rem; min-width:0; min-height:88px; padding:1rem; border:1px solid #c9d9c1; border-radius:1rem; background:#f7faf0; color:#193e2e; text-align:left; font:inherit; cursor:pointer; transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease; }
+.proposal-uno-mode__choice:hover:not(:disabled) { border-color:#8eb87c; box-shadow:0 5px 14px #254a3018; transform:translateY(-2px); }
+.proposal-uno-mode__choice[aria-expanded='true'] { border-color:#6b9369; box-shadow:0 0 0 2px #b6d59d; background:#edf6e7; }
+.proposal-uno-mode__choice:focus-visible { outline:3px solid #a88ad8; outline-offset:3px; }
+.proposal-uno-mode__choice:disabled { cursor:not-allowed; opacity:.6; }
+.proposal-uno-mode__icon { display:grid; place-items:center; flex:none; width:48px; height:48px; border-radius:.85rem; font-size:1.5rem; }
+.proposal-uno-mode__icon--bot { background:#f9d574; color:#24513b; }
+.proposal-uno-mode__icon--grupo { background:#e3d5f6; color:#513d70; }
+.proposal-uno-mode__icon svg { width:24px; height:24px; }
+.proposal-uno-mode__copy { display:grid; gap:.25rem; min-width:0; flex:1; }
+.proposal-uno-mode__copy strong { font-size:1rem; }
+.proposal-uno-mode__copy small { color:#5d7866; font-size:.82rem; line-height:1.3; }
+.proposal-uno-mode__arrow { font-size:1.05rem; color:#51785c; }
+html[data-theme='dark'] .proposal-uno-mode__heading > span { color:#f8d16b; }
+html[data-theme='dark'] .proposal-uno-mode__heading h4 { color:#fffaf0; }
+html[data-theme='dark'] .proposal-uno-mode__heading p,html[data-theme='dark'] .proposal-uno-mode__copy small { color:#c4d8c5; }
+html[data-theme='dark'] .proposal-uno-mode__choice { background:#253f31; border-color:#466a50; color:#fffaf0; }
+html[data-theme='dark'] .proposal-uno-mode__choice[aria-expanded='true'] { background:#315543; border-color:#a6c683; box-shadow:0 0 0 2px #91b66e; }
+html[data-theme='dark'] .proposal-uno-mode__arrow { color:#c4d8c5; }
+@media (max-width:560px) { .proposal-uno-mode__choices { grid-template-columns:1fr; } .proposal-uno-mode__choice { min-height:76px; } }
+@media (prefers-reduced-motion:reduce) { .proposal-uno-mode__choice { transition:none; } .proposal-uno-mode__choice:hover:not(:disabled) { transform:none; } }

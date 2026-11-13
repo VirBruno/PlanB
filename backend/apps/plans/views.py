@@ -343,6 +343,7 @@ def detail(request, plan_id):
         "champion_id": champion_id,
         "combat_game": combat_game,
         "uno_enabled": uno_enabled,
+        "uno_multiplayer_enabled": uno_enabled and bool(getattr(settings, "UNO_MULTIPLAYER_ENABLED", False)),
         "voted_proposal_id": voted_proposal_id,
         "ideal_summary": _proposal_ideal_summary(proposals) if show_ideal else None,
         "show_ideal_popup": show_ideal and election_method in (None, "ideal"),

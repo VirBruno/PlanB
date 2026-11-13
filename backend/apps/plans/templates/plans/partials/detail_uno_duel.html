@@ -1,0 +1,54 @@
+{% load static %}
+<section class="proposal-uno proposal-uno-duel" id="uno-grupo-panel" data-uno-duel data-uno-mode-panel="grupo" hidden
+         data-duel-lobby-url="{% url 'plans:uno_duel_lobby' plan.id %}"
+         data-duel-game-url="{% url 'plans:uno_duel_game' '00000000-0000-0000-0000-000000000000' %}"
+         data-duel-card-base="{% static 'users/img/naipes-uno/' %}" aria-labelledby="uno-duel-title">
+  {% csrf_token %}
+  <header class="proposal-uno__header">
+    <div><span class="proposal-uno__eyebrow">JUEGUEN EN GRUPO</span><h4 id="uno-duel-title">UNO <span>entre integrantes</span></h4></div>
+    <p>Cada persona elige la propuesta que quiere representar.</p>
+  </header>
+  <div class="proposal-uno__table">
+    <div data-duel-lobby>
+      <form class="proposal-uno-duel__invite" data-duel-invite>
+        <h5>Invitá a alguien a jugar</h5>
+        <label>Represento a
+          <select name="proposal_id" required data-duel-proposals>
+            <option value="">Elegí una propuesta</option>
+            {% for proposal in proposals %}<option value="{{ proposal.id }}">{{ proposal.tittle }}</option>{% endfor %}
+          </select>
+        </label>
+        <label>Invitar a
+          <select name="invitee_id" required data-duel-members><option value="">Cargando integrantes…</option></select>
+        </label>
+        <button class="proposal-uno__button" type="submit">Enviar invitación</button>
+      </form>
+      <div class="proposal-uno-duel__matches">
+        <h5>Tus invitaciones y partidas</h5>
+        <div data-duel-matches aria-live="polite">Cargando partidas…</div>
+      </div>
+    </div>
+    <div data-duel-board hidden>
+      <div class="proposal-uno__flash" data-duel-flash role="status" aria-live="polite" hidden><strong data-duel-flash-title></strong><div class="proposal-uno__flash-card" data-duel-flash-card></div><span data-duel-flash-detail></span></div>
+      <div class="proposal-uno__opponent"><span data-duel-opponent>RIVAL</span><strong data-duel-opponent-count></strong><div class="proposal-uno__bot-cards" data-duel-opponent-cards aria-hidden="true"></div></div>
+      <div class="proposal-uno__center">
+        <div class="proposal-uno__deck-wrap"><button class="proposal-uno__deck proposal-truco-card-back" type="button" data-duel-draw aria-label="Robar una carta del mazo"></button><span>Robar</span></div>
+        <div class="proposal-uno__pile"><span>EN MESA</span><div data-duel-top></div></div>
+        <div class="proposal-uno__current"><span>COLOR ACTUAL</span><strong data-duel-color></strong></div>
+      </div>
+      <div class="proposal-uno__hand-heading"><strong>Tus cartas</strong><span data-duel-turn></span></div>
+      <div class="proposal-uno__hand" data-duel-hand aria-label="Tus cartas"></div>
+      <div class="proposal-uno__colors" data-duel-colors role="group" aria-label="Elegí un color para el comodín" hidden>
+        <strong>Elegí un color</strong>
+        <button type="button" data-duel-choose="rojo">Rojo</button><button type="button" data-duel-choose="amarillo">Amarillo</button><button type="button" data-duel-choose="verde">Verde</button><button type="button" data-duel-choose="azul">Azul</button><button type="button" data-duel-cancel>Cancelar</button>
+      </div>
+      <div class="proposal-uno__actions">
+        <button class="proposal-uno__button" type="button" data-duel-pass hidden>Pasar turno</button>
+        <button class="proposal-uno-duel__secondary" type="button" data-duel-forfeit>Abandonar partida</button>
+        <button class="proposal-uno-duel__secondary" type="button" data-duel-back>Volver a partidas</button>
+      </div>
+      <p class="proposal-uno__results" data-duel-results hidden><a href="?combat_game=uno#proposal-combat">Actualizar clasificación <span aria-hidden="true">↗</span></a></p>
+    </div>
+    <p class="proposal-uno__message" data-duel-message role="status" aria-live="polite"></p>
+  </div>
+</section>

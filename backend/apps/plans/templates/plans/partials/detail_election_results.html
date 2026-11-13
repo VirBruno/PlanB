@@ -31,7 +31,7 @@
     {% endif %}
     {% elif election_method == 'votes' %}
     <section class="proposal-leaderboard" aria-labelledby="proposal-vote-title">
-      <div class="proposal-leaderboard-heading"><h3 id="proposal-vote-title">Votación</h3><p>{% if confirmed_layout %}Resultado de los votos para este encuentro.{% else %}Podés cambiar tu voto o quitarlo cuando quieras.{% endif %}</p></div>
+      <div class="proposal-leaderboard-heading"><h3 id="proposal-vote-title" class="proposal-result-title">Votación</h3><p>{% if confirmed_layout %}Resultado de los votos para este encuentro.{% else %}Podés cambiar tu voto o quitarlo cuando quieras.{% endif %}</p></div>
       {% if champion_id %}<p class="proposal-champion">Propuesta campeona: <strong>{{ leaderboard.0.tittle }}</strong></p>{% endif %}
       <ol class="proposal-ranking">
         {% for proposal in leaderboard %}
@@ -41,7 +41,11 @@
     </section>
     {% elif election_method == 'combat' %}
     <section class="proposal-leaderboard" id="proposal-combat" aria-labelledby="proposal-combat-title">
-      <div class="proposal-leaderboard-heading"><div><h3 id="proposal-combat-title">Combate</h3><p>Los puntajes se ordenan por juego; los empates comparten puesto.</p></div></div>
+      {% if plan.selected_proposal_id %}
+      <div class="proposal-leaderboard-heading"><h3 id="proposal-combat-title">Resultado del combate</h3></div>
+      {% if confirmed_proposal %}<p class="proposal-champion">Propuesta ganadora: <strong>{{ confirmed_proposal.tittle }}</strong></p>{% else %}<p>La propuesta ganadora no está disponible en este listado.</p>{% endif %}
+      {% else %}
+      <div class="proposal-leaderboard-heading"><div><h3 id="proposal-combat-title" class="proposal-result-title">Combate</h3><p>Los puntajes se ordenan por juego; los empates comparten puesto.</p></div></div>
       <nav class="proposal-combat-games" aria-label="Elegir juego de combate">
         <a class="proposal-combat-choice{% if combat_game == 'arcade' %} is-selected{% endif %}" href="?combat_game=arcade#proposal-combat" data-combat-choice="arcade"{% if combat_game == 'arcade' %} aria-current="true"{% endif %}>
           <img class="proposal-combat-choice__art" src="{% static 'users/img/juegos/arcade.png' %}" alt="" loading="lazy">
@@ -57,10 +61,25 @@
         </a>
       </nav>
       {% if champion_id %}<p class="proposal-champion">Propuesta campeona: <strong>{{ leaderboard.0.tittle }}</strong></p>{% endif %}
+      {% if combat_game == 'uno' and uno_multiplayer_enabled and plan.status and not plan.selected_proposal_id %}
+      <section class="proposal-uno-mode" data-uno-mode aria-labelledby="uno-mode-title">
+        <div class="proposal-uno-mode__heading"><span>¡A JUGAR!</span><h4 id="uno-mode-title">¿Cómo querés jugar?</h4><p>Elegí una opción para preparar tu mesa.</p></div>
+        <div class="proposal-uno-mode__choices">
+          <button class="proposal-uno-mode__choice" type="button" data-uno-mode-choice="bot" aria-controls="uno-bot-panel" aria-expanded="false"{% if not my_proposal %} disabled{% endif %}>
+            <span class="proposal-uno-mode__icon proposal-uno-mode__icon--bot" aria-hidden="true">✦</span>
+            <span class="proposal-uno-mode__copy"><strong>Contra el bot</strong><small>{% if my_proposal %}Jugá cuando quieras{% else %}Creá una propuesta para jugar{% endif %}</small></span><span class="proposal-uno-mode__arrow" aria-hidden="true">↗</span>
+          </button>
+          <button class="proposal-uno-mode__choice" type="button" data-uno-mode-choice="grupo" aria-controls="uno-grupo-panel" aria-expanded="false">
+            <span class="proposal-uno-mode__icon proposal-uno-mode__icon--grupo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"></circle><path d="M3 19v-1a6 6 0 0 1 12 0v1M16 5.5a3 3 0 0 1 0 5.8M17 13a5 5 0 0 1 4 5v1"></path></svg></span>
+            <span class="proposal-uno-mode__copy"><strong>Con mi grupo</strong><small>Invitá a alguien a jugar</small></span><span class="proposal-uno-mode__arrow" aria-hidden="true">↗</span>
+          </button>
+        </div>
+      </section>
+      {% endif %}
       {% if combat_game == 'arcade' %}{% include 'plans/partials/detail_combat_ranking.html' %}{% endif %}
       {% if election_method == 'combat' %}
       {% if my_proposal and not plan.selected_proposal_id %}
-      <div class="proposal-combat-game" data-combat-game>
+      <div class="proposal-combat-game" data-combat-game{% if combat_game == 'uno' and uno_multiplayer_enabled and plan.status %} id="uno-bot-panel" data-uno-mode-panel="bot" hidden{% endif %}>
         <div class="proposal-combat-copy"><span>Tu propuesta</span><strong>{{ my_proposal.tittle }}</strong><span>{% if combat_game == 'uno' %}{% if uno_enabled %}<span data-uno-victories>{{ my_proposal.uno_victories }} victorias</span>{% else %}Prueba sin puntos{% endif %}{% else %}Mejor puntaje: {% if combat_game == 'truco' %}{{ my_proposal.truco_score }}/30{% else %}{{ my_proposal.Score }}{% endif %}{% endif %}</span></div>
         <div data-combat-arcade{% if combat_game != 'arcade' %} hidden{% endif %}>
         <canvas class="proposal-combat-canvas" width="720" height="320" data-combat-canvas role="img" aria-label="Juego de vuelo: evitá los obstáculos para sumar puntos"></canvas>
@@ -140,9 +159,15 @@
         {% if combat_game == 'uno' %}{% include 'plans/partials/detail_uno_game.html' %}{% endif %}
       </div>
       {% else %}
+      {% if combat_game != 'uno' or not uno_multiplayer_enabled %}
       <p class="proposal-method-note">{% if confirmed_layout %}Las partidas forman parte del proceso de decisión del grupo.{% else %}Creá tu propuesta para poder jugar por ella.{% endif %}</p>
       {% endif %}
       {% endif %}
+      {% endif %}
+      {% if combat_game == 'uno' and uno_multiplayer_enabled and plan.status and not plan.selected_proposal_id %}
+        {% include 'plans/partials/detail_uno_duel.html' %}
+      {% endif %}
       {% if combat_game == 'truco' or combat_game == 'uno' and uno_enabled %}{% include 'plans/partials/detail_combat_ranking.html' %}{% endif %}
+      {% endif %}
     </section>
     {% endif %}

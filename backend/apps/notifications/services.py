@@ -98,6 +98,8 @@ def list_notifications(access_token, *, page=1):
                 item['expense_amount'] = derived_money(row['expense_amount'])
                 if not isinstance(item['creditor_username'], str) or not item['creditor_username']:
                     raise ValueError
+            elif item['type'] == 'uno_duel_invitation':
+                item.update(_plan_reference(row))
             items.append(item)
         return {'items': items, 'page': page,
                 'previous_page': page - 1 if page > 1 else None,

@@ -274,7 +274,7 @@ class PlanViewsTests(TestCase):
     @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row())
     def test_group_owner_sees_three_choices_in_the_method_button(self, get_plan, get_group, list_proposals):
         response = self.client.get(f"/planes/{PLAN_ID}/")
-        self.assertContains(response, '<summary data-method-picker>Elija su Método de elección</summary>')
+        self.assertContains(response, '<summary data-method-picker>Elegir método</summary>')
         self.assertContains(response, 'value="ideal"')
         self.assertContains(response, 'value="votes"')
         self.assertContains(response, 'value="combat"')
