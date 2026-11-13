@@ -9,15 +9,19 @@
 .pb-app-shell .pb-organizing-layout .pb-proposals-grid { gap: 12px; margin: 0 0 20px; }
 .pb-app-shell .pb-organizing-layout .pb-proposal-card { padding: 18px !important; gap: 9px !important; box-shadow: none !important; border-radius: 15px !important; }
 .pb-app-shell .pb-organizing-layout .pb-proposal-card h3 { margin: 6px 0; }
+.pb-app-shell .pb-plan-detail.pb-organizing-layout .pb-election-card {
+  gap: 16px !important; margin: 12px 0 20px !important;
+  border: 0 !important; border-top: 5px solid #F4D06F !important;
+}
 .pb-app-shell .pb-organizing-layout .proposal-election {
-  padding: 12px 0 !important; margin: 12px 0 0 !important;
-  border: 0 !important; border-top: 1px solid var(--line) !important;
+  padding: 0 !important; margin: 0 !important;
+  border: 0 !important;
   border-radius: 0 !important; background: transparent !important; box-shadow: none !important;
 }
 .pb-app-shell .pb-organizing-layout .proposal-method-active { border: 0 !important; padding: 3px 8px; }
 .pb-app-shell .pb-organizing-layout .proposal-method-picker > summary { min-height: 40px; }
 .pb-app-shell .pb-organizing-layout .proposal-leaderboard {
-  margin: 0 0 20px !important; padding: 12px 0 0 !important;
+  margin: 0 !important; padding: 0 !important;
   border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important;
   gap: 12px;
 }
@@ -45,7 +49,6 @@
   .pb-app-shell .pb-organizing-layout .proposal-combat-games { gap: 5px; }
   .pb-app-shell .pb-organizing-layout .proposal-combat-choice { width: calc((100% - 10px) / 3); }
 }
-
 /* Reducir el espacio entre la navegación y el contenido del plan. */
 .pb-app-shell:has(.pb-organizing-layout) .pb-app-topbar { margin-bottom: 8px; }
 .pb-app-shell:has(.pb-organizing-layout) .pb-plan-back { margin-bottom: 2px; padding: 4px 0; }

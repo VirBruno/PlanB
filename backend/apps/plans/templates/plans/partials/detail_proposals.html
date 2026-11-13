@@ -5,8 +5,10 @@
     </div>
     {% if proposals %}
     {% include 'plans/partials/detail_proposal_list.html' %}
-    {% include 'plans/partials/detail_election_method.html' %}
-    {% include 'plans/partials/detail_election_results.html' %}
+    <div class="pb-proposal-card pb-election-card">
+      {% include 'plans/partials/detail_election_method.html' %}
+      {% include 'plans/partials/detail_election_results.html' %}
+    </div>
     {% else %}
     <div class="pb-proposals-empty"><span aria-hidden="true">✧</span><h3>¡El primer plan empieza con una idea!</h3><p>Todavía no hay propuestas para este plan.</p>{% if can_create_proposal and not plan.selected_proposal_id %}<a class="button button--primary" href="{% url 'plans:proposal_create' plan.id %}">Compartir mi propuesta</a>{% endif %}</div>
     {% endif %}

@@ -136,7 +136,7 @@ body:has(.pb-app-shell .pb-plan-detail),
 .pb-plan-detail .pb-proposals-count{background:#E5EFD9!important;color:#1F4D3A!important}
 .pb-plan-detail .pb-proposals-heading .button,.pb-plan-detail .pb-confirm-form .button--primary{background:#1F4D3A!important;background-image:none!important;color:#FFFDF8!important;border:0!important;border-radius:13px!important}
 .pb-plan-detail .pb-proposals-heading .button:hover{background:#32694F!important;transform:translateY(-2px)}
-.pb-plan-detail .proposal-election{background:#FFF0BE!important;background-image:none!important;border:1px solid #F0DEA9!important;border-radius:24px!important;box-shadow:none!important}
+.pb-plan-detail .proposal-election{background:transparent!important;background-image:none!important;border:1px solid #E8DFD4!important;border-radius:24px!important;box-shadow:none!important}
 .pb-plan-detail .proposal-election-heading h3{color:#1F4D3A!important}
 .pb-plan-detail .proposal-method-active{background:#FFFDF8!important;color:#1F4D3A!important;border-color:#E8DFD4!important}
 .pb-plan-detail .proposal-method-option{border-radius:14px!important}
@@ -177,7 +177,7 @@ html[data-theme='dark'] .pb-plan-detail .pb-decision-meta a{color:#F4D06F!import
 html[data-theme='dark'] .pb-plan-detail .pb-climate-planner,html[data-theme='dark'] .pb-plan-detail .pb-proposal-card,html[data-theme='dark'] .pb-plan-detail .pb-proposals-empty{background:#253D2F!important;border-color:#45614C!important}
 html[data-theme='dark'] .pb-plan-detail .pb-schedule-summary{background:#22372B!important;border-color:#3D5846!important}
 html[data-theme='dark'] .pb-plan-detail .pb-schedule-summary h2,html[data-theme='dark'] .pb-plan-detail .pb-climate-head h2,html[data-theme='dark'] .pb-plan-detail .pb-proposals-heading h2,html[data-theme='dark'] .pb-plan-detail .proposal-election-heading h3{color:#FAF7F0!important}
-html[data-theme='dark'] .pb-plan-detail .proposal-election{background:#4D4332!important;border-color:#6E6044!important}
+html[data-theme='dark'] .pb-plan-detail .proposal-election{background:transparent!important;border-color:#45614C!important}
 html[data-theme='dark'] .pb-plan-detail .proposal-method-active{background:#2A4233!important;color:#FAF7F0!important;border-color:#59725D!important}
 html[data-theme='dark'] .pb-plan-detail .proposal-type{background:#385B44!important;color:#E2EFDD!important}
 html[data-theme='dark'] .pb-plan-detail .pb-proposals-count{color:#1F4D3A!important}
