@@ -84,7 +84,34 @@
           L.circleMarker(ideal.center, {
             radius: 8, color: "#c24d35", fillColor: "#fff", fillOpacity: 1, weight: 3,
           }).addTo(idealMap).bindTooltip("Centro geográfico");
-          idealMap.fitBounds(idealArea.getBounds(), { padding: [24, 24] });
+          const mapBounds = idealArea.getBounds();
+          const place = ideal.recommended_place;
+          if (place?.status === "available") {
+            const placePoint = [Number(place.latitude), Number(place.longitude)];
+            if (placePoint.every(Number.isFinite)) {
+              const placeMarker = L.circleMarker(placePoint, {
+                radius: 10, color: "#7b3f8c", fillColor: "#c47bd1", fillOpacity: 1, weight: 3,
+              }).addTo(idealMap);
+              const placeLabel = document.createElement("span");
+              placeLabel.textContent = `Lugar recomendado: ${place.name} · ${place.is_in_area ? "dentro" : "fuera"} del área de ${radiusMeters} m`;
+              placeMarker.bindTooltip(placeLabel);
+              mapBounds.extend(placePoint);
+            }
+          }
+          if (Array.isArray(ideal.rainy_home_points)) {
+            ideal.rainy_home_points.forEach((point) => {
+              const homePoint = [Number(point.latitude), Number(point.longitude)];
+              if (!homePoint.every(Number.isFinite)) return;
+              const homeMarker = L.circleMarker(homePoint, {
+                radius: 9, color: "#24734b", fillColor: "#6bc98f", fillOpacity: 1, weight: 3,
+              }).addTo(idealMap);
+              const homeLabel = document.createElement("span");
+              homeLabel.textContent = `Opción en casa: ${point.title}`;
+              homeMarker.bindTooltip(homeLabel);
+              mapBounds.extend(homePoint);
+            });
+          }
+          idealMap.fitBounds(mapBounds, { padding: [24, 24] });
           mapStep = "loading map tiles";
           L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
             maxZoom: 19,

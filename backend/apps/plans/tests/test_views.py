@@ -6,6 +6,7 @@ from django.test import TestCase, override_settings
 
 from apps.plans.tests.test_services import GROUP_ID, PLAN_ID, USER_ID, plan_row, proposal_row
 from apps.plans.services.exceptions import PlanUnavailable
+from apps.plans.services.place_types import RecommendationError
 from apps.plans.services.proposal_exceptions import (
     ElectionSchemaUnavailable, ProposalAlreadyExists, ProposalUnavailable,
 )
@@ -289,6 +290,83 @@ class PlanViewsTests(TestCase):
         response = self.client.get(f"/planes/{PLAN_ID}/?ideal=1")
         self.assertContains(response, "data-ideal-dialog")
         self.assertContains(response, "proposal-ideal-data")
+        self.assertContains(response, "Con al menos dos propuestas")
+
+    @patch("apps.plans.views.ideal_ideas_service.suggest_ideas", return_value=[
+        {"title": "Merienda bajo techo", "description": "Combina ambas propuestas y evita la lluvia.",
+         "place_intent": "cafe"},
+        {"title": "Paseo y café", "description": "Deja una opción al aire libre y otra protegida.",
+         "place_intent": "park"},
+    ])
+    @patch("apps.plans.views.ideal_ideas_service.recommend_place", return_value={
+        "status": "available", "name": "Café del centro", "address": "Buenos Aires",
+        "latitude": -34.6, "longitude": -58.4, "distance_meters": 120,
+        "is_in_area": True, "google_maps_url": "https://www.google.com/maps/",
+    })
+    @patch("apps.plans.views.ideal_ideas_service.rainy_home_proposals", return_value=[
+        {"title": "Merienda en casa", "latitude": -34.6, "longitude": -58.4},
+    ])
+    @patch("apps.plans.views.ideal_ideas_service.weather_for_proposals")
+    @patch("apps.plans.views.proposal_service.list_proposals")
+    @patch("apps.plans.views.group_service.get_group", return_value={"id": GROUP_ID, "name": "Mi grupo", "role": "member"})
+    @patch("apps.plans.views.plan_service.get_plan", return_value=plan_row(election_method="ideal"))
+    def test_ideal_popup_shows_weather_and_ideas_from_all_proposals(
+        self, get_plan, get_group, list_proposals, weather_for_proposals,
+        rainy_home_proposals, recommend_place, suggest_ideas,
+    ):
+        proposals = [
+            {"id": 47, "created_by": USER_ID, "tittle": "Merienda al aire libre",
+             "type": "juntada", "description": "Tomar algo en una plaza",
+             "date_pick": None, "latitude": -34.6, "longitude": -58.4,
+             "budget_min": Decimal("100"), "budget_max": Decimal("200")},
+            {"id": 48, "created_by": "e0c9b706-c892-4f13-8432-86ce10caf447",
+             "tittle": "Café de especialidad", "type": "salida",
+             "description": "Charlar en un lugar tranquilo",
+             "date_pick": None, "latitude": -34.7, "longitude": -58.3,
+             "budget_min": Decimal("200"), "budget_max": Decimal("400")},
+        ]
+        weather = [
+            {"title": "Merienda al aire libre", "weather": {
+                "status": "available", "date": "2026-11-20", "condition": "Lluvia",
+                "temperature_min": 15, "temperature_max": 20,
+                "rain_probability": 80, "wind_max": 24,
+            }},
+            {"title": "Café de especialidad", "weather": {"status": "too_early"}},
+        ]
+        list_proposals.return_value = proposals
+        weather_for_proposals.return_value = weather
+
+        response = self.client.get(f"/planes/{PLAN_ID}/?ideal=1")
+
+        weather_for_proposals.assert_called_once_with(proposals)
+        rainy_home_proposals.assert_called_once_with(proposals, weather)
+        suggest_ideas.assert_called_once_with(proposals, weather)
+        recommend_place.assert_called_once()
+        place_args, place_kwargs = recommend_place.call_args
+        self.assertEqual(place_args[0], suggest_ideas.return_value)
+        self.assertAlmostEqual(place_args[1][0], -34.65)
+        self.assertAlmostEqual(place_args[1][1], -58.35)
+        self.assertEqual(place_kwargs, {"area_radius_meters": 200})
+        self.assertContains(response, "Clima previsto para cada propuesta")
+        self.assertContains(response, "Lluvia: 80%")
+        self.assertContains(response, "Ideas para combinar las propuestas")
+        self.assertContains(response, "Merienda bajo techo")
+        self.assertContains(response, "Paseo y café")
+        self.assertContains(response, "Lugar real recomendado")
+        self.assertContains(response, "Café del centro")
+        self.assertContains(response, "dentro del área de 200 m")
+        self.assertContains(response, "Los puntos verdes del mapa marcan las propuestas")
+        self.assertContains(response, '"rainy_home_points"')
+        self.assertContains(response, '"recommended_place"')
+
+        recommend_place.side_effect = RecommendationError("timeout")
+        place_unavailable_response = self.client.get(f"/planes/{PLAN_ID}/?ideal=1")
+        self.assertContains(place_unavailable_response, "No pudimos buscar un lugar real ahora.")
+        recommend_place.side_effect = None
+
+        suggest_ideas.side_effect = RecommendationError("timeout")
+        unavailable_response = self.client.get(f"/planes/{PLAN_ID}/?ideal=1")
+        self.assertContains(unavailable_response, "No pudimos generar ideas con la IA ahora.")
 
     @patch("apps.plans.views.proposal_service.list_proposals", return_value=[
         {"id": 47, "created_by": USER_ID, "tittle": "Merienda", "type": "juntada",
@@ -488,7 +566,7 @@ class PlanViewsTests(TestCase):
         self.assertContains(response, "/static/leaflet.js")
         self.assertNotContains(response, f"/planes/{PLAN_ID}/propuestas/nueva/")
         self.assertNotContains(response, "Calcular propuesta ideal")
-        self.assertContains(response, "Ver cálculo de ubicación y presupuesto")
+        self.assertContains(response, "Ver cálculo e ideas para el encuentro")
         self.assertContains(response, "Ya compartiste tu propuesta para este plan.")
         self.assertEqual(
             response.headers["Referrer-Policy"], "strict-origin-when-cross-origin",

@@ -25,10 +25,12 @@ from .services import plan_service
 from .services.exceptions import InvalidPlan, PlanNotFound, PlanUnavailable, PlanningSchemaUnavailable
 from .services import proposal_service
 from .services import election_service
+from .services import ideal_ideas_service
 from .services import uno_supabase
 from .services import plan_confirmation_service
 from .services import weather_service
 from .services import plan_weather_service
+from .services.place_types import RecommendationError
 from .services.proposal_exceptions import (
     ElectionFlexibilityUnavailable, ElectionSchemaUnavailable, InvalidProposal,
     ProposalAlreadyExists, ProposalNotFound, ProposalUnavailable,
@@ -320,6 +322,36 @@ def detail(request, plan_id):
     # El cálculo es de consulta: cualquier integrante con acceso al plan puede verlo.
     # _plan_and_group/get_group ya valida la pertenencia mediante el JWT del usuario.
     show_ideal = request.GET.get("ideal") == "1"
+    show_ideal_popup = show_ideal and election_method in (None, "ideal")
+    ideal_summary = _proposal_ideal_summary(proposals) if show_ideal else None
+    ideal_weather = []
+    ideal_ideas = None
+    ideal_ideas_error = None
+    ideal_ideas_notice = None
+    ideal_place_error = None
+    rainy_home_points = []
+    ideal_place = None
+    if show_ideal_popup:
+        ideal_weather = ideal_ideas_service.weather_for_proposals(proposals)
+        rainy_home_points = ideal_ideas_service.rainy_home_proposals(proposals, ideal_weather)
+        if len(proposals) < 2:
+            ideal_ideas_notice = "Con al menos dos propuestas podemos buscar una idea que contemple ambas."
+        else:
+            try:
+                ideal_ideas = ideal_ideas_service.suggest_ideas(proposals, ideal_weather)
+                if ideal_summary and ideal_ideas:
+                    ideal_place = ideal_ideas_service.recommend_place(
+                        ideal_ideas, ideal_summary["center"],
+                        area_radius_meters=ideal_summary["radius_meters"],
+                    )
+            except RecommendationError:
+                if ideal_ideas is None:
+                    ideal_ideas_error = "No pudimos generar ideas con la IA ahora. Probá de nuevo más tarde."
+                else:
+                    ideal_place_error = "No pudimos buscar un lugar real ahora. Probá de nuevo más tarde."
+    if ideal_summary:
+        ideal_summary["recommended_place"] = ideal_place
+        ideal_summary["rainy_home_points"] = rainy_home_points
     scheduled_local = (timezone.localtime(plan["scheduled_at"], weather_service.ARGENTINA_TZ)
                        if plan.get("scheduled_at") else None)
     return render(request, "plans/detail.html", {
@@ -343,8 +375,14 @@ def detail(request, plan_id):
         "uno_enabled": uno_enabled,
         "uno_multiplayer_enabled": uno_enabled and bool(getattr(settings, "UNO_MULTIPLAYER_ENABLED", False)),
         "voted_proposal_id": voted_proposal_id,
-        "ideal_summary": _proposal_ideal_summary(proposals) if show_ideal else None,
-        "show_ideal_popup": show_ideal and election_method in (None, "ideal"),
+        "ideal_summary": ideal_summary,
+        "show_ideal_popup": show_ideal_popup,
+        "ideal_weather": ideal_weather,
+        "ideal_ideas": ideal_ideas,
+        "ideal_ideas_error": ideal_ideas_error,
+        "ideal_ideas_notice": ideal_ideas_notice,
+        "ideal_place": ideal_place,
+        "ideal_place_error": ideal_place_error,
         "scheduled_local": scheduled_local,
         "scheduled_date_iso": scheduled_local.strftime("%Y-%m-%d") if scheduled_local else "",
         "scheduled_hour": scheduled_local.strftime("%H:%M") if scheduled_local else "",

@@ -1,7 +1,7 @@
 {% load l10n static %}
     {% if election_method == 'ideal' or show_ideal_popup %}
     {% if election_method == 'ideal' %}
-    <a class="proposal-ideal-view" href="?ideal=1#proposal-ideal-card">Ver cálculo de ubicación y presupuesto</a>
+    <a class="proposal-ideal-view" href="?ideal=1#proposal-ideal-card">Ver cálculo e ideas para el encuentro</a>
     {% endif %}
     {% if ideal_summary %}
     <dialog class="proposal-ideal-dialog" id="proposal-ideal-card" data-ideal-dialog aria-labelledby="proposal-ideal-title">
@@ -11,7 +11,7 @@
           <div>
             <p class="eyebrow eyebrow--blue">UBICACIÓN INTERMEDIA</p>
             <h3 id="proposal-ideal-title">Propuesta ideal</h3>
-            <p>Área aproximada de 2 cuadras de radio (200 m), centrada entre las ubicaciones propuestas.</p>
+            <p>Área aproximada de 2 cuadras de radio (200 m), centrada entre las ubicaciones propuestas. También consideramos sus ideas y el pronóstico disponible.</p>
           </div>
           <div class="proposal-ideal-budget">
             <span>Presupuesto ideal</span>
@@ -24,7 +24,66 @@
             {% endif %}
           </div>
         </div>
-        <div class="proposal-ideal-map" data-ideal-map role="img" aria-label="Mapa del centro geográfico y perímetro de las propuestas"></div>
+        {% if ideal_weather %}
+        <section class="proposal-ideal-weather" aria-labelledby="proposal-ideal-weather-title">
+          <h4 id="proposal-ideal-weather-title">Clima previsto para cada propuesta</h4>
+          <ul>
+            {% for item in ideal_weather %}
+            <li>
+              <strong>{{ item.title }}</strong>
+              {% if item.weather.status == 'available' %}
+              <span>{{ item.weather.condition }}{% if item.weather.temperature_min != None and item.weather.temperature_max != None %} · {{ item.weather.temperature_min }}° a {{ item.weather.temperature_max }}°{% endif %}{% if item.weather.rain_probability != None %} · Lluvia: {{ item.weather.rain_probability }}%{% endif %}</span>
+              {% elif item.weather.status == 'missing_date' %}
+              <span>Sin fecha para consultar el pronóstico.</span>
+              {% elif item.weather.status == 'past' %}
+              <span>La fecha ya pasó; no hay pronóstico.</span>
+              {% elif item.weather.status == 'too_early' %}
+              <span>El pronóstico estará disponible cuando falten 15 días o menos.</span>
+              {% else %}
+              <span>No pudimos consultar el pronóstico.</span>
+              {% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+        </section>
+        {% endif %}
+        <section class="proposal-ideal-ideas" aria-labelledby="proposal-ideal-ideas-title">
+          <h4 id="proposal-ideal-ideas-title">Ideas para combinar las propuestas</h4>
+          {% if ideal_ideas %}
+          <ol>
+            {% for idea in ideal_ideas %}
+            <li><strong>{{ idea.title }}</strong><p>{{ idea.description }}</p></li>
+            {% endfor %}
+          </ol>
+          {% elif ideal_ideas_error %}
+          <p role="status">{{ ideal_ideas_error }} <a href="?ideal=1#proposal-ideal-card">Intentar de nuevo</a></p>
+          {% elif ideal_ideas_notice %}
+          <p>{{ ideal_ideas_notice }}</p>
+          {% endif %}
+        </section>
+        <section class="proposal-ideal-place" aria-labelledby="proposal-ideal-place-title">
+          <h4 id="proposal-ideal-place-title">Lugar real recomendado</h4>
+          {% if ideal_place.status == 'available' %}
+          <p><strong>{{ ideal_place.name }}</strong>{% if ideal_place.address %} · {{ ideal_place.address }}{% endif %}</p>
+          <p>{{ ideal_place.distance_meters|floatformat:0 }} m del centro; {% if ideal_place.is_in_area %}dentro{% else %}fuera{% endif %} del área de 200 m.</p>
+          <a href="{{ ideal_place.google_maps_url }}" target="_blank" rel="noopener noreferrer">Abrir en Google Maps</a>
+          <p>El punto violeta del mapa identifica este lugar.</p>
+          {% elif ideal_place.status == 'no_results' %}
+          <p>No encontramos un lugar de ese tipo cerca del centro.</p>
+          {% elif ideal_place.status == 'no_place_intent' %}
+          <p>Las ideas no apuntan a un establecimiento público que podamos ubicar.</p>
+          {% elif ideal_place_error %}
+          <p role="status">{{ ideal_place_error }}</p>
+          {% elif ideal_ideas_error %}
+          <p>Cuando podamos generar las ideas, también buscaremos un lugar real.</p>
+          {% elif ideal_ideas_notice %}
+          <p>Con al menos dos propuestas podremos buscar un lugar real.</p>
+          {% endif %}
+          {% if ideal_summary.rainy_home_points %}
+          <p>Los puntos verdes del mapa marcan las propuestas que mencionan casa u hogar y tienen pronóstico de lluvia.</p>
+          {% endif %}
+        </section>
+        <div class="proposal-ideal-map" data-ideal-map role="img" aria-label="Mapa del centro, el área, el lugar recomendado y las propuestas en casa si llueve"></div>
       </section>
       {{ ideal_summary|json_script:"proposal-ideal-data" }}
     </dialog>

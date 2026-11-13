@@ -14,7 +14,7 @@
           {% csrf_token %}
           <div class="proposal-method-options" role="group" aria-label="Métodos de elección">
             <button class="proposal-method-option{% if election_method == 'ideal' %} is-active{% endif %}" type="submit" name="method" value="ideal" {% if election_method == 'ideal' %}aria-pressed="true"{% endif %}>
-              <strong>1. Punto de encuentro</strong><span>Calcula ubicación intermedia y presupuesto de referencia.</span>
+              <strong>1. Punto de encuentro</strong><span>Calcula el punto medio y el presupuesto, y sugiere ideas según las propuestas y el clima.</span>
             </button>
             <button class="proposal-method-option{% if election_method == 'votes' %} is-active{% endif %}" type="submit" name="method" value="votes" {% if election_method == 'votes' %}aria-pressed="true"{% endif %}>
               <strong>2. Votación</strong><span>Cada integrante elige una propuesta.</span>

@@ -167,11 +167,28 @@ cambiarlo; los puntajes sólo se guardan para el juego activo. La app muestra el
 juego guardado a todos y no acepta cambiarlo con parámetros de URL. Aplicar esta
 migración antes de publicar la versión nueva.
 
+Al abrir Punto de encuentro, la app calcula el centro y el presupuesto y consulta
+el pronóstico de cada propuesta. Gemini usa los títulos, descripciones, tipos,
+fechas, presupuestos y pronósticos disponibles para sugerir entre dos y tres
+ideas con una categoría de lugar controlada; no recibe coordenadas ni datos de
+sesión. Geoapify busca un establecimiento real de esa categoría hasta 5 km del
+centro. El mapa lo distingue y muestra su distancia y si está dentro del área de
+200 m; también incluye las propuestas cuyo título o descripción menciona casa,
+hogar o domicilio cuando el pronóstico de esa misma propuesta indica lluvia.
+El pronóstico sólo está
+disponible hasta 15 días antes de cada fecha. Si falta una de las propuestas, el
+pronóstico no está disponible o falla la IA, el detalle lo indica sin ocultar el
+cálculo geográfico. Para generar ideas se necesita configurar `GEMINI_API_KEY`.
+Las ideas y los lugares se cachean en memoria sin vencimiento temporal para los
+mismos datos, pero la caché es local al proceso y puede perderse al reiniciar,
+al usar otra instancia o por expulsión de entradas.
+
 Prueba manual con dos integrantes:
 
 1. Como owner del grupo, elegir Punto de encuentro y comprobar que abre el
-  cálculo geográfico existente; elegir Votación y comprobar que cada persona
-  puede emitir un voto y que el conteo y la propuesta campeona se actualizan.
+  cálculo geográfico, muestra el pronóstico disponible para cada propuesta y
+  sugiere ideas que tengan en cuenta ambas; elegir Votación y comprobar que cada
+  persona puede emitir un voto y que el conteo y la propuesta campeona se actualizan.
 2. Cambiar el voto a otra propuesta y confirmar que baja el conteo anterior y
   sube el nuevo; quitar el voto y confirmar que desaparece y el conteo baja.
 3. Cambiar entre Votación y Combate después de tener resultados; verificar que
