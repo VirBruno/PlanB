@@ -267,9 +267,7 @@ html[data-theme='dark'] .pb-plan-detail .pb-decision-panel .pb-decision-meta spa
 .pb-plan-detail .proposal-election:has(.proposal-method-note):not(:has(.proposal-method-picker)){padding:20px 24px!important}
 .pb-plan-detail .proposal-election:has(.proposal-method-note):not(:has(.proposal-method-picker)) .proposal-election-heading{margin-bottom:6px!important}
 .pb-plan-detail .proposal-election:has(.proposal-method-note):not(:has(.proposal-method-picker)) .proposal-method-note{margin:6px 0 0!important}
-.pb-plan-detail .proposal-ranking>li.is-champion{border-left:4px solid #A7C957!important;padding-left:12px!important}
 .pb-plan-detail .proposal-ranking>li.is-champion .proposal-ranking-name{font-weight:800!important}
-html[data-theme='dark'] .pb-plan-detail .proposal-ranking>li.is-champion{border-left-color:#F4D06F!important}
 @media(max-width:600px){.pb-plan-detail .proposal-election:has(.proposal-method-note):not(:has(.proposal-method-picker)){padding:18px!important}}
 
 
